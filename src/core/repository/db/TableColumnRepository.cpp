@@ -10,33 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   UserViewRepository.cpp
+ * @file   TableColumnRepository.cpp
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
  * @date   2024-11-25
  *********************************************************************/
-#include "UserViewRepository.h"
+#include "TableColumnRepository.h"
 #include <list>
+#include "utils/StringUtil.h"
 
-UserViewList UserViewRepository::getAll(uint64_t connectId, const std::string& schema)
+ColumnInfoList TableColumnRepository::getAll(uint64_t connectId, const std::string& schema, const std::string & tableName)
 {
-    UserViewList result;
+    ColumnInfoList result;
 
     if (connectId <= 0 || schema.empty()) {
 		return result;
 	}
 	
 	try {
-		std::list<sql::SQLString> types{"VIEW"};
 		auto connect = getUserConnect(connectId);
 		auto catalog = connect->getCatalog();
-		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, "%", types));
+		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getColumns(catalog, schema, tableName, "%"));
 		while (resultSet->next()) {
-			if (schema == "information_schema" && resultSet->getString("TABLE_TYPE") == "VIEW") {
-				continue;
-			}
-			UserView item = toUserView(resultSet.get());
+			
+			ColumnInfo item = toColumnInfo(resultSet.get());
 			result.push_back(item);
 		}
 		resultSet->close();
@@ -51,15 +49,21 @@ UserViewList UserViewRepository::getAll(uint64_t connectId, const std::string& s
     return result;
 }
 
-UserView UserViewRepository::toUserView(sql::ResultSet* rs)
+ColumnInfo TableColumnRepository::toColumnInfo(sql::ResultSet* rs)
 {
-	UserView result;
+	ColumnInfo result;
 	result.catalog = rs->getString("TABLE_CAT").asStdString();
 	result.schema = rs->getString("TABLE_SCHEM").asStdString();
-	result.name = rs->getString("TABLE_NAME").asStdString();
-	result.tblName = result.name;
-	result.type = rs->getString("TABLE_TYPE").asStdString();
-	result.comment = rs->getString("REMARKS").asStdString();
+	result.table = rs->getString("TABLE_NAME").asStdString();
+	result.name = rs->getString("COLUMN_NAME").asStdString();
+	result.fullType = rs->getString("TYPE_NAME").asStdString();
+	result.un = (result.fullType.find("UNSIGNED") != std::string::npos) ? 1 : 0;
+	result.type = !result.un ? result.fullType : StringUtil::replace(result.fullType, " UNSIGNED", "");
+	result.size = rs->getUInt64("COLUMN_SIZE");
+	result.defVal = rs->getString("COLUMN_DEF").asStdString();
+	result.isNullable = rs->getString("IS_NULLABLE") == "YES";
+	result.remarks = rs->getString("REMARKS").asStdString();
+	result.ai = rs->getString("IS_AUTOINCREMENT") == "YES";
 	
 	return result;
 }

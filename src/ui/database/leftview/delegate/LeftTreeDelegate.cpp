@@ -54,6 +54,9 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId)
 		wxString imgpath9 = imgdir + _("/database/tree/trigger.bmp");
 		wxString imgpath10 = imgdir + _("/database/tree/event.bmp");
 		wxString imgpath11 = imgdir + _("/database/tree/loading.bmp");
+		wxString imgpath12 = imgdir + _("/database/tree/column.bmp");
+		wxString imgpath13 = imgdir + _("/database/tree/index.bmp");
+		wxString imgpath14 = imgdir + _("/database/tree/primary-key.bmp");
 		images->Add(wxBitmap(imgpath1, wxBITMAP_TYPE_BMP)); // 0 - folder	
 		images->Add(wxBitmap(imgpath2, wxBITMAP_TYPE_BMP)); // 1 - connection
 		images->Add(wxBitmap(imgpath3, wxBITMAP_TYPE_BMP)); // 2 - database
@@ -65,7 +68,10 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId)
 		images->Add(wxBitmap(imgpath9, wxBITMAP_TYPE_BMP)); // 8 - trigger
 		images->Add(wxBitmap(imgpath10, wxBITMAP_TYPE_BMP)); // 9 - event
 		images->Add(wxBitmap(imgpath11, wxBITMAP_TYPE_BMP)); // 10 - loading
-		treeView->AssignImageList(images);
+		images->Add(wxBitmap(imgpath12, wxBITMAP_TYPE_BMP)); // 11 - column
+		images->Add(wxBitmap(imgpath13, wxBITMAP_TYPE_BMP)); // 12 - index
+		images->Add(wxBitmap(imgpath14, wxBITMAP_TYPE_BMP)); // 13 - primary key
+		treeView->AssignImageList(images); 
 	}
 	
 	auto rootId = treeView->GetRootItem();
@@ -87,7 +93,8 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId)
 			loadDbsForConnection(treeView, itemId, connectId);
 			treeView->Expand(itemId);
 		} else {
-			loadingForConnection(treeView, itemId, connectId);
+			// lazy load connection
+			loadingForItem(treeView, itemId);
 		}
 	}
 	
@@ -114,6 +121,11 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 		auto data = (QTreeItemData<UserConnect>*)treeView->GetItemData(itemId);
 		auto connectId = data->getDataPtr()->id;
 		expendedConnectionItem(treeView, itemId, connectId);
+	}else if (nImage == 4) { // 4 - table
+		auto data = (QTreeItemData<UserTable>*)treeView->GetItemData(itemId);
+		auto connectId = data->getDataId();
+		auto userTable = data->getDataPtr();
+		expendedTableItem(treeView, itemId, connectId, userTable);
 	} else if (nImage == 3) { // 3 - objects folder
 		wxTreeItemIdValue cookie;
 		auto firstChildId = treeView->GetFirstChild(itemId, cookie);
@@ -122,8 +134,8 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 		if (nFirstImage != 10) { // 10 - loading
 			return;
 		}
-		// delete loading... item
-		treeView->Delete(firstChildId); 
+		// delete loading item
+		treeView->Delete(firstChildId);
 
 		auto data = (QTreeItemData<long> *)treeView->GetItemData(itemId);
 		if (data->getType() == TreeObjectType::TABLES_FOLDER) { // TABLE
@@ -156,7 +168,19 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadEventsForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		}
+		} 
+		/*
+		else if (data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER) { // COLUMNS
+			auto userTableData = (QTreeItemData<UserTable> *)data;
+			auto connectId = userTableData->getDataId();
+			auto userTablePtr = userTableData->getDataPtr();
+			loadColomnsForTable(treeView, itemId, connectId, userTablePtr->schema, userTablePtr->name);
+		} else if (data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER) { // INDEXES
+			auto userTableData = (QTreeItemData<UserTable> *)data;
+			auto connectId = userTableData->getDataId();
+			auto userTablePtr = userTableData->getDataPtr();
+			loadIndexesForTable(treeView, itemId, connectId, userTablePtr->schema, userTablePtr->name);
+		}*/
 	}
 }
 
@@ -174,20 +198,44 @@ void LeftTreeDelegate::expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId
 	loadDbsForConnection(treeView, itemId, connectId);
 }
 
-void LeftTreeDelegate::loadingForConnection(wxTreeCtrl* treeView, const wxTreeItemId& connectItemId, uint64_t connectId /*= 0*/)
+void LeftTreeDelegate::expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable* userTable)
 {
-	if (!connectItemId.IsOk() || !connectId) {
+	wxTreeItemIdValue cookie;
+	auto firstChildId = treeView->GetFirstChild(itemId, cookie);
+
+	int nImage = treeView->GetItemImage(firstChildId);
+	if (nImage != 10) { // image: 10 - loading
+		return;
+	}
+	treeView->Delete(firstChildId);
+
+	// Table - column folder
+	auto columsFolderData = new QTreeItemData<UserTable>(connectId, new UserTable(*userTable), TreeObjectType::TABLE_COLUMNS_FOLDER);
+	auto columnsFolderItemId = treeView->AppendItem(itemId, S("columns"), 3, 3, columsFolderData);
+	// Table - column folder
+	auto indexesFolderData = new QTreeItemData<UserTable>(connectId, new UserTable(*userTable), TreeObjectType::TABLE_INDEXES_FOLDER);
+	auto indexesFolderItemId = treeView->AppendItem(itemId, S("indexes"), 3, 3, indexesFolderData);
+
+	
+	// Table - folder - loading
+	loadColomnsForTable(treeView, columnsFolderItemId, connectId, userTable->schema, userTable->tblName);
+	loadIndexesForTable(treeView, indexesFolderItemId, connectId, userTable->schema, userTable->tblName);
+}
+
+void LeftTreeDelegate::loadingForItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!itemId.IsOk()) {
 		return;
 	}
 
 	wxTreeItemIdValue cookie;
-	wxTreeItemId firstChildItemId = treeView->GetFirstChild(connectItemId, cookie);
+	wxTreeItemId firstChildItemId = treeView->GetFirstChild(itemId, cookie);
 	if (firstChildItemId.IsOk()) {
 		return;
 	}
 
 	QTreeItemData<int>* data = new QTreeItemData<int>(0, 0, TreeObjectType::LOADING);
-	treeView->AppendItem(connectItemId, S("loading"), 10, 10, data);
+	treeView->AppendItem(itemId, S("loading"), 10, 10, data);
 }
 
 /**
@@ -253,18 +301,6 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 			loadingForFolder(treeView, funsFolderItemId, connectId);
 			loadingForFolder(treeView, triggersFolderItemId, connectId);
 			loadingForFolder(treeView, eventsFolderItemId, connectId);
-			// load tables
-			//loadTablesForDatabase(treeView, tblsFolderItemId, connectId, item.name);
-			// load views
-			//loadViewsForDatabase(treeView, viewsFolderItemId, connectId, item.name);
-			// load procedures
-			//loadProceduresForDatabase(treeView, storeProcsFolderItemId, connectId, item.name);
-			// load functions
-			//loadFunctionsForDatabase(treeView, funsFolderItemId, connectId, item.name);
-			// load triggers
-			//loadTriggersForDatabase(treeView, triggersFolderItemId, connectId, item.name);
-			// load events
-			//loadEventsForDatabase(treeView, eventsFolderItemId, connectId, item.name);
 		}
 	} catch (QRuntimeException& ex) {
 		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK|wxCENTRE|wxICON_ERROR);
@@ -283,8 +319,11 @@ void LeftTreeDelegate::loadTablesForDatabase(wxTreeCtrl* treeView, const wxTreeI
 	try {
 		UserTableList list = metadataService->getUserTables(connectId, schema);
 		for (auto& item : list) {
+			// Table item
 			auto data = new QTreeItemData<UserTable>(connectId, new UserTable(item), TreeObjectType::TABLE);
-			treeView->AppendItem(folderItemId, item.name, 4, 4, data); 
+			auto tableItemId = treeView->AppendItem(folderItemId, item.name, 4, 4, data); 
+			// lazy load table
+			loadingForItem(treeView, tableItemId);
 		}
 	} catch (QRuntimeException& ex) {
 		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK|wxCENTRE|wxICON_ERROR);
@@ -385,6 +424,64 @@ void LeftTreeDelegate::loadEventsForDatabase(wxTreeCtrl* treeView, const wxTreeI
 		}
 	} catch (QRuntimeException& ex) {
 		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK|wxCENTRE|wxICON_ERROR);
+		msgbox.ShowModal();
+		return;
+	}
+}
+
+void LeftTreeDelegate::loadColomnsForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName)
+{
+	if (!folderItemId.IsOk() || !connectId || schema.empty() || tableName.empty()) {
+		return;
+	}
+	
+	try {
+		ColumnInfoList list = metadataService->getColumnsOfUserTable(connectId, schema, tableName);
+		for (auto& item : list) {
+			QTreeItemData<ColumnInfo>* data = new QTreeItemData<ColumnInfo>(connectId, new ColumnInfo(item), TreeObjectType::TABLE_COLUMN);
+			std::string columnName = item.name;
+			columnName.append(" [")
+				.append(item.type)
+				.append(item.size ? "(" + std::to_string(item.size) +")" : "")
+				.append(item.un ? " UNSIGNED" : "")
+				.append(", ")
+				.append(item.isNullable ? "NULL" : "NOT NULL")
+				.append("]");
+			treeView->AppendItem(folderItemId, columnName, 11, 11, data);
+		}
+		if (!list.empty()) {
+			treeView->Expand(folderItemId);
+		}
+	} catch (QRuntimeException& ex) {
+		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
+		msgbox.ShowModal();
+		return;
+	}
+}
+
+void LeftTreeDelegate::loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName)
+{
+	if (!folderItemId.IsOk() || !connectId || schema.empty() || tableName.empty()) {
+		return;
+	}
+	
+	try {
+		auto list = metadataService->getIndexesOfUserTable(connectId, schema, tableName); 
+		for (auto& item : list) {
+			auto data = new QTreeItemData<IndexInfo>(connectId, new IndexInfo(item), TreeObjectType::TABLE_INDEX);
+			std::string indexName = item.name;
+			indexName.append(" (").append(item.columns).append(")");
+			if (item.name != "PRIMARY" && item.un) {
+				indexName.append(", ").append("UNIQUE");
+			}
+			int nImage = item.pk ? 13 : 12;
+			treeView->AppendItem(folderItemId, indexName, nImage, nImage, data);
+		}
+		if (!list.empty()) {
+			treeView->Expand(folderItemId);
+		}
+	} catch (QRuntimeException& ex) {
+		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
 		msgbox.ShowModal();
 		return;
 	}

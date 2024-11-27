@@ -133,13 +133,16 @@ bool EntityUtil::compare(const ParamElemData & item1, const ParamElemData & item
 bool EntityUtil::compare(const ColumnInfo & item1, const ColumnInfo & item2)
 {
 	if (item1.ai != item2.ai
-		|| item1.notnull != item2.notnull
-		|| item1.pk != item2.pk
+		|| item1.isNullable != item2.isNullable
+		|| item1.ai != item2.ai
 		|| item1.un != item2.un
+		|| item1.size != item2.size
+		|| item1.catalog != item2.catalog
+		|| item1.schema != item2.schema
+		|| item1.table != item2.table
 		|| item1.name != item2.name
 		|| item1.type != item2.type
-		|| item1.defVal != item2.defVal
-		|| item1.checks != item2.checks) {
+		|| item1.defVal != item2.defVal) {
 		return false;
 	}
 	return true;

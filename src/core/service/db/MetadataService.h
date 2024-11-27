@@ -23,6 +23,8 @@
 #include "core/repository/db/UserSchemaObjectRepository.h"
 #include "core/repository/db/UserRoutineRepository.h"
 #include "core/repository/db/UserEventRepository.h"
+#include "core/repository/db/TableColumnRepository.h"
+#include "core/repository/db/TableIndexRepository.h"
 
 class MetadataService : public BaseService<MetadataService, UserTableRepository>
 {
@@ -35,10 +37,14 @@ public:
 	UserTriggerList getUserTriggers(uint64_t connectId, const std::string& schema);
 	UserEventList getUserEvents(uint64_t connectId, const std::string& schema);
 
+	ColumnInfoList getColumnsOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
+	IndexInfoList getIndexesOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();
 	UserSchemaObjectRepository* userSchemaObjectRepository = UserSchemaObjectRepository::getInstance();
 	UserEventRepository* userEventRepository = UserEventRepository::getInstance();
+	TableColumnRepository* tableColumnRepository = TableColumnRepository::getInstance();
+	TableIndexRepository* tableIndexRepository = TableIndexRepository::getInstance();
 };
 

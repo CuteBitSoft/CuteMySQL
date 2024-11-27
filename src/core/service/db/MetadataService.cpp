@@ -39,6 +39,16 @@ MetadataService::~MetadataService()
     if (userEventRepository) {
         userEventRepository = nullptr;
     }
+
+    TableColumnRepository::destroyInstance();
+    if (tableColumnRepository) {
+        tableColumnRepository = nullptr;
+    }
+
+    TableIndexRepository::destroyInstance();
+	if (tableIndexRepository) {
+		tableIndexRepository = nullptr;
+	}
 }
 
 UserTableList MetadataService::getUserTables(uint64_t connectId, const std::string& schema)
@@ -69,4 +79,14 @@ UserTriggerList MetadataService::getUserTriggers(uint64_t connectId, const std::
 UserEventList MetadataService::getUserEvents(uint64_t connectId, const std::string& schema)
 {
     return userEventRepository->getAll(connectId, schema);
+}
+
+ColumnInfoList MetadataService::getColumnsOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
+{
+    return tableColumnRepository->getAll(connectId, schema, tableName);
+}
+
+IndexInfoList MetadataService::getIndexesOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
+{
+    return tableIndexRepository->getAll(connectId, schema, tableName);
 }

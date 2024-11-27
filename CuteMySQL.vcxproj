@@ -217,6 +217,8 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\repository\db\TableColumnRepository.cpp" />
+    <ClCompile Include="src\core\repository\db\TableIndexRepository.cpp" />
     <ClCompile Include="src\core\repository\db\UserEventRepository.cpp" />
     <ClCompile Include="src\core\repository\db\UserRoutineRepository.cpp" />
     <ClCompile Include="src\core\repository\db\UserSchemaObjectRepository.cpp" />
@@ -270,6 +272,8 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\entity\Enum.h" />
+    <ClInclude Include="src\core\repository\db\TableColumnRepository.h" />
+    <ClInclude Include="src\core\repository\db\TableIndexRepository.h" />
     <ClInclude Include="src\core\repository\db\UserEventRepository.h" />
     <ClInclude Include="src\core\repository\db\UserRoutineRepository.h" />
     <ClInclude Include="src\core\repository\db\UserSchemaObjectRepository.h" />

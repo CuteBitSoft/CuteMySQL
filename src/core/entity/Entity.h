@@ -108,11 +108,10 @@ typedef struct _UserTable {
 	std::string createTime;
 	std::string updateTime;
 	std::string checkTime;
-} UserTable, UserView, UserIndex;
+} UserTable, UserView;
 
 typedef std::vector<UserTable> UserTableList;
 typedef std::vector<UserView> UserViewList;
-typedef std::vector<UserIndex> UserIndexList;
 
 typedef enum {
 	ROUTINE_PROCEDURE = 7,
@@ -180,22 +179,29 @@ typedef std::vector<PragmaIndexColumn> PragmaIndexColumns;
 
 // table fields
 typedef struct _ColumnInfo {
-	uint32_t cid = 0;
-	uint8_t notnull = 0; //not null
-	uint8_t pk = 0; // primary key
+	uint8_t isNullable = 0; // is nullable
 	uint8_t ai = 0; // auto increment
 	uint8_t un = 0; // unsigned
+	uint64_t size = 0; // size
 
+	std::string catalog;
+	std::string schema;
+	std::string table;
 	std::string name;
+	std::string fullType;
 	std::string type;
 	std::string defVal;
-	std::string checks;
+	std::string remarks;
 	
 	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } ColumnInfo;
 typedef std::vector<ColumnInfo> ColumnInfoList;
 
 typedef struct _IndexInfo {
+	std::string catalog;
+	std::string schema;
+	std::string table;
+
 	std::string name; // constrain name
 	std::string type; // Primary Key,Unique,Foreign Key,Checks,Index
 	uint8_t pk = 0;  // primary key

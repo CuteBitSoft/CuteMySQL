@@ -35,8 +35,9 @@ private:
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	MetadataService * metadataService = MetadataService::getInstance();
 
-	void loadingForConnection(wxTreeCtrl * treeView, const wxTreeItemId & connectItemId, uint64_t connectId = 0);
+	// For Connection
 	void loadDbsForConnection(wxTreeCtrl * treeView, const wxTreeItemId & connectItemId, uint64_t connectId = 0);
+	// For Database
 	void loadTablesForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 	void loadViewsForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 	void loadProceduresForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
@@ -44,8 +45,14 @@ private:
 	void loadTriggersForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 	void loadEventsForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 
-	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
+	// For Table
+	void loadColomnsForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
+	void loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
 
+	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
+	void expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable * userTable);
+
+	void loadingForItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
 	void loadingForFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId);
 };
 

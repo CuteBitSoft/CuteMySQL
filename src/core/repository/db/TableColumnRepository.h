@@ -10,36 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   Enum.h
- * @brief  Public Enum type
+ * @file   TableColumnRepository.h
+ * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-23
+ * @date   2024-11-25
  *********************************************************************/
 #pragma once
+#include "core/common/repository/BaseUserRepository.h"
+#include "core/entity/Entity.h"
+class TableColumnRepository : public BaseUserRepository<TableColumnRepository>
+{
+public:
+	ColumnInfoList getAll(uint64_t connectId, const std::string& schema, const std::string & tableName);
+private:
+	ColumnInfo toColumnInfo(sql::ResultSet* rs);
+};
 
-/**
- * Database LeftTreeView use object for wxTreeCtrl.ClientData.
- */
-typedef enum {
-	ROOT,
-	CONNECTION,
-	SCHEMA,
-	TABLES_FOLDER,
-	TABLE,
-	TABLE_COLUMNS_FOLDER,
-	TABLE_COLUMN,
-	TABLE_INDEXES_FOLDER,
-	TABLE_INDEX,
-	VIEWS_FOLDER,
-	VIEW,
-	TRIGGERS_FOLDER,
-	TRIGGER,
-	STORE_PROCEDURE_FOLDER,
-	STORE_PROCEDURE,
-	FUNCTIONS_FOLDER,
-	FUNCTION,
-	EVENTS_FOLDER,
-	EVENT,
-	LOADING,
-} TreeObjectType;

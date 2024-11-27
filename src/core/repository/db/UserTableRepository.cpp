@@ -29,15 +29,11 @@ UserTableList UserTableRepository::getAll(uint64_t connectId, const std::string&
 	
 	try {
 		std::list<sql::SQLString> types = (schema == "information_schema") ? 
-			std::list<sql::SQLString>({"VIEW"}) : std::list<sql::SQLString>({ "TABLE", "SYSTEM TABLE"});
+			std::list<sql::SQLString>({"TEMPORARY TABLE", "VIEW"}) : std::list<sql::SQLString>({"TABLE", "SYSTEM TABLE"});
 		auto connect = getUserConnect(connectId);
 		auto catalog = connect->getCatalog();
 		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, "%", types));
 		while (resultSet->next()) {
-			if (resultSet->getString("TABLE_SCHEM") != schema ||
-				(schema != "information_schema" && resultSet->getString(2) == "VIEW")) {
-				continue;
-			}
 			UserTable item = toUserTable(resultSet.get());
 			result.push_back(item);
 		}
