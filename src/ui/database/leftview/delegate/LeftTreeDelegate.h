@@ -45,5 +45,7 @@ private:
 	void loadEventsForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 
 	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
+
+	void loadingForFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId);
 };
 

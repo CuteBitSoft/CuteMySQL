@@ -114,6 +114,49 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 		auto data = (QTreeItemData<UserConnect>*)treeView->GetItemData(itemId);
 		auto connectId = data->getDataPtr()->id;
 		expendedConnectionItem(treeView, itemId, connectId);
+	} else if (nImage == 3) { // 3 - objects folder
+		wxTreeItemIdValue cookie;
+		auto firstChildId = treeView->GetFirstChild(itemId, cookie);
+
+		int nFirstImage = treeView->GetItemImage(firstChildId);
+		if (nFirstImage != 10) { // 10 - loading
+			return;
+		}
+		// delete loading... item
+		treeView->Delete(firstChildId); 
+
+		auto data = (QTreeItemData<long> *)treeView->GetItemData(itemId);
+		if (data->getType() == TreeObjectType::TABLES_FOLDER) { // TABLE
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadTablesForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		} else if (data->getType() == TreeObjectType::VIEWS_FOLDER) { // VIEW
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadViewsForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		} else if (data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER) { // STORE PROCEDURE
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadProceduresForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		} else if (data->getType() == TreeObjectType::FUNCTIONS_FOLDER) { // FUNCTION
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadFunctionsForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		} else if (data->getType() == TreeObjectType::TRIGGERS_FOLDER) { // TRIGGER
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadTriggersForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		} else if (data->getType() == TreeObjectType::EVENTS_FOLDER) { // EVENTS
+			auto userDbData = (QTreeItemData<UserDb> *)data;
+			auto connectId = userDbData->getDataId();
+			auto userDbPtr = userDbData->getDataPtr();
+			loadEventsForDatabase(treeView, itemId, connectId, userDbPtr->name);
+		}
 	}
 }
 
@@ -148,6 +191,25 @@ void LeftTreeDelegate::loadingForConnection(wxTreeCtrl* treeView, const wxTreeIt
 }
 
 /**
+ * Lazy load for folder.
+ */
+void LeftTreeDelegate::loadingForFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId)
+{
+	if (!folderItemId.IsOk() || !connectId) {
+		return;
+	}
+
+	wxTreeItemIdValue cookie;
+	wxTreeItemId firstChildItemId = treeView->GetFirstChild(folderItemId, cookie);
+	if (firstChildItemId.IsOk()) {
+		return;
+	}
+
+	auto data = new QTreeItemData<long>(connectId, 0, TreeObjectType::LOADING);
+	treeView->AppendItem(folderItemId, S("loading"), 10, 10, data);
+}
+
+/**
  * Databases(schemas) of connection node.
  * 
  * @param treeView
@@ -166,36 +228,43 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 			QTreeItemData<UserDb>* data = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::SCHEMA);
 			auto dbItemId = treeView->AppendItem(connectItemId, item.name, 2, 2, data);
 
-			QTreeItemData<int>* tblsFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::TABLES_FOLDER);
+			auto tblsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::TABLES_FOLDER);
 			auto tblsFolderItemId = treeView->AppendItem(dbItemId, S("tables"), 3, 3, tblsFolderData);
 
-			QTreeItemData<int>* viewsFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::VIEWS_FOLDER);
+			auto viewsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::VIEWS_FOLDER);
 			auto viewsFolderItemId = treeView->AppendItem(dbItemId, S("views"), 3, 3, viewsFolderData);
 
-			QTreeItemData<int>* storeProcsFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::STORE_PROCEDURE_FOLDER);
+			auto storeProcsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::STORE_PROCEDURE_FOLDER);
 			auto storeProcsFolderItemId = treeView->AppendItem(dbItemId, S("store-processes"), 3, 3, storeProcsFolderData);
 
-			QTreeItemData<int>* funsFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::FUNCTIONS_FOLDER);
+			auto funsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::FUNCTIONS_FOLDER);
 			auto funsFolderItemId = treeView->AppendItem(dbItemId, S("functions"), 3, 3, funsFolderData);
 
-			QTreeItemData<int>* triggersFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::TRIGGERS_FOLDER);
+			auto triggersFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::TRIGGERS_FOLDER);
 			auto triggersFolderItemId = treeView->AppendItem(dbItemId, S("triggers"), 3, 3, triggersFolderData);
 
-			QTreeItemData<int>* eventsFolderData = new QTreeItemData<int>(connectId, 0, TreeObjectType::EVENTS_FOLDER);
+			auto eventsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::EVENTS_FOLDER);
 			auto eventsFolderItemId = treeView->AppendItem(dbItemId, S("events"), 3, 3, eventsFolderData);
 
+			// Add a loading... child item for folder.
+			loadingForFolder(treeView, tblsFolderItemId, connectId);
+			loadingForFolder(treeView, viewsFolderItemId, connectId);
+			loadingForFolder(treeView, storeProcsFolderItemId, connectId);
+			loadingForFolder(treeView, funsFolderItemId, connectId);
+			loadingForFolder(treeView, triggersFolderItemId, connectId);
+			loadingForFolder(treeView, eventsFolderItemId, connectId);
 			// load tables
-			loadTablesForDatabase(treeView, tblsFolderItemId, connectId, item.name);
+			//loadTablesForDatabase(treeView, tblsFolderItemId, connectId, item.name);
 			// load views
-			loadViewsForDatabase(treeView, viewsFolderItemId, connectId, item.name);
+			//loadViewsForDatabase(treeView, viewsFolderItemId, connectId, item.name);
 			// load procedures
-			loadProceduresForDatabase(treeView, storeProcsFolderItemId, connectId, item.name);
+			//loadProceduresForDatabase(treeView, storeProcsFolderItemId, connectId, item.name);
 			// load functions
-			loadFunctionsForDatabase(treeView, funsFolderItemId, connectId, item.name);
+			//loadFunctionsForDatabase(treeView, funsFolderItemId, connectId, item.name);
 			// load triggers
-			loadTriggersForDatabase(treeView, triggersFolderItemId, connectId, item.name);
+			//loadTriggersForDatabase(treeView, triggersFolderItemId, connectId, item.name);
 			// load events
-			loadEventsForDatabase(treeView, eventsFolderItemId, connectId, item.name);
+			//loadEventsForDatabase(treeView, eventsFolderItemId, connectId, item.name);
 		}
 	} catch (QRuntimeException& ex) {
 		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK|wxCENTRE|wxICON_ERROR);
@@ -214,7 +283,7 @@ void LeftTreeDelegate::loadTablesForDatabase(wxTreeCtrl* treeView, const wxTreeI
 	try {
 		UserTableList list = metadataService->getUserTables(connectId, schema);
 		for (auto& item : list) {
-			QTreeItemData<UserTable>* data = new QTreeItemData<UserTable>(connectId, new UserTable(item), TreeObjectType::TABLE);
+			auto data = new QTreeItemData<UserTable>(connectId, new UserTable(item), TreeObjectType::TABLE);
 			treeView->AppendItem(folderItemId, item.name, 4, 4, data); 
 		}
 	} catch (QRuntimeException& ex) {

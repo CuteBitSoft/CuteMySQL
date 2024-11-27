@@ -53,11 +53,12 @@ UserViewList UserViewRepository::getAll(uint64_t connectId, const std::string& s
 UserView UserViewRepository::toUserView(sql::ResultSet* rs)
 {
 	UserView result;
-	result.catalog = rs->getString(1).asStdString();
-	result.schema = rs->getString(2).asStdString();
-	result.name = rs->getString(3).asStdString();
-	result.type = rs->getString(4).asStdString();
-	result.comment = rs->getString(5).asStdString();
+	result.catalog = rs->getString("TABLE_CAT").asStdString();
+	result.schema = rs->getString("TABLE_SCHEM").asStdString();
+	result.name = rs->getString("TABLE_NAME").asStdString();
+	result.tblName = result.name;
+	result.type = rs->getString("TABLE_TYPE").asStdString();
+	result.comment = rs->getString("REMARKS").asStdString();
 	
 	return result;
 }

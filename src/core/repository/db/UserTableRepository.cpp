@@ -29,19 +29,17 @@ UserTableList UserTableRepository::getAll(uint64_t connectId, const std::string&
 	
 	try {
 		std::list<sql::SQLString> types = (schema == "information_schema") ? 
-			std::list<sql::SQLString>({"VIEW"}) : std::list<sql::SQLString>({ "TABLE"});
+			std::list<sql::SQLString>({"VIEW"}) : std::list<sql::SQLString>({ "TABLE", "SYSTEM TABLE"});
 		auto connect = getUserConnect(connectId);
 		auto catalog = connect->getCatalog();
 		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, "%", types));
-		bool isOk = resultSet->first();
 		while (resultSet->next()) {
-			if (resultSet->getString(2) != schema || 
+			if (resultSet->getString("TABLE_SCHEM") != schema ||
 				(schema != "information_schema" && resultSet->getString(2) == "VIEW")) {
 				continue;
 			}
 			UserTable item = toUserTable(resultSet.get());
 			result.push_back(item);
-			isOk = resultSet->next();
 		}
 		resultSet->close();
 		return result;
@@ -58,12 +56,12 @@ UserTableList UserTableRepository::getAll(uint64_t connectId, const std::string&
 UserTable UserTableRepository::toUserTable(sql::ResultSet* rs)
 {
 	UserTable result;
-	result.catalog = rs->getString(1).asStdString();
-	result.schema = rs->getString(2).asStdString();
-	result.name = rs->getString(3).asStdString();
-	result.tblName = rs->getString(3).asStdString();
-	result.type = rs->getString(4).asStdString();
-	result.comment = rs->getString(5).asStdString();
+	result.catalog = rs->getString("TABLE_CAT").asStdString();
+	result.schema = rs->getString("TABLE_SCHEM").asStdString();
+	result.name = rs->getString("TABLE_NAME").asStdString();
+	result.tblName = result.name;
+	result.type = rs->getString("TABLE_TYPE").asStdString();
+	result.comment = rs->getString("REMARKS").asStdString();
 	
 	return result;
 }
