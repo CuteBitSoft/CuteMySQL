@@ -38,12 +38,12 @@ BEGIN_EVENT_TABLE(ConnectDialog, wxDialog)
 	EVT_BUTTON(Config::CONNECT_UP_BUTTON_ID, OnUpButtonClick)
 	EVT_BUTTON(Config::CONNECT_DOWN_BUTTON_ID, OnDownButtonClick)
 
-	// Handle the messge
+	// Handle the message
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CREATE_ID, OnHandleConnectionCreate)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CHANGE_NAME_ID, OnHandleConnectionChangeName)
 END_EVENT_TABLE()
 
-ConnectDialog::ConnectDialog(Config::ConnectType type) 
+ConnectDialog::ConnectDialog(ConnectType type) 
 	: QDialog(), connectType(type)
 {
 	// Subscribe to Config::MSG_CONNECTION_CHANGE_NAME_ID message
@@ -84,19 +84,25 @@ void ConnectDialog::createControls()
 	this->SetSizer(vLayout);
 }
 
+void ConnectDialog::loadControls()
+{
+	// load connections for left tree
+	delegate->loadTreeCtrl(leftTree);
+
+	// create new connection
+	if (connectType == ConnectType::CONNECT_CREATE || supplier->runtimeUserConnect == nullptr) {
+		delegate->createForTreeCtrl(leftTree);
+	}
+}
+
 void ConnectDialog::createLeftTree()
 {
 	leftTree = new wxTreeCtrl(this, Config::CONNECT_DIALOG_LEFT_TREE, wxDefaultPosition, wxSize(200, 400), wxTR_HAS_BUTTONS | wxTR_SINGLE);
 	leftTree->SetBackgroundColour(bkgColor);
 	leftTree->SetForegroundColour(textColor);
 
-	// load connections for left tree
-	delegate->loadTreeCtrl(leftTree);
-
-	// create new connection
-	if (connectType == Config::CONNECT_CREATE || supplier->runtimeUserConnect == nullptr) {
-		delegate->createForTreeCtrl(leftTree);
-	}
+	
+	
 }
 
 void ConnectDialog::createRightPanel()

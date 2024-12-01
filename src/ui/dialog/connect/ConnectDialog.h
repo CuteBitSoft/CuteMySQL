@@ -21,6 +21,7 @@
 
 #include "common/Config.h"
 #include "core/entity/Entity.h"
+#include "core/entity/Enum.h"
 #include "ui/common/dialog/QDialog.h"
 #include "ui/ConnectSupplier.h"
 #include "ui/dialog/connect/panel/ConnectPanel.h"
@@ -32,10 +33,10 @@ class ConnectDialog : public QDialog<ConnectDialogDelegate, ConnectDialogSupplie
 {
     DECLARE_EVENT_TABLE()
 public:
-    ConnectDialog(Config::ConnectType type);
+    ConnectDialog(ConnectType type);
     ~ConnectDialog();
 private:    
-    Config::ConnectType connectType;
+    ConnectType connectType;
 
     wxBoxSizer* vLayout;
     wxBoxSizer* hLayout;
@@ -57,6 +58,7 @@ private:
 
     virtual void init();
     virtual void createControls();
+    virtual void loadControls();
 
     void createLeftTree();
     void createRightPanel();

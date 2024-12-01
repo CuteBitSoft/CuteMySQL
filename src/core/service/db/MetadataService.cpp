@@ -21,34 +21,28 @@
 MetadataService::~MetadataService()
 {
     UserViewRepository::destroyInstance();
-    if (userViewRepository) {
-        userViewRepository = nullptr;
-    }
+    userViewRepository = nullptr;
 
     UserRoutineRepository::destroyInstance();
-    if (userRoutineRepository) {
-        userRoutineRepository = nullptr;
-    }
+    userRoutineRepository = nullptr;
 
     UserSchemaObjectRepository::destroyInstance();
-    if (userSchemaObjectRepository) {
-        userSchemaObjectRepository = nullptr;
-    }
+    userSchemaObjectRepository = nullptr;
 
     UserEventRepository::destroyInstance();
-    if (userEventRepository) {
-        userEventRepository = nullptr;
-    }
+     userEventRepository = nullptr;
 
     TableColumnRepository::destroyInstance();
-    if (tableColumnRepository) {
-        tableColumnRepository = nullptr;
-    }
+     tableColumnRepository = nullptr;
 
     TableIndexRepository::destroyInstance();
-	if (tableIndexRepository) {
-		tableIndexRepository = nullptr;
-	}
+	tableIndexRepository = nullptr;
+
+    CharsetRepository::destroyInstance();
+    charsetRepository = nullptr;
+
+    CollationRepository::destroyInstance();
+    collationRepository = nullptr;
 }
 
 UserTableList MetadataService::getUserTables(uint64_t connectId, const std::string& schema)
@@ -89,4 +83,14 @@ ColumnInfoList MetadataService::getColumnsOfUserTable(uint64_t connectId, const 
 IndexInfoList MetadataService::getIndexesOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
 {
     return tableIndexRepository->getAll(connectId, schema, tableName);
+}
+
+CharsetInfoList MetadataService::getCharsets(uint64_t connectId)
+{
+    return charsetRepository->getAll(connectId);
+}
+
+CollationInfoList MetadataService::getCollations(uint64_t connectId, const std::string& charset)
+{
+    return collationRepository->getAll(connectId, charset);
 }

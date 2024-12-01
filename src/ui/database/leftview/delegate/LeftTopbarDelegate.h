@@ -1,3 +1,4 @@
+
 /*****************************************************************//**
  * Copyright 2024 Xuehan Qin (qinxuehan2018@gmail.com) 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -10,48 +11,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   Enum.h
- * @brief  Public Enum type
+ * @file   LeftTopbarDelegate.h
+ * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-23
+ * @date   2024-11-28
  *********************************************************************/
-#pragma once
+#include <wx/bmpcbox.h>
+#include "ui/common/delegate/QDelegate.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
+#include "core/service/db/DatabaseService.h"
+class LeftTopbarDelegate : public QDelegate<LeftTopbarDelegate, DatabaseSupplier>
+{
+public:
+	~LeftTopbarDelegate();
 
-/**
- * Database LeftTreeView use object for wxTreeCtrl.ClientData.
- */
-typedef enum {
-	ROOT,
-	CONNECTION,
-	SCHEMA,
-	TABLES_FOLDER,
-	TABLE,
-	TABLE_COLUMNS_FOLDER,
-	TABLE_COLUMN,
-	TABLE_INDEXES_FOLDER,
-	TABLE_INDEX,
-	VIEWS_FOLDER,
-	VIEW,
-	TRIGGERS_FOLDER,
-	TRIGGER,
-	STORE_PROCEDURE_FOLDER,
-	STORE_PROCEDURE,
-	FUNCTIONS_FOLDER,
-	FUNCTION,
-	EVENTS_FOLDER,
-	EVENT,
-	LOADING,
-} TreeObjectType;
+	void loadDbsForComboBox(wxBitmapComboBox * comboBox);
+	void selectDbsForComboBox(wxBitmapComboBox * comboBox);
+private:
+	DatabaseService * databaseService = DatabaseService::getInstance();
+};
 
-
-typedef enum {
-	CONNECT_CREATE,
-	CONNECT_MANAGE
-} ConnectType;
-
-
-typedef enum {
-	DATABASE_CREATE,
-	DATABASE_ALTER
-} DatabaseType;

@@ -62,7 +62,7 @@ void DatabasePanel::createSplitter()
 	splitter->Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNO_BORDER);
 	//splitter->SetSplitMode(wxSPLIT_VERTICAL);
 	splitter->SetSize(clientSize);
-	splitter->SetMinimumPaneSize(200);
+	splitter->SetMinimumPaneSize(250); 
 }
 
 void DatabasePanel::createLeftTreeView()

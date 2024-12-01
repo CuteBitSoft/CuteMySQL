@@ -55,7 +55,14 @@ protected:
 
 	virtual void init();
 	virtual void createControls();
+	virtual void loadControls();
 };
+
+template <typename T, typename S /*= EmptySupplier*/>
+void QDialog<T, S>::loadControls()
+{
+
+}
 
 template <typename T, typename S>
 QDialog<T, S>::QDialog() : wxDialog()
@@ -92,6 +99,8 @@ bool QDialog<T, S>::Create(wxWindow* parent, wxWindowID id, const wxString& capt
 
 	createControls();
 
+	loadControls();
+
 	// This fits the dialog to the minimum size dictated by
 	// the sizers
 
@@ -105,7 +114,6 @@ bool QDialog<T, S>::Create(wxWindow* parent, wxWindowID id, const wxString& capt
 	// Centre the dialog on the parent or (if none) screen
 
 	Centre();
-
 	return true;
 }
 
@@ -126,6 +134,7 @@ template <typename T, typename S>
 void QDialog<T, S>::createControls()
 {
 	SetBackgroundColour(bkgColor);
+	SetForegroundColour(textColor);
 }
 
 

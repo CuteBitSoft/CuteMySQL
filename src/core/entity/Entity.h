@@ -216,6 +216,26 @@ typedef struct _IndexInfo {
 } IndexInfo;
 typedef std::vector<IndexInfo> IndexInfoList;
 
+//Charset and collation
+typedef struct _CharsetInfo {
+	std::string name; // charsetname
+	std::string defaultCollation; // 
+	std::string description; // 
+	int maxLen = 0; // 
+} CharsetInfo;
+typedef std::vector<CharsetInfo> CharsetInfoList;
+
+typedef struct _CollationInfo {
+	int id = 0; // 
+	std::string name; // collation name
+	std::string charset; // 
+	std::string defaultVal; // 
+	std::string compiled; // 
+	int sortLen = 0; // 
+	std::string padAttribute ; // 
+} CollationInfo;
+typedef std::vector<CollationInfo> CollationInfoList;
+
 typedef struct _ForeignKey {
 	std::string name; // constrain name
 	std::string type = "Foreign Key"; // must be Foreign Key

@@ -30,6 +30,10 @@ public:
 	~LeftTreeDelegate();
 	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0);
 	void expendedForLeftTree(wxTreeCtrl * treeView, wxTreeItemId &itemId);
+	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
+
+	UserConnect* getSelectedConnectItemData(wxTreeCtrl* treeView);
+	UserDb* getSelectedDbItemData(wxTreeCtrl* treeView);
 private:
 	ConnectService * connectService = ConnectService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -49,7 +53,7 @@ private:
 	void loadColomnsForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
 	void loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
 
-	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
+	
 	void expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable * userTable);
 
 	void loadingForItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);

@@ -25,6 +25,8 @@
 #include "core/repository/db/UserEventRepository.h"
 #include "core/repository/db/TableColumnRepository.h"
 #include "core/repository/db/TableIndexRepository.h"
+#include "core/repository/db/CharsetRepository.h"
+#include "core/repository/db/CollationRepository.h"
 
 class MetadataService : public BaseService<MetadataService, UserTableRepository>
 {
@@ -39,6 +41,9 @@ public:
 
 	ColumnInfoList getColumnsOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
 	IndexInfoList getIndexesOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
+
+	CharsetInfoList getCharsets(uint64_t connectId);
+	CollationInfoList getCollations(uint64_t connectId, const std::string& charset);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();
@@ -46,5 +51,7 @@ private:
 	UserEventRepository* userEventRepository = UserEventRepository::getInstance();
 	TableColumnRepository* tableColumnRepository = TableColumnRepository::getInstance();
 	TableIndexRepository* tableIndexRepository = TableIndexRepository::getInstance();
+	CharsetRepository* charsetRepository = CharsetRepository::getInstance();
+	CollationRepository* collationRepository = CollationRepository::getInstance();
 };
 

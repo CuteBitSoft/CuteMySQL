@@ -319,14 +319,14 @@ void HomePanel::OnShow(wxShowEvent& event)
 
 void HomePanel::OnClickCreateConnectButton(wxCommandEvent& event)
 {
-	ConnectDialog connectDialog(Config::CONNECT_CREATE);
+	ConnectDialog connectDialog(ConnectType::CONNECT_CREATE);
 	connectDialog.Create(this, -1, S("create-connection"));
 	connectDialog.ShowModal();
 }
 
 void HomePanel::OnClickManageConnectButton(wxCommandEvent& event)
 {
-	ConnectDialog connectDialog(Config::CONNECT_MANAGE);
+	ConnectDialog connectDialog(ConnectType::CONNECT_MANAGE);
 	connectDialog.Create(this, -1, S("create-connection"));
 	connectDialog.ShowModal();
 }

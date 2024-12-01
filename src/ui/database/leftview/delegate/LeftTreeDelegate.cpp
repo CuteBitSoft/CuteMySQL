@@ -169,21 +169,58 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 			auto userDbPtr = userDbData->getDataPtr();
 			loadEventsForDatabase(treeView, itemId, connectId, userDbPtr->name);
 		} 
-		/*
-		else if (data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER) { // COLUMNS
-			auto userTableData = (QTreeItemData<UserTable> *)data;
-			auto connectId = userTableData->getDataId();
-			auto userTablePtr = userTableData->getDataPtr();
-			loadColomnsForTable(treeView, itemId, connectId, userTablePtr->schema, userTablePtr->name);
-		} else if (data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER) { // INDEXES
-			auto userTableData = (QTreeItemData<UserTable> *)data;
-			auto connectId = userTableData->getDataId();
-			auto userTablePtr = userTableData->getDataPtr();
-			loadIndexesForTable(treeView, itemId, connectId, userTablePtr->schema, userTablePtr->name);
-		}*/
 	}
 }
 
+/**
+ * Find parent connection item of selected item in the treeView, then return the UserConnect ptr
+ * 
+ * @param treeView
+ * @return 
+ */
+UserConnect* LeftTreeDelegate::getSelectedConnectItemData(wxTreeCtrl* treeView)
+{
+	if (!treeView) {
+		return nullptr;
+	}
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::CONNECTION) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserConnect> *>(data);
+	return findData->getDataPtr();
+}
+
+UserDb* LeftTreeDelegate::getSelectedDbItemData(wxTreeCtrl* treeView)
+{
+	if (!treeView) {
+		return nullptr;
+	}
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::SCHEMA) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserDb> *>(data);
+	return findData->getDataPtr();
+}
 
 void LeftTreeDelegate::expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId)
 {
