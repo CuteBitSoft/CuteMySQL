@@ -49,6 +49,30 @@ IndexInfoList TableIndexRepository::getAll(uint64_t connectId, const std::string
     return result;
 }
 
+bool TableIndexRepository::remove(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName)
+{
+	assert(connectId > 0 && !schema.empty() && !tableName.empty() && !indexName.empty());
+	
+	try {
+		sql::SQLString sql = fmt::format("ALTER TABLE `{}` DROP INDEX `{}`", tableName, indexName);
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+
+		stmt->execute(sql);
+		stmt->close();
+		return true;
+	}
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+	return false;
+}
+
 IndexInfo TableIndexRepository::toIndexInfo(sql::ResultSet* rs)
 {
 	IndexInfo result;

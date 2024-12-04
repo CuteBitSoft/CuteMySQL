@@ -25,6 +25,8 @@
 #include "core/common/Lang.h"
 #include "core/entity/Entity.h"
 #include "ui/common/data/QTreeItemData.h"
+#include "ui/common/msgbox/QAnimateBox.h"
+#include "ui/common/msgbox/QConfirmBox.h"
 #include "ui/dialog/connect/ConnectDialog.h"
 #include "ui/dialog/database/DatabaseDialog.h"
 
@@ -35,14 +37,17 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_TREE_SEL_CHANGED(Config::DATABASE_TREEVIEW_ID, OnTreeItemSelChanged)
 	EVT_BUTTON(Config::DATABASE_CONNECT_BUTTON_ID, OnClickConnectButton)
 	EVT_BUTTON(Config::DATABASE_CREATE_BUTTON_ID, OnClickCreateButton)
+	EVT_BUTTON(Config::DATABASE_DELETE_BUTTON_ID, OnClickDeleteButton)
 	EVT_COMBOBOX(Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, OnSelectedDbCombobox)
 	// Handle the message
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
+	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
 END_EVENT_TABLE()
 
 LeftTreeView::LeftTreeView():QPanel()
 {
 	AppContext::getInstance()->subscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
+	AppContext::getInstance()->subscribe(this, Config::MSG_ADD_DATABASE_ID);
 	leftTreeDelegate = LeftTreeDelegate::getInstance(this);
 	leftTopbarDelegate = LeftTopbarDelegate::getInstance(this);
 }
@@ -50,6 +55,7 @@ LeftTreeView::LeftTreeView():QPanel()
 LeftTreeView::~LeftTreeView()
 {
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
+	AppContext::getInstance()->unsubscribe(this, Config::MSG_ADD_DATABASE_ID);
 	
 	LeftTreeDelegate::destroyInstance();
 	leftTreeDelegate = nullptr;	
@@ -211,7 +217,18 @@ void LeftTreeView::OnTreeItemExpended(wxTreeEvent& event)
 	leftTreeDelegate->expendedForLeftTree(treeView, itemId);
 
 	if (itemId.IsOk() && itemId != treeView->GetSelection() && itemId != treeView->GetRootItem()) {
-		treeView->SelectItem(itemId);
+		int nImage = treeView->GetItemImage(itemId);
+		if (nImage == 1) { // 1 - connection
+			auto connData = reinterpret_cast<QTreeItemData<UserConnect> *>(treeView->GetItemData(itemId));
+			auto selDbData = leftTreeDelegate->getSelectedDbItemData(treeView);
+			if (selDbData && connData && selDbData->connectId != connData->getDataId()) {
+				treeView->SelectItem(itemId);
+			} else if (!selDbData || !connData) {
+				treeView->SelectItem(itemId);
+			}
+		} else {
+			treeView->SelectItem(itemId);
+		}
 	}
 }
 
@@ -243,7 +260,10 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 			return;
 		} else {
 			supplier->runtimeUserDb = selDbData;
-			leftTopbarDelegate->selectDbsForComboBox(selectedDbComboBox);
+			bool ret = leftTopbarDelegate->selectDbsForComboBox(selectedDbComboBox);
+			if (!ret) {
+				leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+			}
 			return;
 		}
 	} else if (selDbData != supplier->runtimeUserDb) {
@@ -259,6 +279,14 @@ void LeftTreeView::OnHandleConnectionConnected(MsgDispatcherEvent& event)
 	auto connectId = clientData->getDataPtr();
 
 	leftTreeDelegate->loadForLeftTree(treeView, connectId);
+}
+
+void LeftTreeView::OnHandleAddDatabase(MsgDispatcherEvent& event)
+{
+	auto clientData = (MsgClientData*)event.GetClientData();
+	auto connectId = clientData->getDataPtr();
+
+	leftTreeDelegate->loadForLeftTree(treeView, connectId, supplier->handleUserDb.name);
 }
 
 void LeftTreeView::OnClickConnectButton(wxCommandEvent& event)
@@ -278,6 +306,22 @@ void LeftTreeView::OnClickCreateButton(wxCommandEvent& event)
 	databaseDialog.ShowModal();
 }
 
+void LeftTreeView::OnClickDeleteButton(wxCommandEvent& event)
+{
+	if (!supplier->runtimeUserConnect) {
+		return;
+	}
+
+	auto selItemId = treeView->GetSelection();
+	if (!selItemId.IsOk() || selItemId == treeView->GetRootItem()) {
+		QAnimateBox::notice(S("not-choose-treeitem"));
+		return;
+	}
+	
+	if (leftTreeDelegate->removeForLeftTree(treeView)) {
+		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+	}	
+}
 /**
  * When selectedDbComboBox changing its selected item, changing the selected item of treeView to match the database in the same time.
  * Note: This event will be triggered the EVT_TREE_SEL_CHANGED event that calling LeftTreeView::OnTreeItemSelChanged

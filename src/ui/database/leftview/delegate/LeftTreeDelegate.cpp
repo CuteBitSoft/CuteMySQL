@@ -23,6 +23,8 @@
 #include "core/entity/Entity.h"
 #include "core/entity/Enum.h"
 #include "ui/common/data/QTreeItemData.h"
+#include "ui/common/msgbox/QAnimateBox.h"
+#include "ui/common/msgbox/QConfirmBox.h"
 
 LeftTreeDelegate::~LeftTreeDelegate()
 {
@@ -36,7 +38,14 @@ LeftTreeDelegate::~LeftTreeDelegate()
 	metadataService = nullptr;
 }
 
-void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId)
+/**
+ * load item for treeView.
+ * 
+ * @param treeView
+ * @param connectId - selected connection
+ * @param schema - selected schema
+ */
+void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId /*= 0 */, const std::string & schema /*= "" */)
 {
 	if (!treeView->HasImages()) {
 		auto imgdir = ResourceUtil::getProductImagesDir();
@@ -89,8 +98,7 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId)
 		connectName.append(" [").append(item.userName).append("@").append(item.host).append("]");
 		auto itemId = treeView->AppendItem(rootId, connectName, 1, 1, data);
 		if (connectId == item.id) {
-			treeView->SelectItem(itemId);
-			loadDbsForConnection(treeView, itemId, connectId);
+			loadDbsForConnection(treeView, itemId, connectId, schema);
 			treeView->Expand(itemId);
 		} else {
 			// lazy load connection
@@ -138,32 +146,32 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 		treeView->Delete(firstChildId);
 
 		auto data = (QTreeItemData<long> *)treeView->GetItemData(itemId);
-		if (data->getType() == TreeObjectType::TABLES_FOLDER) { // TABLE
+		if (data->getType() == TreeObjectType::TABLES_FOLDER) { // TABLE folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadTablesForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::VIEWS_FOLDER) { // VIEW
+		} else if (data->getType() == TreeObjectType::VIEWS_FOLDER) { // VIEW folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadViewsForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER) { // STORE PROCEDURE
+		} else if (data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER) { // STORE PROCEDURE folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadProceduresForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::FUNCTIONS_FOLDER) { // FUNCTION
+		} else if (data->getType() == TreeObjectType::FUNCTIONS_FOLDER) { // FUNCTION folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadFunctionsForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::TRIGGERS_FOLDER) { // TRIGGER
+		} else if (data->getType() == TreeObjectType::TRIGGERS_FOLDER) { // TRIGGER folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadTriggersForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::EVENTS_FOLDER) { // EVENTS
+		} else if (data->getType() == TreeObjectType::EVENTS_FOLDER) { // EVENTS folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
@@ -220,6 +228,59 @@ UserDb* LeftTreeDelegate::getSelectedDbItemData(wxTreeCtrl* treeView)
 	}
 	auto findData = reinterpret_cast<QTreeItemData<UserDb> *>(data);
 	return findData->getDataPtr();
+}
+
+bool LeftTreeDelegate::removeForLeftTree(wxTreeCtrl* treeView)
+{
+	if (!treeView) {
+		return false;
+	}
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return false;
+	}
+
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	if (!data) {
+		return false;
+	}
+
+	if (data->getType() == TreeObjectType::TABLES_FOLDER 
+		|| data->getType() == TreeObjectType::VIEWS_FOLDER
+		|| data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER
+		|| data->getType() == TreeObjectType::FUNCTIONS_FOLDER
+		|| data->getType() == TreeObjectType::TRIGGERS_FOLDER
+		|| data->getType() == TreeObjectType::EVENTS_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER) {
+		QAnimateBox::warning(S("folder-cannot-delete"));
+		return false;
+	}
+
+	if (QConfirmBox::confirm(S("remove-item-confirm")) != wxID_OK) {
+		return false;
+	}
+
+	if (data->getType() == TreeObjectType::CONNECTION) {
+		return removeConnectionItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::SCHEMA) {
+		return removeDatabaseItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::VIEW) {
+		return removeViewItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
+		return removeProcedureItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::FUNCTION) {
+		return removeFunctionItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TRIGGER) {
+		return removeTriggerItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::EVENT) {
+		return removeEventItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE_COLUMN) {
+		return removeTableColumnItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE_INDEX) {
+		return removeTableIndexItem(treeView, selItemId);
+	}
+	return false;
 }
 
 void LeftTreeDelegate::expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId)
@@ -295,13 +356,14 @@ void LeftTreeDelegate::loadingForFolder(wxTreeCtrl* treeView, const wxTreeItemId
 }
 
 /**
- * Databases(schemas) of connection node.
+ * Databases(Schemas) of connection node.
  * 
  * @param treeView
  * @param treeItemId
  * @param connectId
+ * @param schema - selected schema
  */
-void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeItemId & connectItemId, uint64_t connectId)
+void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeItemId & connectItemId, uint64_t connectId, const std::string & schema /* = "" */)
 {
 	if (!connectItemId.IsOk() || !connectId) {
 		return;
@@ -309,10 +371,11 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 
 	try {
 		UserDbList userDbList = databaseService->getAllUserDbs(connectId);
+		wxTreeItemId selDbItemId;
 		for (auto& item : userDbList) {
 			QTreeItemData<UserDb>* data = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::SCHEMA);
 			auto dbItemId = treeView->AppendItem(connectItemId, item.name, 2, 2, data);
-
+			
 			auto tblsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::TABLES_FOLDER);
 			auto tblsFolderItemId = treeView->AppendItem(dbItemId, S("tables"), 3, 3, tblsFolderData);
 
@@ -338,6 +401,13 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 			loadingForFolder(treeView, funsFolderItemId, connectId);
 			loadingForFolder(treeView, triggersFolderItemId, connectId);
 			loadingForFolder(treeView, eventsFolderItemId, connectId);
+
+			if (!schema.empty() && schema == item.name) {
+				selDbItemId = dbItemId;
+			}
+		}
+		if (selDbItemId.IsOk()) {
+			treeView->SelectItem(selDbItemId);
 		}
 	} catch (QRuntimeException& ex) {
 		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK|wxCENTRE|wxICON_ERROR);
@@ -522,4 +592,214 @@ void LeftTreeDelegate::loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeIte
 		msgbox.ShowModal();
 		return;
 	}
+}
+
+
+bool LeftTreeDelegate::removeConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserConnect> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		connectService->removeUserConnect(data->getDataId());
+		treeView->Delete(itemId);
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}	
+	return false;
+}
+
+bool LeftTreeDelegate::removeDatabaseItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserDb> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		databaseService->removeUserDb(data->getDataId(), data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeTableItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserTable> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserTable(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeViewItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserView> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserView(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeProcedureItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserProcedure> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserProcedure(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeFunctionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserFunction> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserFunction(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeTriggerItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserTrigger> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserTrigger(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeEventItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserEvent> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeUserEvent(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeTableColumnItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<ColumnInfo> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeTableColumn(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->table, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::removeTableIndexItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<IndexInfo> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	try {
+		metadataService->removeTableIndex(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->table, data->getDataPtr()->name);
+		treeView->Delete(itemId);
+
+		return true;
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
+	return false;
 }

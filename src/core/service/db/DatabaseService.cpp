@@ -69,6 +69,13 @@ void DatabaseService::removeUserDb(uint64_t connectId, const std::string & schem
 	// databaseUserRepository->closeUserConnect(userDbId);
 }
 
+void DatabaseService::createUserDb(const UserDb& userDb)
+{
+	assert(userDb.connectId > 0 && !userDb.name.empty());
+
+	getRepository()->create(userDb);
+}
+
 /**
  * Copy database from fromUserDbId to toDbPath.
  * 

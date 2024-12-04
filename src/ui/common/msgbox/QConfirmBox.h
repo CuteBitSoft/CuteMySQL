@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   QAnimateBox.h
+ * @file   QConfirmBox.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
@@ -23,49 +23,41 @@
 #include <wx/stattext.h>
 #include "core/common/exception/QRuntimeException.h"
 
-class QAnimateBox :  public wxDialog
+class QConfirmBox :  public wxDialog
 {
 	DECLARE_EVENT_TABLE()
 public:
 	typedef enum {
-		MOVE_TIMER_ID, // MOVE
-		STAY_TIMER_ID, // STAY
-	} TimerId;
+		MOVE_TIMER_ID2 = 2, // MOVE
+	} ConfirmTimerId;
 
-	typedef enum {
-		MSG_SUCCESS,
-		MSG_NOTICE,
-		MSG_WARNING,
-		MSG_ERROR,
-	} NotifyType;
 
-	static void message(const std::string & text , NotifyType type);
-	static void success(const std::string & text);
-	static void notice(const std::string & text);
-	static void warning(const std::string & text);
-	static void error(const std::string & text);
-	static void error(const QRuntimeException & ex);
+	static int confirm(const std::string & text, const std::string & otherBtnLabel = "");
 
-	void startMove();
+	
 private:
-	QAnimateBox(const std::string &text = "", NotifyType type = MSG_NOTICE);
-	~QAnimateBox();
+	QConfirmBox(const std::string &text = "", const std::string & otherBtnLabel = "");
+	~QConfirmBox();
 
 	std::string text;
-	NotifyType type;
-	wxTimer moveTimer, stayTimer;
+	std::string otherBtnLabel;
+	
+	bool hasStartedMove;
+	wxTimer moveTimer;
 
 	wxColour bkgColor;
 	wxColour textColor;
 
 	wxBoxSizer* topSizer;
+	wxBoxSizer* hSizer;
 	wxBoxSizer* leftSizer;
 	wxBoxSizer* rightSizer;
+	wxBoxSizer* bottomSizer;
 
 	wxStaticBitmap* image;
 	wxStaticText* label;
 
-	QAnimateBox(wxWindow* parent,
+	QConfirmBox(wxWindow* parent,
 		wxWindowID id = 0,
 		const wxString& caption = _(""),
 		const wxPoint& pos = wxDefaultPosition,
@@ -84,9 +76,11 @@ private:
 	void createControls();
 	void createImage();
 	void createLabel();
-	void createTimers();
+	void createButtons();
+	void startMove();
 
-	void OnStayTimeOut(wxTimerEvent & event);
 	void OnMoveTimeOut(wxTimerEvent & event);
+	void OnShow(wxShowEvent & event);
+	
 };
 

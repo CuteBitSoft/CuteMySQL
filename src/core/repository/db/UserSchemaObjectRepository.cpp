@@ -47,6 +47,30 @@ UserProcedureList UserSchemaObjectRepository::getAllByObjectType(uint64_t connec
     return result;
 }
 
+bool UserSchemaObjectRepository::remove(uint64_t connectId, const std::string& schema, const std::string& name, const std::string& objectType)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty());
+	try {
+		//sql
+		sql::SQLString sql = fmt::format("DROP {} IF EXISTS `{}`", objectType, name);
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+
+		stmt->execute(sql);
+		stmt->close();
+		return true;
+	}
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+	return false;
+}
+
 UserProcedure UserSchemaObjectRepository::toUserProcedure(sql::ResultSet* rs)
 {
 	UserProcedure result;

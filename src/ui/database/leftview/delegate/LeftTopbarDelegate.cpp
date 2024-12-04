@@ -20,6 +20,7 @@
 #include <cassert>
 #include <wx/msgdlg.h>
 #include "ui/common/data/QClientData.h"
+#include "ui/common/msgbox/QAnimateBox.h"
 #include "core/common/Lang.h"
 
 LeftTopbarDelegate::~LeftTopbarDelegate()
@@ -57,8 +58,7 @@ void LeftTopbarDelegate::loadDbsForComboBox(wxBitmapComboBox* comboBox)
 		}
 	} catch (QRuntimeException& ex) {
 		Q_WARN(S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"));
-		//wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
-		//msgbox.ShowModal();
+		QAnimateBox::error(ex);
 		return;
 	}
 	
@@ -70,19 +70,20 @@ void LeftTopbarDelegate::loadDbsForComboBox(wxBitmapComboBox* comboBox)
  * 
  * @param comboBox
  */
-void LeftTopbarDelegate::selectDbsForComboBox(wxBitmapComboBox* comboBox)
+bool LeftTopbarDelegate::selectDbsForComboBox(wxBitmapComboBox* comboBox)
 {
 	assert(comboBox != nullptr && supplier != nullptr && supplier->runtimeUserConnect != nullptr);
 
 	auto n = comboBox->GetCount();
-	for (int i = 0; i < n; ++i) {
+	for (unsigned int i = 0; i < n; ++i) {
 		// Note: comboBox->GetClientObject(i) will be called in here
 		auto data = reinterpret_cast<QClientData<UserDb> *>(comboBox->GetClientObject(i));
 		if (supplier->runtimeUserDb && data
 			&& supplier->runtimeUserDb->connectId == data->getDataPtr()->connectId
 			&& supplier->runtimeUserDb->name == data->getDataPtr()->name) {
 			comboBox->SetSelection(i);
-			return;
+			return true;
 		}
 	}
+	return false;
 }

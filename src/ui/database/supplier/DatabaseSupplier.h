@@ -24,6 +24,7 @@ class DatabaseSupplier :  public QSupplier<DatabaseSupplier>
 {
 public:
 	UserConnect * runtimeUserConnect = nullptr; // runtime user connect
-	UserDb * runtimeUserDb = nullptr; // runtime user database
+	UserDb * runtimeUserDb = nullptr; // runtime user database ()
+	UserDb handleUserDb; // handleUserDb user database(added and removed user db)
 };
 

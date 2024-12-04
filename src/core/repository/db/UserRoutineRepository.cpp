@@ -51,6 +51,39 @@ UserRoutineList UserRoutineRepository::getAllByType(uint64_t connectId, const st
     return result;
 }
 
+bool UserRoutineRepository::remove(uint64_t connectId, const std::string& schema, const std::string& name, RoutineType type)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty());
+	
+	std::string routineType;
+	if (type == RoutineType::ROUTINE_PROCEDURE) {
+		routineType = "PROCEDURE";
+	} else if (type == RoutineType::ROUTINE_FUNCTION) {
+		routineType = "FUNCTION";
+	} else {
+		return false;
+	}
+	try {
+		
+		sql::SQLString sql = fmt::format("DROP {} IF EXISTS {}", routineType, name);
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+
+		stmt->execute(sql);
+		stmt->close();
+		return true;
+	}
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+	return false;
+}
+
 UserFunction UserRoutineRepository::toUserFunction(sql::ResultSet* rs)
 {
 	UserFunction result;

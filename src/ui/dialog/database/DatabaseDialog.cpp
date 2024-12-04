@@ -21,6 +21,7 @@
 #include "common/Config.h"
 #include "ui/common/data/QClientData.h"
 #include "ui/common/msgbox/QAnimateBox.h"
+#include "common/AppContext.h"
 
 BEGIN_EVENT_TABLE(DatabaseDialog, wxDialog)
 	EVT_BUTTON(wxID_OK, OnClickOkButton)
@@ -75,9 +76,9 @@ void DatabaseDialog::createInputs()
 
 	connectLayout->AddSpacer(20);
 
-	conectComboBox = new wxBitmapComboBox(this, Config::DATABASE_DIALOG_CONNECT_COMBOBOX_ID, wxEmptyString, 
+	connectComboBox = new wxBitmapComboBox(this, Config::DATABASE_DIALOG_CONNECT_COMBOBOX_ID, wxEmptyString, 
 		wxDefaultPosition, { 200, -1 }, wxArrayString(), wxNO_BORDER | wxCLIP_CHILDREN| wxCB_READONLY);
-	connectLayout->Add(conectComboBox, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
+	connectLayout->Add(connectComboBox, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
 	connectLayout->AddSpacer(20);
 
 	tLayout->AddSpacer(10);
@@ -145,7 +146,7 @@ void DatabaseDialog::createButtons()
 
 void DatabaseDialog::OnSelChangeCharsetCombobox(wxCommandEvent& event)
 {
-	auto connectData = (QClientData<UserConnect> *)conectComboBox->GetClientObject(conectComboBox->GetSelection());
+	auto connectData = (QClientData<UserConnect> *)connectComboBox->GetClientObject(connectComboBox->GetSelection());
 	auto charsetData = (QClientData<CharsetInfo> *)charsetComboBox->GetClientObject(charsetComboBox->GetSelection());
 	if (!connectData || !charsetData) {
 		return;
@@ -156,29 +157,77 @@ void DatabaseDialog::OnSelChangeCharsetCombobox(wxCommandEvent& event)
 
 void DatabaseDialog::OnClickOkButton(wxCommandEvent& event)
 {
-	if (conectComboBox->GetValue().empty()) {
+	auto connectData = (QClientData<UserConnect>*)connectComboBox->GetClientObject(connectComboBox->GetSelection());
+	if (connectData == nullptr || connectData->getDataPtr() == nullptr) {
 		QAnimateBox::error(S("not-choose-connection"));
-		conectComboBox->SetFocus();
+		connectComboBox->SetFocus();
 		return;
 	}
 
-	if (databaseNameEdit->GetValue().empty()) {
+	UserDb & userDb = databaseSupplier->handleUserDb;
+	userDb.connectId = connectData->getDataPtr()->id;
+	userDb.name = databaseNameEdit->GetValue();
+
+	if (userDb.name.empty()) {
 		QAnimateBox::error(S("no-database-name"));
 		databaseNameEdit->SetFocus();
 		return;
 	}
+
+	QClientData<CharsetInfo>* charsetData = nullptr;
+	if (charsetComboBox->HasClientObjectData()) {
+		charsetData = (QClientData<CharsetInfo>*)charsetComboBox->GetClientObject(charsetComboBox->GetSelection());
+	}
+	
+	if (charsetData == nullptr || charsetData->getDataPtr() == nullptr) {
+		userDb.charset = "utf8";
+	} else {
+		userDb.charset = charsetData->getDataPtr()->name;
+	}
+	QClientData<CollationInfo>* collationData = nullptr;
+	if (collationComboBox->HasClientObjectData()) {
+		collationData = (QClientData<CollationInfo>*)collationComboBox->GetClientObject(collationComboBox->GetSelection());
+	}
+	
+	if (collationData == nullptr || collationData->getDataPtr() == nullptr) {
+		userDb.collation = charsetData ? charsetData->getDataPtr()->defaultCollation : "utf8_general_ci";
+	} else {
+		userDb.collation = collationData->getDataPtr()->name; 
+	}
+
+	try {
+		if (databaseService->hasUserDb(userDb.connectId, userDb.name)) {
+			auto error = StringUtil::replace(S("exists-database-name"), "{dbName}", userDb.name);
+			QAnimateBox::error(error);
+			databaseNameEdit->SelectAll();
+			databaseNameEdit->SetFocus();
+			return;
+		}
+
+		databaseService->createUserDb(userDb);
+
+		
+		QAnimateBox::success(S("create-db-success-text"));
+		AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, userDb.connectId);
+
+		EndModal(wxID_OK);
+		
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+		return;
+	}	
 }
 
 
 void DatabaseDialog::loadControls()
 {
-	delegate->loadForConnectComboBox(conectComboBox);
+	delegate->loadForConnectComboBox(connectComboBox);
 
-	auto nSelItem = conectComboBox->GetSelection();
+	auto nSelItem = connectComboBox->GetSelection();
 	if (nSelItem == -1) {
 		return;
 	}
-	auto data = reinterpret_cast<QClientData<UserConnect>*>(conectComboBox->GetClientObject(nSelItem));
+	auto data = reinterpret_cast<QClientData<UserConnect>*>(connectComboBox->GetClientObject(nSelItem));
 
 	std::string defaultCharset;
 	if (databaseType == DatabaseType::DATABASE_ALTER) {

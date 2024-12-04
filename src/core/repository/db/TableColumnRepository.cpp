@@ -49,6 +49,30 @@ ColumnInfoList TableColumnRepository::getAll(uint64_t connectId, const std::stri
     return result;
 }
 
+bool TableColumnRepository::remove(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& columnName)
+{
+	assert(connectId > 0 && !schema.empty() && !tableName.empty() && !columnName.empty());
+	
+	try {
+		sql::SQLString sql = fmt::format("ALTER TABLE `{}` DROP COLUMN `{}`", tableName, columnName);
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+
+		stmt->execute(sql);
+		stmt->close();
+		return true;
+	}
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+	return false;
+}
+
 ColumnInfo TableColumnRepository::toColumnInfo(sql::ResultSet* rs)
 {
 	ColumnInfo result;

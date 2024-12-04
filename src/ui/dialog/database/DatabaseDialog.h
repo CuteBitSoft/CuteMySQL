@@ -22,6 +22,8 @@
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/dialog/database//delegate/DatabaseDialogDelegate.h"
+#include "core/service/db/DatabaseService.h"
+
 class DatabaseDialog : public QDialog<DatabaseDialogDelegate>
 {
 	DECLARE_EVENT_TABLE()
@@ -35,7 +37,7 @@ private:
 	wxBoxSizer* tLayout;
 	wxBoxSizer* bLayout;
 
-	wxBitmapComboBox* conectComboBox;
+	wxBitmapComboBox* connectComboBox;
 	wxTextCtrl* databaseNameEdit;
 	wxComboBox* charsetComboBox;
 	wxComboBox* collationComboBox;
@@ -44,6 +46,8 @@ private:
 	wxButton* cancelButton;
 
 	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+	DatabaseService * databaseService = DatabaseService::getInstance();
+
 
 	virtual void init();
 	virtual void createControls();

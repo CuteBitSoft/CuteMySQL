@@ -23,6 +23,7 @@ class TableIndexRepository : public BaseUserRepository<TableIndexRepository>
 {
 public:
 	IndexInfoList getAll(uint64_t connectId, const std::string& schema, const std::string & tableName);
+	bool remove(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName);
 private:
 	IndexInfo toIndexInfo(sql::ResultSet* rs);
 };

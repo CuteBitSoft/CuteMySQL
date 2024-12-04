@@ -28,19 +28,21 @@ class LeftTreeDelegate :  public QDelegate<LeftTreeDelegate, DatabaseSupplier>
 {
 public:
 	~LeftTreeDelegate();
-	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0);
+	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0, const std::string & schema = "");
 	void expendedForLeftTree(wxTreeCtrl * treeView, wxTreeItemId &itemId);
 	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
 
 	UserConnect* getSelectedConnectItemData(wxTreeCtrl* treeView);
 	UserDb* getSelectedDbItemData(wxTreeCtrl* treeView);
+
+	bool removeForLeftTree(wxTreeCtrl* treeView);
 private:
 	ConnectService * connectService = ConnectService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
 	MetadataService * metadataService = MetadataService::getInstance();
 
 	// For Connection
-	void loadDbsForConnection(wxTreeCtrl * treeView, const wxTreeItemId & connectItemId, uint64_t connectId = 0);
+	void loadDbsForConnection(wxTreeCtrl * treeView, const wxTreeItemId & connectItemId, uint64_t connectId, const std::string & schema = "");
 	// For Database
 	void loadTablesForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
 	void loadViewsForDatabase(wxTreeCtrl * treeView, const wxTreeItemId & folderItemId, uint64_t connectId, const std::string & schema);
@@ -56,7 +58,20 @@ private:
 	
 	void expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable * userTable);
 
+	// loading for lazy load
 	void loadingForItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
 	void loadingForFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId);
+
+	// remove item
+	bool removeConnectionItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeDatabaseItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeTableItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeViewItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeProcedureItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeFunctionItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeTriggerItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeEventItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeTableColumnItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+	bool removeTableIndexItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
 };
 

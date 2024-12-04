@@ -19,12 +19,13 @@
 #include "QAnimateBox.h"
 #include <wx/sizer.h>
 #include <wx/bmpbndl.h>
-#include <wx/shadow.h>
 #include "utils/ResourceUtil.h"
 #include "common/AppContext.h"
+#include "core/common/Lang.h"
 
 BEGIN_EVENT_TABLE(QAnimateBox, wxDialog)
 	EVT_TIMER(STAY_TIMER_ID, OnStayTimeOut)
+	EVT_TIMER(MOVE_TIMER_ID, OnMoveTimeOut)
 END_EVENT_TABLE()
 
 
@@ -74,16 +75,6 @@ bool QAnimateBox::Create(wxWindow* parent, wxWindowID id, const wxString& captio
 	SetBackgroundColour(bkgColor);
 	SetForegroundColour(textColor);
 
-
-	// use shadow
-	// 创建阴影
-    wxShadow shadow;
-    shadow.SetShadowColour(*wxBLACK); // 设置阴影颜色
-    shadow.SetOffset(5, 5);           // 设置阴影偏移量
-    shadow.SetBlurRadius(5);           // 设置阴影模糊半径
-    shadow.SetQuality(wxSHADOW_QUALITY_3); // 设置阴影质量
-    shadow.DrawShadow(this);          // 绘制阴影
-
 	return true;
 }
 
@@ -113,9 +104,12 @@ void QAnimateBox::createImage()
 {
 	wxString imgdir = ResourceUtil::getProductImagesDir();
 	wxString imgpath(imgdir) ;
-	if (type == MSG_WARNING) {
+	if (type == MSG_SUCCESS) {
+		imgpath.Append("/dialog/msgbox/success.bmp");
+	} else if (type == MSG_WARNING) {
 		imgpath.Append("/dialog/msgbox/warning.bmp");
-	} else if (type == MSG_ERROR) {
+	}
+	else if (type == MSG_ERROR) {
 		imgpath.Append("/dialog/msgbox/error.bmp");
 	} else {
 		imgpath.Append("/dialog/msgbox/notice.bmp");
@@ -134,7 +128,13 @@ void QAnimateBox::createLabel()
 
 void QAnimateBox::createTimers()
 {
-	stayTimer.StartOnce(3000);
+	// stayTimer.StartOnce(3000);
+}
+
+
+void QAnimateBox::startMove()
+{
+	moveTimer.Start(80);
 }
 
 void QAnimateBox::OnStayTimeOut(wxTimerEvent& event)
@@ -143,16 +143,45 @@ void QAnimateBox::OnStayTimeOut(wxTimerEvent& event)
 	this->Destroy();
 }
 
+void QAnimateBox::OnMoveTimeOut(wxTimerEvent& event)
+{
+	wxRect rect = this->GetScreenRect();
+	wxRect frmRect = AppContext::getInstance()->getMainFrmWindow()->GetScreenRect();
+	if (!IsShown() && rect.GetTop() <= frmRect.GetBottom()) {
+		Show(true);
+	}
+
+	int x = frmRect.GetX() + frmRect.GetWidth() - rect.GetWidth() - 20,
+		y = rect.GetTop() - 5,
+		minY = frmRect.GetY() + frmRect.GetHeight() - rect.GetHeight() - 20;
+	Move({x, y});
+	if (y <= minY) {
+		moveTimer.Stop();
+		stayTimer.StartOnce(3000);
+	}
+}
+
 void QAnimateBox::message(const std::string& text, NotifyType type)
 {
 	auto msgbox = new QAnimateBox(text, type);
-	wxRect clientRect = AppContext::getInstance()->getMainFrmWindow()->GetClientRect();
-	int x = clientRect.GetWidth() - 200,
-		y = clientRect.GetHeight() - 100;
+	
+	
 		
-	msgbox->Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, wxEmptyString, { x, y }, { 200, 100 }, wxNO_BORDER);
-	msgbox->Show();
+	msgbox->Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, wxEmptyString, wxDefaultPosition, { 200, 100 }, wxNO_BORDER);
+	msgbox->Show(false);
+
+	wxRect frmRect = AppContext::getInstance()->getMainFrmWindow()->GetScreenRect();
+	wxSize size = msgbox->GetSize();
+	int x = frmRect.GetX() + frmRect.GetWidth() - size.GetWidth() - 20,
+		y = frmRect.GetY() + frmRect.GetHeight() + 20;
 	msgbox->Move({ x, y });
+
+	msgbox->startMove();
+}
+
+void QAnimateBox::success(const std::string& text)
+{
+	QAnimateBox::message(text, NotifyType::MSG_SUCCESS);
 }
 
 void QAnimateBox::notice(const std::string& text)
@@ -170,4 +199,9 @@ void QAnimateBox::error(const std::string& text)
 	QAnimateBox::message(text, NotifyType::MSG_ERROR);
 }
 
-
+void QAnimateBox::error(const QRuntimeException& ex)
+{
+	std::string text = S("error-text");
+	text.append(ex.getMsg()).append(" [code:").append(ex.getCode()).append("]");
+	QAnimateBox::message(text, NotifyType::MSG_ERROR);
+}

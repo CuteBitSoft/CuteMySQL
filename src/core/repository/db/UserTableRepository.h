@@ -23,6 +23,7 @@ class UserTableRepository : public BaseUserRepository<UserTableRepository>
 {
 public:
 	UserTableList getAll(uint64_t connectId, const std::string& schema);
+	bool remove(uint64_t connectId, const std::string& schema, const std::string& name);
 private:
 	UserTable toUserTable(sql::ResultSet* rs);
 };

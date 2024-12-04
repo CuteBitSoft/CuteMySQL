@@ -94,3 +94,43 @@ CollationInfoList MetadataService::getCollations(uint64_t connectId, const std::
 {
     return collationRepository->getAll(connectId, charset);
 }
+
+bool MetadataService::removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
+{
+    return getRepository()->remove(connectId, schema, tableName);
+}
+
+bool MetadataService::removeUserView(uint64_t connectId, const std::string& schema, const std::string& viewName)
+{
+    return userViewRepository->remove(connectId, schema, viewName);
+}
+
+bool MetadataService::removeUserProcedure(uint64_t connectId, const std::string& schema, const std::string& procedureName)
+{
+    return userRoutineRepository->remove(connectId, schema, procedureName, RoutineType::ROUTINE_PROCEDURE);
+}
+
+bool MetadataService::removeUserFunction(uint64_t connectId, const std::string& schema, const std::string& functionName)
+{
+    return userRoutineRepository->remove(connectId, schema, functionName, RoutineType::ROUTINE_FUNCTION);
+}
+
+bool MetadataService::removeUserTrigger(uint64_t connectId, const std::string& schema, const std::string& triggerName)
+{
+    return userSchemaObjectRepository->remove(connectId, schema, triggerName, "TRIGGER");
+}
+
+bool MetadataService::removeUserEvent(uint64_t connectId, const std::string& schema, const std::string& eventName)
+{
+    return userEventRepository->remove(connectId, schema, eventName);
+}
+
+bool MetadataService::removeTableColumn(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& columnName)
+{
+    return tableColumnRepository->remove(connectId, schema, tableName, columnName);
+}
+
+bool MetadataService::removeTableIndex(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName)
+{
+    return tableIndexRepository->remove(connectId, schema, tableName, indexName);
+}

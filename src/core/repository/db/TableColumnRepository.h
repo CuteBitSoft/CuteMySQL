@@ -23,6 +23,7 @@ class TableColumnRepository : public BaseUserRepository<TableColumnRepository>
 {
 public:
 	ColumnInfoList getAll(uint64_t connectId, const std::string& schema, const std::string & tableName);
+	bool remove(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& columnName);
 private:
 	ColumnInfo toColumnInfo(sql::ResultSet* rs);
 };

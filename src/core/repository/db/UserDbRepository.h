@@ -28,11 +28,10 @@ public:
 	UserDbRepository() {};
 	~UserDbRepository() {};
 
-	uint64_t create(uint64_t connectId, UserDb & item);
+	uint64_t create(const UserDb & item);
 	bool remove(uint64_t connectId, const std::string & schema);
 	
 	UserDbList getAllByConnectId(uint64_t connectId);
 private:
-	void queryBind(SQLite::QSqlStatement &query, UserDb &item, bool isUpdate = false);
 	UserDb toUserDb(uint64_t connectId, sql::ResultSet * res);
 };

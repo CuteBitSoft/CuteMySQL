@@ -40,7 +40,7 @@ void ConnectPanel::init()
  */
 void ConnectPanel::loadControls()
 {
-	connectNameEdit->SetValue(supplier->runtimeUserConnect->name);
+	connectNameEdit->SetValue(supplier->runtimeUserConnect ? supplier->runtimeUserConnect->name : "");
 	mysqlParamsPage->loadControls();
 	sshParamsPage->loadControls();
 	sslParamsPage->loadControls();

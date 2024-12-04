@@ -20,36 +20,53 @@
 #include "UserDbRepository.h"
 #include <memory>
 #include <mysql/jdbc.h>
+#include <spdlog/fmt/fmt.h>
 #include "utils/Log.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/driver/sqlite/QSqlColumn.h"
 
-uint64_t UserDbRepository::create(uint64_t connectId, UserDb & item)
+uint64_t UserDbRepository::create(const UserDb & item)
 {
+	assert(item.connectId && !item.name.empty());
 	//sql
-	std::string sql = "CREATE DATABASE :name ";
+	std::string sql = " ";
 	try {
-		SQLite::QSqlStatement query(getSysConnect(), sql.c_str());
-		queryBind(query, item);
-
-		query.exec();
-		Q_INFO("create user_db success.");
-		return getSysConnect()->getLastInsertRowid();
+		sql::SQLString sql = fmt::format("CREATE DATABASE IF NOT EXISTS {} CHARACTER SET={} COLLATE ={}", item.name, item.charset, item.collation);
+		auto connect = getUserConnect(item.connectId);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement()); 
+		
+		stmt->execute(sql);
+		stmt->close();
 	}
-	catch (SQLite::QSqlException &e) {
-		std::string _err = e.getErrorStr();
-		Q_ERROR("exec sql has error, code:{}, msg:{}, sql:{}", e.getErrorCode(), _err, sql);
-		throw QRuntimeException("10020", "sorry, system has error.");
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
 	}
 }
 
 
 bool UserDbRepository::remove(uint64_t connectId, const std::string& schema)
 {
-	if (connectId <= 0) {
-		return false;
-	}
+	assert(connectId > 0 && !schema.empty());
+	//sql
+	std::string sql = " ";
+	try {
+		sql::SQLString sql = fmt::format("DROP DATABASE IF EXISTS {}", schema);
+		auto connect = getUserConnect(connectId);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
 
+		stmt->execute(sql);
+		stmt->close();
+		return true;
+	}
+	catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
 
 	return false;
 }
@@ -79,17 +96,6 @@ UserDbList UserDbRepository::getAllByConnectId(uint64_t connectId)
 
 
 /**
-* bind the fields
-*
-* @param query
-* @param item
-*/
-void UserDbRepository::queryBind(SQLite::QSqlStatement &query, UserDb &item, bool isUpdate)
-{
-	
-}
-
-/**
  * convert to entity.
  * 
  * @param query
@@ -103,6 +109,6 @@ UserDb UserDbRepository::toUserDb(uint64_t connectId, sql::ResultSet * rs)
 	}
 	item.connectId = connectId;
 	item.name = rs->getString(1).asStdString();
-	item.ref = rs->getString(2).asStdString();
+	item.catalog = rs->getString(2).asStdString();
 	return item;
 }

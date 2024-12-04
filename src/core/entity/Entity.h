@@ -86,8 +86,10 @@ typedef std::vector<UserConnect> UserConnectList;
 // databases
 typedef struct _UserDb{
 	uint64_t connectId = 0;
-	std::string name;
-	std::string ref;
+	std::string catalog;
+	std::string name;	
+	std::string charset;
+	std::string collation;
 } UserDb;
 
 typedef std::vector<UserDb> UserDbList;

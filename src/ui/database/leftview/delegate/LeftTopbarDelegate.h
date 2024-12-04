@@ -27,7 +27,7 @@ public:
 	~LeftTopbarDelegate();
 
 	void loadDbsForComboBox(wxBitmapComboBox * comboBox);
-	void selectDbsForComboBox(wxBitmapComboBox * comboBox);
+	bool selectDbsForComboBox(wxBitmapComboBox * comboBox);
 private:
 	DatabaseService * databaseService = DatabaseService::getInstance();
 };

@@ -65,10 +65,12 @@ private:
 	void OnTreeItemSelChanged(wxTreeEvent& event);
 	// handle message event
 	void OnHandleConnectionConnected(MsgDispatcherEvent& event);
+	void OnHandleAddDatabase(MsgDispatcherEvent& event);
 
 	// button id
 	void OnClickConnectButton(wxCommandEvent & event);
 	void OnClickCreateButton(wxCommandEvent & event);
+	void OnClickDeleteButton(wxCommandEvent & event);
 
 	// combobox
 	void OnSelectedDbCombobox(wxCommandEvent & event);

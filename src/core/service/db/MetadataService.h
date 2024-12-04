@@ -44,6 +44,15 @@ public:
 
 	CharsetInfoList getCharsets(uint64_t connectId);
 	CollationInfoList getCollations(uint64_t connectId, const std::string& charset);
+
+	bool removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
+	bool removeUserView(uint64_t connectId, const std::string& schema, const std::string& viewName);
+	bool removeUserProcedure(uint64_t connectId, const std::string& schema, const std::string& procedureName);
+	bool removeUserFunction(uint64_t connectId, const std::string& schema, const std::string& functionName);
+	bool removeUserTrigger(uint64_t connectId, const std::string& schema, const std::string& triggerName);
+	bool removeUserEvent(uint64_t connectId, const std::string& schema, const std::string& eventName);
+	bool removeTableColumn(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& columnName);
+	bool removeTableIndex(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();

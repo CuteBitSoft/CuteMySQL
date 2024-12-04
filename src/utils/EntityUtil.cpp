@@ -58,7 +58,7 @@ UserDb EntityUtil::copy(const UserDb & item)
 	UserDb result;
 	result.connectId = item.connectId;
 	result.name = item.name;
-	result.ref = item.ref;
+	result.catalog = item.catalog;
 	
 	return result;
 }

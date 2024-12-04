@@ -222,7 +222,8 @@ typedef enum {
 	CONNECT_SSL_CLIENT_KEY_BUTTON_ID,
 	CONNECT_SSL_CLIENT_CERTIFICATE_BUTTON_ID,
 
-	//
+	// Confirm
+	CONFIRM_OTHER_BUTTON_ID,
 } ButtonId;
 
 // TabView id

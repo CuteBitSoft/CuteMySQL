@@ -23,6 +23,7 @@ class UserViewRepository : public BaseUserRepository<UserViewRepository>
 {
 public:
 	UserViewList getAll(uint64_t connectId, const std::string& schema);
+	bool remove(uint64_t connectId, const std::string& schema, const std::string& name);
 private:
 	UserView toUserView(sql::ResultSet* rs);
 };

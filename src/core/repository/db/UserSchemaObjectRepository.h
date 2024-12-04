@@ -23,6 +23,7 @@ class UserSchemaObjectRepository : public BaseUserRepository<UserSchemaObjectRep
 {
 public:
 	UserProcedureList getAllByObjectType(uint64_t connectId, const std::string& schema, const std::string & objectType = "%");
+	bool remove(uint64_t connectId, const std::string& schema, const std::string& name, const std::string & objectType);
 private:
 	UserProcedure toUserProcedure(sql::ResultSet* rs);
 };

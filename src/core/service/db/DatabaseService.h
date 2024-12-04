@@ -29,6 +29,7 @@ public:
 	bool hasUserDb(uint64_t connectId, const std::string & schema);
 	UserDb getUserDb(uint64_t connectId, const std::string & schema);
 	void removeUserDb(uint64_t connectId, const std::string & schema);
+	void createUserDb(const UserDb& userDb);
 	bool copyUserDb(uint64_t fromConnectId, const std::string & fromSchema, uint64_t toConnectId, const std::string & toSchema);
 
 private:
