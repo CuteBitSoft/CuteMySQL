@@ -17,9 +17,19 @@
  * @date   2024-11-30
  *********************************************************************/
 #pragma once
+#include <wx/treelist.h>
 #include "ui/dialog/delegate/QDialogDelegate.h"
 class DuplicateDatabaseDialogDelegate :  public QDialogDelegate<DuplicateDatabaseDialogDelegate>
 {
-
+public:
+	void loadForTreeListCtrl(wxTreeListCtrl * treeListCtrl);
+private:
+	// For Database
+	void loadTablesForDatabase(wxTreeListCtrl * treeListCtrl, const  wxTreeListItem & folderItem, uint64_t connectId, const std::string & schema);
+	void loadViewsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItem, uint64_t connectId, const std::string & schema);
+	void loadProceduresForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItem, uint64_t connectId, const std::string & schema);
+	void loadFunctionsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItemId, uint64_t connectId, const std::string & schema);
+	void loadTriggersForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItemId, uint64_t connectId, const std::string & schema);
+	void loadEventsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItemId, uint64_t connectId, const std::string & schema);
 };
 

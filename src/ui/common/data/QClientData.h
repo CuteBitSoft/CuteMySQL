@@ -29,12 +29,12 @@ public :
 
 
 	uint64_t getDataId() { return dataId; }
-	void setDataId(uint16_t _dataId) { dataId = _dataId; }
+	void setDataId(uint64_t _dataId) { dataId = _dataId; }
 
 	T* getDataPtr() { return dataPtr; }
 	void setDataPtr(T* _dataPtr) { dataPtr = _dataPtr; }
 protected:
-	uint16_t dataId;
+	uint64_t dataId;
 	T* dataPtr;
 };
 

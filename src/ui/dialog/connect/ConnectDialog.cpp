@@ -26,7 +26,7 @@
 
 
 BEGIN_EVENT_TABLE(ConnectDialog, wxDialog)
-	EVT_TREE_SEL_CHANGED(Config::CONNECT_DIALOG_LEFT_TREE, OnLeftTreeSelChange)
+	EVT_TREE_SEL_CHANGED(Config::CONNECT_DIALOG_LEFT_TREE_ID, OnLeftTreeSelChange)
 
 	EVT_BUTTON(Config::CONNECT_TEST_BUTTON_ID, OnTestButtonClick)
 	EVT_BUTTON(Config::CONNECT_CONFIRM_BUTTON_ID, OnConnectButtonClick)
@@ -97,7 +97,7 @@ void ConnectDialog::loadControls()
 
 void ConnectDialog::createLeftTree()
 {
-	leftTree = new wxTreeCtrl(this, Config::CONNECT_DIALOG_LEFT_TREE, wxDefaultPosition, wxSize(200, 400), wxTR_HAS_BUTTONS | wxTR_SINGLE);
+	leftTree = new wxTreeCtrl(this, Config::CONNECT_DIALOG_LEFT_TREE_ID, wxDefaultPosition, wxSize(200, 400), wxTR_HAS_BUTTONS | wxTR_SINGLE);
 	leftTree->SetBackgroundColour(bkgColor);
 	leftTree->SetForegroundColour(textColor);
 

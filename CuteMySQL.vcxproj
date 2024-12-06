@@ -217,6 +217,7 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\common\process\QProcessBar.cpp" />
     <ClCompile Include="src\ui\common\delegate\EmptyDelegate.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.cpp" />
     <ClCompile Include="src\ui\common\msgbox\QAnimateBox.cpp" />
@@ -282,6 +283,7 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\db\MetadataService.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ui\common\process\QProcessBar.h" />
     <ClInclude Include="src\ui\common\delegate\EmptyDelegate.h" />
     <ClInclude Include="src\ui\dialog\delegate\QDialogDelegate.h" />
     <ClInclude Include="src\ui\common\dialog\QFormDialog.h" />

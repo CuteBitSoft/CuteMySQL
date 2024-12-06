@@ -22,7 +22,12 @@
 
 BEGIN_EVENT_TABLE(DuplicateDatabaseDialog, wxDialog)
 	EVT_BUTTON(wxID_OK, OnClickOkButton)
+	EVT_BUTTON(Config::SELECT_ALL_BUTTON_ID, OnClickSelectAllButton)
+	EVT_BUTTON(Config::UN_SELECT_ALL_BUTTON_ID, OnClickUnSelectAllButton)
 	EVT_COMBOBOX(Config::DUPLICATE_SOURCE_CONNECT_COMBOBOX_ID, OnSelChangeConnectCombobox)
+	EVT_CHECKBOX(Config::STRUCTURE_ONLY_CHECKBOX_ID, OnStructAndDataCheckBoxChecked)
+	EVT_CHECKBOX(Config::STRUCTURE_DATA_CHECKBOX_ID, OnStructAndDataCheckBoxChecked)
+	EVT_TREELIST_ITEM_CHECKED(Config::DUPLICATE_DATABASE_TREELISTCTRL_ID, OnTreeListItemChecked)
 END_EVENT_TABLE()
 
 DuplicateDatabaseDialog::DuplicateDatabaseDialog() : QFormDialog()
@@ -33,11 +38,12 @@ void DuplicateDatabaseDialog::createInputs()
 {
 	// top layout
 	topHoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	tLayout->Add(topHoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	tLayout->Add(topHoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
+	tLayout->AddSpacer(20);
 	// center1 layout
 	center1HoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	tLayout->Add(center1HoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	tLayout->Add(center1HoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center1HoriLayout->AddSpacer(20);
 	center1LeftVertLayout = new wxBoxSizer(wxVERTICAL);
@@ -48,25 +54,30 @@ void DuplicateDatabaseDialog::createInputs()
 	center1HoriLayout->Add(center1RightVertLayout, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
 	center1HoriLayout->AddSpacer(20);
 
+	tLayout->AddSpacer(20);
 	// center2 layout
 	center2HoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	tLayout->Add(center2HoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	tLayout->Add(center2HoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center2HoriLayout->AddSpacer(20);
-	center2LeftVertLayout = new wxBoxSizer(wxVERTICAL);
+	auto center2LeftBox = new wxStaticBox(this, wxID_ANY, S("source-objects"), wxDefaultPosition, {200, -1});
+	center2LeftVertLayout = new wxStaticBoxSizer(center2LeftBox, wxVERTICAL);
 	center2HoriLayout->Add(center2LeftVertLayout, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
 
 	center2HoriLayout->AddSpacer(20);
-	center2RightVertLayout = new wxBoxSizer(wxVERTICAL);
+	auto center2RightBox = new wxStaticBox(this, wxID_ANY, S("duplicate-settings"), wxDefaultPosition, {200, -1});
+	center2RightVertLayout = new wxStaticBoxSizer(center2RightBox, wxVERTICAL);
 	center2HoriLayout->Add(center2RightVertLayout, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
 	center2HoriLayout->AddSpacer(20);
 
+	tLayout->AddSpacer(20);
 	// bottom
 	bottomHoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	tLayout->Add(bottomHoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	tLayout->Add(bottomHoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	createTopControls();
 	createCenter1Inputs();
+	createCenter2Inputs();
 	createBottomInputs();
 }
 
@@ -94,16 +105,20 @@ void DuplicateDatabaseDialog::createCenter1Inputs()
 	center1LeftVertLayout->Add(sourceConnectLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center1LeftVertLayout->AddSpacer(10);
-	sourceConnectEdit = new wxTextCtrl(this, Config::DUPLICATE_SOURCE_CONNECT_EDIT_ID,  S("source-connection"), wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
+	sourceConnectEdit = new wxTextCtrl(this, Config::DUPLICATE_SOURCE_CONNECT_EDIT_ID,  wxEmptyString, wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
 	center1LeftVertLayout->Add(sourceConnectEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	sourceConnectEdit->SetBackgroundColour(disabledColor);
+	sourceConnectEdit->SetForegroundColour(textColor);
 
 	center1LeftVertLayout->AddSpacer(10);
 	auto sourceDatabaseLabel = new wxStaticText(this, wxID_ANY, S("source-database"), wxDefaultPosition, {180, -1}, wxALIGN_LEFT);
 	center1LeftVertLayout->Add(sourceDatabaseLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center1LeftVertLayout->AddSpacer(10);
-	sourceDatabaseEdit = new wxTextCtrl(this, Config::DUPLICATE_SOURCE_DATABASE_EDIT_ID,  S("source-database"), wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
+	sourceDatabaseEdit = new wxTextCtrl(this, Config::DUPLICATE_SOURCE_DATABASE_EDIT_ID,  wxEmptyString, wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
 	center1LeftVertLayout->Add(sourceDatabaseEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	sourceDatabaseEdit->SetBackgroundColour(disabledColor);
+	sourceDatabaseEdit->SetForegroundColour(textColor);
 
 	// center right
 	auto targetConnectLabel = new wxStaticText(this, wxID_ANY, S("target-connection"), wxDefaultPosition, {180, -1}, wxALIGN_LEFT);
@@ -119,35 +134,67 @@ void DuplicateDatabaseDialog::createCenter1Inputs()
 	center1RightVertLayout->Add(targetDatabaseLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center1RightVertLayout->AddSpacer(10);
-	targetDatabaseEdit = new wxTextCtrl(this, Config::DUPLICATE_TARGET_DATABASE_EDIT_ID,  S("target-database"), wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
+	targetDatabaseEdit = new wxTextCtrl(this, Config::DUPLICATE_TARGET_DATABASE_EDIT_ID,  S("target-database"), wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT );
 	center1RightVertLayout->Add(targetDatabaseEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 }
 
 void DuplicateDatabaseDialog::createCenter2Inputs()
 {
+	// center2 left  - source object treeListCtrl / select all /un select all 
+	treeListCtrl = new wxTreeListCtrl(this, Config::DUPLICATE_DATABASE_TREELISTCTRL_ID, wxDefaultPosition, { 180, 250 }, wxTL_MULTIPLE | wxTL_CHECKBOX | wxTL_NO_HEADER);
+	center2LeftVertLayout->Add(treeListCtrl, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	//treeListCtrl->SetBackgroundColour(bkgColor);
+	//treeListCtrl->SetForegroundColour(textColor);
 
+	center2LeftVertLayout->AddSpacer(10);
+	auto center2BottomHoriLayout = new wxBoxSizer(wxHORIZONTAL);
+	center2LeftVertLayout->Add(center2BottomHoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP);
+
+	center2BottomHoriLayout->AddSpacer(10);
+	selectAllButton = new wxButton(this, Config::SELECT_ALL_BUTTON_ID, S("select-all"), wxDefaultPosition, { -1, 20 });
+	center2BottomHoriLayout->Add(selectAllButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
+
+	center2BottomHoriLayout->AddSpacer(10);
+	unSelectAllButton = new wxButton(this, Config::UN_SELECT_ALL_BUTTON_ID, S("un-select-all"), wxDefaultPosition, { -1, 20 });
+	center2BottomHoriLayout->Add(unSelectAllButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
+
+	// center2 RIGHT  - duplicate settings
+	structOnlyCheckBox = new wxCheckBox(this, Config::STRUCTURE_ONLY_CHECKBOX_ID, S("structure-only"), wxDefaultPosition, wxDefaultSize);
+	center2RightVertLayout->Add(structOnlyCheckBox, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
+	center2RightVertLayout->AddSpacer(10);
+	structAndDataCheckBox = new wxCheckBox(this, Config::STRUCTURE_DATA_CHECKBOX_ID, S("structure-and-data"), wxDefaultPosition, wxDefaultSize);
+	center2RightVertLayout->Add(structAndDataCheckBox, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
+	center2RightVertLayout->AddSpacer(235);
 }
 
 void DuplicateDatabaseDialog::createBottomInputs()
 {
+	processbar = new QProcessBar(this, wxID_ANY, wxDefaultPosition, { 400, 20 });
+	bottomHoriLayout->Add(processbar, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_CENTRE);
+	processbar->run(50);
 }
 
 void DuplicateDatabaseDialog::loadControls()
 {
-	/*
-	delegate->loadForConnectComboBox(connectComboBox);
+	assert(databaseSupplier->runtimeUserConnect && databaseSupplier->runtimeUserDb);
+	
+	wxString connnectName = databaseSupplier->runtimeUserConnect->name;
+	connnectName.Append(" [").Append(databaseSupplier->runtimeUserConnect->host)
+		.Append(":").Append(std::to_string(databaseSupplier->runtimeUserConnect->port)).Append("]");
+	sourceConnectEdit->SetValue(connnectName);
+	sourceDatabaseEdit->SetValue(databaseSupplier->runtimeUserDb->name);
 
-	auto nSelItem = connectComboBox->GetSelection();
-	if (nSelItem == -1) {
-		return;
-	}
-	auto data = reinterpret_cast<QClientData<UserConnect>*>(connectComboBox->GetClientObject(nSelItem));
+	delegate->loadForConnectComboBox(targetConnectComboBox);
+	wxString targetDbName = databaseSupplier->runtimeUserDb->name;
+	targetDbName.Append(" (copy)");
+	targetDatabaseEdit->SetValue(targetDbName);
+	targetDatabaseEdit->SelectAll();
+	targetDatabaseEdit->SetFocus();
 
-	wxString newName = databaseSupplier->runtimeUserConnect->name;
-	newName.Append(" (Copy)");
-	duplcateNameEdit->SetValue(newName);
-	duplcateNameEdit->SelectAll();
-	duplcateNameEdit->SetFocus();*/
+	delegate->loadForTreeListCtrl(treeListCtrl);
+
+	structOnlyCheckBox->SetValue(true);
+	QAnimateBox::notice(structOnlyCheckBox->GetValue() ? "true" : "false");
 }
 
 void DuplicateDatabaseDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
@@ -167,4 +214,57 @@ void DuplicateDatabaseDialog::OnClickOkButton(wxCommandEvent& event)
 {
 	
 	EndModal(wxID_OK);
+}
+
+void DuplicateDatabaseDialog::OnClickSelectAllButton(wxCommandEvent& event)
+{
+	auto rootItem = treeListCtrl->GetRootItem();
+	if (!rootItem.IsOk()) {
+		return;
+	}
+	treeListCtrl->CheckItem(rootItem, wxCHK_CHECKED);
+	treeListCtrl->CheckItemRecursively(rootItem, wxCHK_CHECKED);
+}
+
+void DuplicateDatabaseDialog::OnClickUnSelectAllButton(wxCommandEvent& event)
+{
+	auto rootItem = treeListCtrl->GetRootItem();
+	if (!rootItem.IsOk()) {
+		return;
+	}
+	treeListCtrl->CheckItem(rootItem, wxCHK_UNCHECKED);
+	treeListCtrl->CheckItemRecursively(rootItem, wxCHK_UNCHECKED);
+}
+
+void DuplicateDatabaseDialog::OnStructAndDataCheckBoxChecked(wxCommandEvent& event)
+{
+	auto id = event.GetId();
+	auto item = reinterpret_cast<wxCheckBox *>(FindItem(id));
+	bool state = item->GetValue();
+	if (id == Config::STRUCTURE_ONLY_CHECKBOX_ID) {
+		structAndDataCheckBox->SetValue(!state);
+	} else if (id == Config::STRUCTURE_DATA_CHECKBOX_ID) {
+		structOnlyCheckBox->SetValue(!state);
+	}
+}
+
+void DuplicateDatabaseDialog::OnTreeListItemChecked(wxTreeListEvent& event)
+{
+	auto item = event.GetItem();
+	if (!item.IsOk()) {
+		return;
+	}
+
+	auto state = treeListCtrl->GetCheckedState(item);
+	auto firstChildItem = treeListCtrl->GetFirstChild(item);
+	
+	if (firstChildItem.IsOk()) {
+		treeListCtrl->CheckItemRecursively(item, state);
+	}
+	if (!treeListCtrl->GetNextSibling(item).IsOk()) {
+		auto parentItem = treeListCtrl->GetItemParent(item);
+		if (parentItem.IsOk() && treeListCtrl->GetFirstChild(parentItem) == item) {
+			treeListCtrl->CheckItem(parentItem, state);
+		}
+	}
 }

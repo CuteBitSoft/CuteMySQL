@@ -18,11 +18,14 @@
  *********************************************************************/
 
 #pragma once
+#include <wx/treelist.h>
 #include "ui/common/dialog/QFormDialog.h"
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "core/service/db/ConnectService.h"
 #include "ui/dialog/duplicate/database/delegate/DuplicateDatabaseDialogDelegate.h"
+#include "ui/common/process/QProcessBar.h"
+
 class DuplicateDatabaseDialog :  public QFormDialog<DuplicateDatabaseDialogDelegate>
 {
 	DECLARE_EVENT_TABLE()
@@ -37,8 +40,8 @@ private:
 	wxBoxSizer* center1RightVertLayout;
 	// center2
 	wxBoxSizer* center2HoriLayout;
-	wxBoxSizer* center2LeftVertLayout;
-	wxBoxSizer* center2RightVertLayout;
+	wxStaticBoxSizer* center2LeftVertLayout;
+	wxStaticBoxSizer* center2RightVertLayout;
 
 	// bottom
 	wxBoxSizer* bottomHoriLayout;
@@ -47,13 +50,25 @@ private:
 	wxStaticBitmap* image;
 	wxStaticText* label;
 	
-	//source controls - in center left layout
+	//source controls - in center1 left layout
 	wxTextCtrl* sourceConnectEdit;
 	wxTextCtrl* sourceDatabaseEdit;
 
-	//target controls - in center right layout
+	//target controls - in center1 right layout
 	wxBitmapComboBox* targetConnectComboBox;
 	wxTextCtrl* targetDatabaseEdit;
+
+	// source objects
+	wxTreeListCtrl * treeListCtrl;
+	wxButton* selectAllButton;
+	wxButton* unSelectAllButton;
+
+	// duplicate settings
+	wxCheckBox* structOnlyCheckBox;
+	wxCheckBox* structAndDataCheckBox;
+
+	// process bar 
+	QProcessBar* processbar;
 
 	DatabaseSupplier* databaseSupplier = DatabaseSupplier::getInstance();
 	ConnectService* connectService = ConnectService::getInstance();
@@ -68,5 +83,9 @@ private:
 	// combobox
 	void OnSelChangeConnectCombobox(wxCommandEvent& event);
 	void OnClickOkButton(wxCommandEvent& event);
+	void OnClickSelectAllButton(wxCommandEvent& event);
+	void OnClickUnSelectAllButton(wxCommandEvent& event);
+	void OnStructAndDataCheckBoxChecked(wxCommandEvent& event);
+	void OnTreeListItemChecked(wxTreeListEvent& event);
 };
 

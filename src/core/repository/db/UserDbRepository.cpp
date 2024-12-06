@@ -44,6 +44,7 @@ uint64_t UserDbRepository::create(const UserDb & item)
 		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
 		throw QRuntimeException(code, ex.what());
 	}
+	return 0;
 }
 
 

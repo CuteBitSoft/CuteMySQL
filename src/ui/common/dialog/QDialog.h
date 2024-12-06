@@ -52,6 +52,7 @@ protected:
 	S* supplier; // the supplier for Dialog 
 
 	wxColour bkgColor;
+	wxColour disabledColor;
 	wxColour textColor;
 
 	virtual void init();
@@ -123,7 +124,7 @@ void QDialog<T, S>::init()
 {
 	bkgColor = { 43, 45, 48, 43 };
 	textColor = { 223, 225, 229, 213 };
-
+	disabledColor = {67, 69, 74, 66};
 	// singleton supplier
 	supplier = S::getInstance();
 	// singleton delegate
