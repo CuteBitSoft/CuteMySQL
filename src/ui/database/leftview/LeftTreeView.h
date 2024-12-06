@@ -71,6 +71,7 @@ private:
 	void OnClickConnectButton(wxCommandEvent & event);
 	void OnClickCreateButton(wxCommandEvent & event);
 	void OnClickDeleteButton(wxCommandEvent & event);
+	void OnClickDuplicateButton(wxCommandEvent & event);
 
 	// combobox
 	void OnSelectedDbCombobox(wxCommandEvent & event);

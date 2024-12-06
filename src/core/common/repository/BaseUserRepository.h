@@ -43,7 +43,7 @@ public:
 	void closeAllUserConnect();	
 protected:
 	
-	UserConnect getUserConnectEntiry(uint64_t userConnectId);
+	UserConnect getUserConnectEntity(uint64_t userConnectId);
 	UserConnect toUserConnect(SQLite::QSqlStatement& query);
 
 	RowItem toRowItem(sql::Statement* query);
@@ -77,7 +77,7 @@ sql::Connection * BaseUserRepository<T>::getUserConnect(uint64_t userConnectId)
 	}
 
 	if (QConnect::userConnectPool.find(userConnectId) == QConnect::userConnectPool.end()) {
-		UserConnect userConnEntity = getUserConnectEntiry(userConnectId);
+		UserConnect userConnEntity = getUserConnectEntity(userConnectId);
 
 		sql::ConnectOptionsMap options;
 		options["hostName"] = userConnEntity.host;
@@ -129,7 +129,7 @@ void BaseUserRepository<T>::testUserConnect(uint64_t userConnectId)
 	}
 
 	
-	UserConnect userConnEntity = getUserConnectEntiry(userConnectId);
+	UserConnect userConnEntity = getUserConnectEntity(userConnectId);
 
 	sql::ConnectOptionsMap options;
 	options["hostName"] = userConnEntity.host;
@@ -203,7 +203,7 @@ void BaseUserRepository<T>::closeAllUserConnect()
 }
 
 template <typename T>
-UserConnect BaseUserRepository<T>::getUserConnectEntiry(uint64_t userConnectId)
+UserConnect BaseUserRepository<T>::getUserConnectEntity(uint64_t userConnectId)
 {
 	if (userConnectId <= 0) {
 		return UserConnect();

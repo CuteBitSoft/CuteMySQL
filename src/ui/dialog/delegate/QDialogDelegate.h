@@ -10,19 +10,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DatabaseDialogDelegate.cpp
+ * @file   QDialogDelegate.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-30
+ * @date   2024-12-05
  *********************************************************************/
-#include "DatabaseDialogDelegate.h"
+#pragma once
+#include <wx/bmpcbox.h>
 #include <cassert>
 #include <wx/msgdlg.h>
 #include "core/common/Lang.h"
 #include "ui/common/data/QClientData.h"
+#include "ui/common/delegate/QDelegate.h"
+#include "core/service/db/ConnectService.h"
+#include "core/service/db/DatabaseService.h"
+#include "core/service/db/MetadataService.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/common/msgbox/QAnimateBox.h"
 
-void DatabaseDialogDelegate::loadForConnectComboBox(wxBitmapComboBox* connectComboBox)
+template <typename T, typename S = EmptySupplier, typename V = wxWindow>
+class QDialogDelegate : public QDelegate<T, S, V>
+{
+public:
+	void loadForConnectComboBox(wxBitmapComboBox * connectComboBox);
+	void loadForSchemaComboBox(wxBitmapComboBox * schemaComboBox, uint64_t connectId, const std::string & defval = "");
+	void loadForCharsetComboBox(wxComboBox * charsetComboBox, uint64_t connectId, const std::string & defval = "");
+	void loadForCollationComboBox(wxComboBox * collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval = "");
+protected:
+	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+	ConnectService* connectService = ConnectService::getInstance();
+	DatabaseService* databaseService = DatabaseService::getInstance();
+	MetadataService* metadataService = MetadataService::getInstance();
+};
+
+
+template <typename T, typename S, typename V>
+void QDialogDelegate<T, S, V>::loadForConnectComboBox(wxBitmapComboBox* connectComboBox)
 {
 	assert(connectComboBox != nullptr);
 	try {
@@ -47,13 +71,39 @@ void DatabaseDialogDelegate::loadForConnectComboBox(wxBitmapComboBox* connectCom
 
 		connectComboBox->SetSelection(nSelItem);
 	} catch (QRuntimeException& ex) {
-		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
-		msgbox.ShowModal();
+		QAnimateBox::error(ex);
 		return;
 	}
 }
 
-void DatabaseDialogDelegate::loadForCharsetComboBox(wxComboBox* charsetComboBox, uint64_t connectId, const std::string & defval)
+
+template <typename T, typename S /*= EmptySupplier*/, typename V /*= wxWindow*/>
+void QDialogDelegate<T, S, V>::loadForSchemaComboBox(wxBitmapComboBox* schemaComboBox, uint64_t connectId, const std::string& defval /*= ""*/)
+{
+	assert(schemaComboBox != nullptr);
+
+	try {
+		auto schemaList = databaseService->getAllUserDbs(databaseSupplier->runtimeUserConnect->id);
+
+		schemaComboBox->Clear();
+		schemaComboBox->AppendString(S("default"));
+		int n = 0, nSelItem = 0;
+		for (auto& item : schemaList) {
+			auto data = new QClientData<CharsetInfo>(connectId, new UserDb(item));
+			n = schemaComboBox->Append(item.name, data);
+			if (item.name == defval) {
+				nSelItem = n;
+			}
+		}
+		schemaComboBox->SetSelection(nSelItem);
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+		return;
+	}
+}
+
+template <typename T, typename S, typename V>
+void QDialogDelegate<T, S, V>::loadForCharsetComboBox(wxComboBox* charsetComboBox, uint64_t connectId, const std::string & defval)
 {
 	assert(charsetComboBox != nullptr);
 
@@ -72,15 +122,13 @@ void DatabaseDialogDelegate::loadForCharsetComboBox(wxComboBox* charsetComboBox,
 		}
 		charsetComboBox->SetSelection(nSelItem);
 	} catch (QRuntimeException& ex) {
-		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
-		msgbox.ShowModal();
+		QAnimateBox::error(ex);
 		return;
 	}
-
-	
 }
 
-void DatabaseDialogDelegate::loadForCollationComboBox(wxComboBox* collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval)
+template <typename T, typename S, typename V>
+void QDialogDelegate<T, S, V>::loadForCollationComboBox(wxComboBox* collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval)
 {
 	assert(collationComboBox != nullptr);
 
@@ -106,8 +154,7 @@ void DatabaseDialogDelegate::loadForCollationComboBox(wxComboBox* collationCombo
 		}
 		collationComboBox->SetSelection(nSelItem);
 	} catch (QRuntimeException& ex) {
-		wxMessageDialog msgbox(view, S("connect-fail").append(",Error:").append(ex.getMsg()), S("error-notice"), wxOK | wxCENTRE | wxICON_ERROR);
-		msgbox.ShowModal();
+		QAnimateBox::error(ex);
 		return;
 	}	
 }

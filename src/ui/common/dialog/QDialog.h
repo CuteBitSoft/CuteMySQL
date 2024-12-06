@@ -23,9 +23,10 @@
 #include <wx/dialog.h>
 #include <wx/colour.h>
 #include "ui/common/supplier/EmptySupplier.h"
+#include "ui/common/delegate/EmptyDelegate.h"
 
 // template parameter:T - subclass of QDelegate  S - subclass of QSupplier
-template <typename T, typename S = EmptySupplier>
+template <typename T = EmptyDelegate, typename S = EmptySupplier>
 class QDialog :  public wxDialog
 {
 public:

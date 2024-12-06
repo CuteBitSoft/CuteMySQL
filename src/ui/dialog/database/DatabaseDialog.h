@@ -21,10 +21,10 @@
 #include "ui/common/dialog/QDialog.h"
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
-#include "ui/dialog/database//delegate/DatabaseDialogDelegate.h"
+#include "ui/dialog/delegate/CommonDialogDelegate.h"
 #include "core/service/db/DatabaseService.h"
 
-class DatabaseDialog : public QDialog<DatabaseDialogDelegate>
+class DatabaseDialog : public QDialog<CommonDialogDelegate>
 {
 	DECLARE_EVENT_TABLE()
 public:

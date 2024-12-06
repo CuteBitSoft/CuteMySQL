@@ -18,6 +18,7 @@
  *********************************************************************/
 #include "LeftTreeDelegate.h"
 #include <wx/msgdlg.h>
+#include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "core/common/Lang.h"
 #include "core/entity/Entity.h"
@@ -25,6 +26,8 @@
 #include "ui/common/data/QTreeItemData.h"
 #include "ui/common/msgbox/QAnimateBox.h"
 #include "ui/common/msgbox/QConfirmBox.h"
+#include "ui/dialog/duplicate/connection/DuplicateConnectionDialog.h"
+#include "ui/dialog/duplicate/database/DuplicateDatabaseDialog.h"
 
 LeftTreeDelegate::~LeftTreeDelegate()
 {
@@ -279,6 +282,55 @@ bool LeftTreeDelegate::removeForLeftTree(wxTreeCtrl* treeView)
 		return removeTableColumnItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::TABLE_INDEX) {
 		return removeTableIndexItem(treeView, selItemId);
+	}
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateForLeftTree(wxTreeCtrl* treeView)
+{
+	if (!treeView) {
+		return false;
+	}
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return false;
+	}
+
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	if (!data) {
+		return false;
+	}
+
+	if (data->getType() == TreeObjectType::TABLES_FOLDER
+		|| data->getType() == TreeObjectType::VIEWS_FOLDER
+		|| data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER
+		|| data->getType() == TreeObjectType::FUNCTIONS_FOLDER
+		|| data->getType() == TreeObjectType::TRIGGERS_FOLDER
+		|| data->getType() == TreeObjectType::EVENTS_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER) {
+		QAnimateBox::warning(S("folder-cannot-duplicate"));
+		return false;
+	}
+
+	if (data->getType() == TreeObjectType::CONNECTION) {
+		return duplicateConnectionItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::SCHEMA) {
+		return duplicateDatabaseItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::VIEW) {
+		return duplicateViewItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
+		return duplicateProcedureItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::FUNCTION) {
+		return duplicateFunctionItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TRIGGER) {
+		return duplicateTriggerItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::EVENT) {
+		return duplicateEventItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE_COLUMN) {
+		return duplicateTableColumnItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE_INDEX) {
+		return duplicateTableIndexItem(treeView, selItemId);
 	}
 	return false;
 }
@@ -801,5 +853,75 @@ bool LeftTreeDelegate::removeTableIndexItem(wxTreeCtrl* treeView, const wxTreeIt
 	} catch (QRuntimeException& ex) {
 		QAnimateBox::error(ex);
 	}
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserConnect> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	DuplicateConnectionDialog dialog;
+	dialog.Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, S("duplicate-connection"), wxDefaultPosition, wxDefaultSize);
+	return dialog.ShowModal() == wxID_OK;
+}
+
+bool LeftTreeDelegate::duplicateDatabaseItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserDb> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	DuplicateDatabaseDialog dialog;
+	dialog.Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, S("duplicate-database"), wxDefaultPosition, wxDefaultSize);
+	return dialog.ShowModal() == wxID_OK;
+}
+
+bool LeftTreeDelegate::duplicateTableItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateViewItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateProcedureItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateFunctionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateTriggerItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateEventItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateTableColumnItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
+	return false;
+}
+
+bool LeftTreeDelegate::duplicateTableIndexItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
+{
 	return false;
 }

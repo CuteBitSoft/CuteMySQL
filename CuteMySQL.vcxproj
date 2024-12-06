@@ -217,11 +217,13 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\common\delegate\EmptyDelegate.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.cpp" />
     <ClCompile Include="src\ui\common\msgbox\QAnimateBox.cpp" />
     <ClCompile Include="src\core\repository\db\CharsetRepository.cpp" />
     <ClCompile Include="src\core\repository\db\CollationRepository.cpp" />
     <ClCompile Include="src\ui\common\msgbox\QConfirmBox.cpp" />
-    <ClCompile Include="src\ui\dialog\database\delegate\DatabaseDialogDelegate.cpp" />
+    <ClCompile Include="src\ui\dialog\delegate\CommonDialogDelegate.cpp" />
     <ClCompile Include="src\ui\dialog\database\DatabaseDialog.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\LeftTopbarDelegate.cpp" />
     <ClCompile Include="src\core\repository\db\TableColumnRepository.cpp" />
@@ -260,6 +262,8 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\system\SettingService.cpp" />
     <ClCompile Include="src\ui\analysis\AnalysisPanel.cpp" />
     <ClCompile Include="src\ui\database\DatabasePanel.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\database\delegate\DuplicateDatabaseDialogDelegate.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\database\DuplicateDatabaseDialog.cpp" />
     <ClCompile Include="src\ui\home\HomePanel.cpp" />
     <ClCompile Include="src\ui\home\list\ConnectListItem.cpp" />
     <ClCompile Include="src\ui\setting\SettingPanel.cpp" />
@@ -278,11 +282,15 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\db\MetadataService.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ui\common\delegate\EmptyDelegate.h" />
+    <ClInclude Include="src\ui\dialog\delegate\QDialogDelegate.h" />
+    <ClInclude Include="src\ui\common\dialog\QFormDialog.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.h" />
     <ClInclude Include="src\ui\common\msgbox\QAnimateBox.h" />
     <ClInclude Include="src\core\repository\db\CharsetRepository.h" />
     <ClInclude Include="src\core\repository\db\CollationRepository.h" />
     <ClInclude Include="src\ui\common\msgbox\QConfirmBox.h" />
-    <ClInclude Include="src\ui\dialog\database\delegate\DatabaseDialogDelegate.h" />
+    <ClInclude Include="src\ui\dialog\delegate\CommonDialogDelegate.h" />
     <ClInclude Include="src\ui\dialog\database\DatabaseDialog.h" />
     <ClInclude Include="src\ui\common\data\QClientData.h" />
     <ClInclude Include="src\ui\database\leftview\delegate\LeftTopbarDelegate.h" />
@@ -336,6 +344,8 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClInclude Include="src\core\service\system\SettingService.h" />
     <ClInclude Include="src\ui\analysis\AnalysisPanel.h" />
     <ClInclude Include="src\ui\database\DatabasePanel.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\database\delegate\DuplicateDatabaseDialogDelegate.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\database\DuplicateDatabaseDialog.h" />
     <ClInclude Include="src\ui\home\HomePanel.h" />
     <ClInclude Include="src\ui\home\list\ConnectListItem.h" />
     <ClInclude Include="src\ui\setting\SettingPanel.h" />

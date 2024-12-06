@@ -116,7 +116,7 @@ bool UserConnectRepository::remove(uint64_t id)
 
 UserConnect UserConnectRepository::getById(uint64_t id)
 {
-	return getUserConnectEntiry(id);
+	return getUserConnectEntity(id);
 }
 
 UserConnectList UserConnectRepository::getAll()

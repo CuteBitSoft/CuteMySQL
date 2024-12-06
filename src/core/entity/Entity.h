@@ -220,7 +220,7 @@ typedef std::vector<IndexInfo> IndexInfoList;
 
 //Charset and collation
 typedef struct _CharsetInfo {
-	std::string name; // charsetname
+	std::string name; // charset name
 	std::string defaultCollation; // 
 	std::string description; // 
 	int maxLen = 0; // 

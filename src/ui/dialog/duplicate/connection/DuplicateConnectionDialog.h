@@ -10,27 +10,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DatabaseDialogDelegate.h
+ * @file   DuplicateConnectionDialog.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-30
+ * @date   2024-12-05
  *********************************************************************/
+
 #pragma once
-#include <wx/bmpcbox.h>
-#include "core/service/db/ConnectService.h"
-#include "core/service/db/MetadataService.h"
-#include "ui/common/delegate/QDelegate.h"
+#include "ui/common/dialog/QFormDialog.h"
+#include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
-class DatabaseDialogDelegate :  public QDelegate<DatabaseDialogDelegate>
+#include "core/service/db/ConnectService.h"
+#include "ui/dialog/delegate/CommonDialogDelegate.h"
+class DuplicateConnectionDialog :  public QFormDialog<CommonDialogDelegate>
 {
+	DECLARE_EVENT_TABLE()
 public:
-	void loadForConnectComboBox(wxBitmapComboBox * connectComboBox);
-	void loadForCharsetComboBox(wxComboBox * charsetComboBox, uint64_t connectId, const std::string & defval = "");
-	void loadForCollationComboBox(wxComboBox * collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval = "");
+	DuplicateConnectionDialog();
 private:
-	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+	wxBitmapComboBox* connectComboBox;
+	wxTextCtrl* duplcateNameEdit;
+
+	DatabaseSupplier* databaseSupplier = DatabaseSupplier::getInstance();
 	ConnectService* connectService = ConnectService::getInstance();
-	MetadataService* metadataService = MetadataService::getInstance();
+
+	virtual void createInputs();
+	virtual void loadControls();
+
+	// combobox
+	void OnSelChangeConnectCombobox(wxCommandEvent& event);
+	void OnClickOkButton(wxCommandEvent& event);
 };
 

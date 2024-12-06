@@ -36,6 +36,7 @@ public:
 	UserDb* getSelectedDbItemData(wxTreeCtrl* treeView);
 
 	bool removeForLeftTree(wxTreeCtrl* treeView);
+	bool duplicateForLeftTree(wxTreeCtrl* treeView);
 private:
 	ConnectService * connectService = ConnectService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -73,5 +74,17 @@ private:
 	bool removeEventItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
 	bool removeTableColumnItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
 	bool removeTableIndexItem(wxTreeCtrl * treeView, const wxTreeItemId & itemId);
+
+	// duplicate item
+	bool duplicateConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateDatabaseItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateTableItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateViewItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateProcedureItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateFunctionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateTriggerItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateEventItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateTableColumnItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateTableIndexItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
 };
 

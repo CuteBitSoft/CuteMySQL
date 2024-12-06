@@ -38,6 +38,7 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_BUTTON(Config::DATABASE_CONNECT_BUTTON_ID, OnClickConnectButton)
 	EVT_BUTTON(Config::DATABASE_CREATE_BUTTON_ID, OnClickCreateButton)
 	EVT_BUTTON(Config::DATABASE_DELETE_BUTTON_ID, OnClickDeleteButton)
+	EVT_BUTTON(Config::DATABASE_DUP_BUTTON_ID, OnClickDuplicateButton)
 	EVT_COMBOBOX(Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, OnSelectedDbCombobox)
 	// Handle the message
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
@@ -322,6 +323,24 @@ void LeftTreeView::OnClickDeleteButton(wxCommandEvent& event)
 		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 	}	
 }
+
+void LeftTreeView::OnClickDuplicateButton(wxCommandEvent& event)
+{
+	if (!supplier->runtimeUserConnect) {
+		return;
+	}
+
+	auto selItemId = treeView->GetSelection();
+	if (!selItemId.IsOk() || selItemId == treeView->GetRootItem()) {
+		QAnimateBox::notice(S("not-choose-treeitem"));
+		return;
+	}
+
+	if (leftTreeDelegate->duplicateForLeftTree(treeView)) {
+		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+	}
+}
+
 /**
  * When selectedDbComboBox changing its selected item, changing the selected item of treeView to match the database in the same time.
  * Note: This event will be triggered the EVT_TREE_SEL_CHANGED event that calling LeftTreeView::OnTreeItemSelChanged
