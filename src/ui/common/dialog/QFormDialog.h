@@ -23,8 +23,8 @@
 #include "core/common/Lang.h"
 
 // template <T - subclass of QDelegate>
-template<typename T>
-class QFormDialog : public QDialog<T>
+template<typename T, typename S = EmptySupplier>
+class QFormDialog : public QDialog<T, S>
 {
 public:
 	QFormDialog();
@@ -41,22 +41,22 @@ protected:
 	virtual void createInputs() = 0;
 	virtual void createButtons();
 };
-template<typename T>
-QFormDialog<T>::QFormDialog() : QDialog<T>()
+template<typename T, typename S>
+QFormDialog<T, S>::QFormDialog() : QDialog<T, S>()
 {
 	
 }
 
-template<typename T>
-void QFormDialog<T>::init()
+template<typename T, typename S>
+void QFormDialog<T, S>::init()
 {
-	QDialog<T>::init();
+	QDialog<T, S>::init();
 }
 
-template<typename T>
-void QFormDialog<T>::createControls()
+template<typename T, typename S>
+void QFormDialog<T, S>::createControls()
 {
-	QDialog<T>::createControls();
+	QDialog<T, S>::createControls();
 
 	vLayout = new wxBoxSizer(wxVERTICAL);
 	tLayout = new wxBoxSizer(wxVERTICAL);
@@ -71,8 +71,8 @@ void QFormDialog<T>::createControls()
 	this->SetSizer(vLayout);
 }
 
-template<typename T>
-void QFormDialog<T>::createButtons()
+template<typename T, typename S>
+void QFormDialog<T, S>::createButtons()
 {
 	bLayout->AddSpacer(170);
 	okButton = new wxButton(this, wxID_OK, S("ok"), wxDefaultPosition, { 70, -1 });

@@ -65,7 +65,7 @@ bool UserRoutineRepository::remove(uint64_t connectId, const std::string& schema
 	}
 	try {
 		
-		sql::SQLString sql = fmt::format("DROP {} IF EXISTS {}", routineType, name);
+		sql::SQLString sql = fmt::format("DROP {} IF EXISTS `{}`", routineType, name);
 		auto connect = getUserConnect(connectId);
 		connect->setSchema(schema);
 		std::unique_ptr<sql::Statement> stmt(connect->createStatement());

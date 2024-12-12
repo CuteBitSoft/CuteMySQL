@@ -42,6 +42,7 @@ typedef enum {
 	EVENTS_FOLDER,
 	EVENT,
 	LOADING,
+	ROUTINES
 } TreeObjectType;
 
 
@@ -55,3 +56,12 @@ typedef enum {
 	DATABASE_CREATE,
 	DATABASE_ALTER
 } DatabaseType;
+
+
+typedef enum {
+	DUPLICATE_VIEW,
+	DUPLICATE_STORE_PROCEDURE,
+	DUPLICATE_FUNCTION,
+	DUPLICATE_TRIGGER,
+	DUPLICATE_EVENT,
+} DuplicateObjectType;

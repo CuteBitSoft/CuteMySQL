@@ -28,6 +28,8 @@
 #include "ui/common/msgbox/QConfirmBox.h"
 #include "ui/dialog/duplicate/connection/DuplicateConnectionDialog.h"
 #include "ui/dialog/duplicate/database/DuplicateDatabaseDialog.h"
+#include "ui/dialog/duplicate/table/DuplicateTableDialog.h"
+#include "ui/dialog/duplicate/object/DuplicateObjectDialog.h"
 
 LeftTreeDelegate::~LeftTreeDelegate()
 {
@@ -191,9 +193,6 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
  */
 UserConnect* LeftTreeDelegate::getSelectedConnectItemData(wxTreeCtrl* treeView)
 {
-	if (!treeView) {
-		return nullptr;
-	}
 	auto selItemId = treeView->GetSelection();
 	if (selItemId == treeView->GetRootItem()) {
 		return nullptr;
@@ -213,9 +212,6 @@ UserConnect* LeftTreeDelegate::getSelectedConnectItemData(wxTreeCtrl* treeView)
 
 UserDb* LeftTreeDelegate::getSelectedDbItemData(wxTreeCtrl* treeView)
 {
-	if (!treeView) {
-		return nullptr;
-	}
 	auto selItemId = treeView->GetSelection();
 	if (selItemId == treeView->GetRootItem()) {
 		return nullptr;
@@ -229,7 +225,122 @@ UserDb* LeftTreeDelegate::getSelectedDbItemData(wxTreeCtrl* treeView)
 		}
 		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
 	}
+	if (data->getType() != TreeObjectType::SCHEMA) {
+		return nullptr;
+	}
 	auto findData = reinterpret_cast<QTreeItemData<UserDb> *>(data);
+	return findData->getDataPtr();
+}
+
+UserTable* LeftTreeDelegate::getSelectedTableItemData(wxTreeCtrl* treeView)
+{
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::TABLE) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	if (data->getType() != TreeObjectType::TABLE) {
+		return nullptr;
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserTable> *>(data);
+	return findData->getDataPtr();
+}
+
+UserView* LeftTreeDelegate::getSelectedViewItemData(wxTreeCtrl* treeView)
+{
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::VIEW) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	if (data->getType() != TreeObjectType::VIEW) {
+		return nullptr;
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserView> *>(data);
+	return findData->getDataPtr();
+}
+
+UserRoutine* LeftTreeDelegate::getSelectedRoutineItemData(wxTreeCtrl* treeView)
+{
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::STORE_PROCEDURE 
+		&& data->getType() != TreeObjectType::FUNCTION) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	if (data->getType() != TreeObjectType::STORE_PROCEDURE 
+		&& data->getType() != TreeObjectType::FUNCTION) {
+		return nullptr;
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserRoutine> *>(data);
+	return findData->getDataPtr();
+}
+
+UserTrigger* LeftTreeDelegate::getSelectedTriggerItemData(wxTreeCtrl* treeView)
+{
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::TRIGGER) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	if (data->getType() != TreeObjectType::TRIGGER) {
+		return nullptr;
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserTrigger> *>(data);
+	return findData->getDataPtr();
+}
+
+UserEvent* LeftTreeDelegate::getSelectedEventItemData(wxTreeCtrl* treeView)
+{
+	auto selItemId = treeView->GetSelection();
+	if (selItemId == treeView->GetRootItem()) {
+		return nullptr;
+	}
+	auto data = (QTreeItemData<int> *) treeView->GetItemData(selItemId);
+	auto pitemId = selItemId;
+	while (data->getType() != TreeObjectType::EVENT) {
+		pitemId = treeView->GetItemParent(pitemId);
+		if (!pitemId.IsOk()) {
+			return nullptr;
+		}
+		data = (QTreeItemData<int> *) treeView->GetItemData(pitemId);
+	}
+	if (data->getType() != TreeObjectType::EVENT) {
+		return nullptr;
+	}
+	auto findData = reinterpret_cast<QTreeItemData<UserEvent> *>(data);
 	return findData->getDataPtr();
 }
 
@@ -268,6 +379,8 @@ bool LeftTreeDelegate::removeForLeftTree(wxTreeCtrl* treeView)
 		return removeConnectionItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::SCHEMA) {
 		return removeDatabaseItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE) {
+		return removeTableItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::VIEW) {
 		return removeViewItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
@@ -317,6 +430,8 @@ bool LeftTreeDelegate::duplicateForLeftTree(wxTreeCtrl* treeView)
 		return duplicateConnectionItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::SCHEMA) {
 		return duplicateDatabaseItem(treeView, selItemId);
+	} else if (data->getType() == TreeObjectType::TABLE) {
+		return duplicateTableItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::VIEW) {
 		return duplicateViewItem(treeView, selItemId);
 	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
@@ -335,6 +450,41 @@ bool LeftTreeDelegate::duplicateForLeftTree(wxTreeCtrl* treeView)
 	return false;
 }
 
+/**
+ * .
+ * 
+ * @param treeView
+ * @param connectId
+ * @param schema
+ * @param findSelData - Data of will be selected item 
+ *					params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
+ *							 findSelData.dataPtr - find object name(such as tableName/viewName/triggerName...)
+ */
+void LeftTreeDelegate::refreshDbItemsForLeftTree(wxTreeCtrl* treeView, uint64_t connectId, const std::string& schema, const QTreeItemData<std::string>& findSelData)
+{
+	// 1.Find the connection item
+	auto connectItemId = findConnectItemFromRootItem(treeView, connectId);
+	if (!connectItemId.IsOk()) {
+		return;
+	}
+	// 2.Expend the connection item and load databases for the connectItemId
+	expendedConnectionItem(treeView, connectItemId, connectId);
+
+	// 3.Find the database item and load object
+	auto dbItemId = findDbItemFromConnectionItem(treeView, connectItemId, schema);
+	// todo...
+	if (!dbItemId.IsOk()) {
+		return;
+	}
+	// 4.Expend database item
+	auto folderType = objectTypeToFolderType((TreeObjectType)findSelData.getType());
+	auto folderItemId = expendedDbItem(treeView, dbItemId, folderType); 
+
+	// 5.select object item
+	selectDbObjectItemFromFolder(treeView, folderItemId, findSelData);
+	return ;
+}
+
 void LeftTreeDelegate::expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId)
 {
 	wxTreeItemIdValue cookie;
@@ -346,6 +496,49 @@ void LeftTreeDelegate::expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId
 	}
 	treeView->Delete(firstChildId);
 	loadDbsForConnection(treeView, itemId, connectId);
+}
+
+/**
+ * Expend the database item.
+ * 
+ * @param treeView
+ * @param itemId
+ * @param findFolderType - tree item type for selected
+ * @return folder item if matching  findData.type
+ */
+wxTreeItemId LeftTreeDelegate::expendedDbItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, const TreeObjectType &findFolderType)
+{
+	if (!itemId.IsOk()) {
+		return wxTreeItemId();
+	}
+
+	wxTreeItemIdValue cookie;
+	auto objectId = treeView->GetFirstChild(itemId, cookie);
+
+	//auto folderType = objectTypeToFolderType((TreeObjectType)findData.getType());
+	auto folderItem = findFolderItemFromDbItem(treeView, itemId, findFolderType);
+	if (!folderItem.IsOk()) {
+		return wxTreeItemId();
+	}
+	// Delete all children items
+	treeView->DeleteChildren(folderItem);
+
+	auto data = reinterpret_cast<QTreeItemData<UserDb>*>(treeView->GetItemData(itemId));
+	if (findFolderType == TreeObjectType::TABLES_FOLDER) {
+		loadTablesForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	} else if (findFolderType == TreeObjectType::VIEWS_FOLDER) {
+		loadViewsForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	} else if (findFolderType == TreeObjectType::STORE_PROCEDURE_FOLDER) {
+		loadProceduresForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	} else if (findFolderType == TreeObjectType::FUNCTIONS_FOLDER) {
+		loadFunctionsForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	} else if (findFolderType == TreeObjectType::TRIGGERS_FOLDER) {
+		loadTriggersForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	} else if (findFolderType == TreeObjectType::EVENTS_FOLDER) {
+		loadEventsForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
+	}
+	
+	return folderItem;
 }
 
 void LeftTreeDelegate::expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable* userTable)
@@ -435,7 +628,7 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 			auto viewsFolderItemId = treeView->AppendItem(dbItemId, S("views"), 3, 3, viewsFolderData);
 
 			auto storeProcsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::STORE_PROCEDURE_FOLDER);
-			auto storeProcsFolderItemId = treeView->AppendItem(dbItemId, S("store-processes"), 3, 3, storeProcsFolderData);
+			auto storeProcsFolderItemId = treeView->AppendItem(dbItemId, S("store-procedures"), 3, 3, storeProcsFolderData);
 
 			auto funsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::FUNCTIONS_FOLDER);
 			auto funsFolderItemId = treeView->AppendItem(dbItemId, S("functions"), 3, 3, funsFolderData);
@@ -650,10 +843,12 @@ void LeftTreeDelegate::loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeIte
 bool LeftTreeDelegate::removeConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
 	if (!treeView || !itemId.IsOk()) {
+		QAnimateBox::error(ERR("200004"));
 		return false;
 	}
 	auto data = reinterpret_cast<QTreeItemData<UserConnect> *>(treeView->GetItemData(itemId));
 	if (!data || !data->getDataId()) {
+		QAnimateBox::error(ERR("200005"));
 		return false;
 	}
 
@@ -674,6 +869,14 @@ bool LeftTreeDelegate::removeDatabaseItem(wxTreeCtrl* treeView, const wxTreeItem
 	}
 	auto data = reinterpret_cast<QTreeItemData<UserDb> *>(treeView->GetItemData(itemId));
 	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->name == "information_schema"
+		|| data->getDataPtr()->name == "mysql"
+		|| data->getDataPtr()->name == "performance_schema"
+		|| data->getDataPtr()->name == "sys") {
+		QAnimateBox::error(S("system-schema-cannot-delete"));
 		return false;
 	}
 
@@ -698,6 +901,14 @@ bool LeftTreeDelegate::removeTableItem(wxTreeCtrl* treeView, const wxTreeItemId&
 		return false;
 	}
 
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
+		return false;
+	}
+
 	try {
 		metadataService->removeUserTable(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
 		treeView->Delete(itemId);
@@ -716,6 +927,14 @@ bool LeftTreeDelegate::removeViewItem(wxTreeCtrl* treeView, const wxTreeItemId& 
 	}
 	auto data = reinterpret_cast<QTreeItemData<UserView> *>(treeView->GetItemData(itemId));
 	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
 		return false;
 	}
 
@@ -740,6 +959,14 @@ bool LeftTreeDelegate::removeProcedureItem(wxTreeCtrl* treeView, const wxTreeIte
 		return false;
 	}
 
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
+		return false;
+	}
+
 	try {
 		metadataService->removeUserProcedure(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
 		treeView->Delete(itemId);
@@ -758,6 +985,14 @@ bool LeftTreeDelegate::removeFunctionItem(wxTreeCtrl* treeView, const wxTreeItem
 	}
 	auto data = reinterpret_cast<QTreeItemData<UserFunction> *>(treeView->GetItemData(itemId));
 	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
 		return false;
 	}
 
@@ -803,6 +1038,14 @@ bool LeftTreeDelegate::removeEventItem(wxTreeCtrl* treeView, const wxTreeItemId&
 		return false;
 	}
 
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
+		return false;
+	}
+
 	try {
 		metadataService->removeUserEvent(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->name);
 		treeView->Delete(itemId);
@@ -824,6 +1067,14 @@ bool LeftTreeDelegate::removeTableColumnItem(wxTreeCtrl* treeView, const wxTreeI
 		return false;
 	}
 
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
+		return false;
+	}
+
 	try {
 		metadataService->removeTableColumn(data->getDataId(), data->getDataPtr()->schema, data->getDataPtr()->table, data->getDataPtr()->name);
 		treeView->Delete(itemId);
@@ -842,6 +1093,14 @@ bool LeftTreeDelegate::removeTableIndexItem(wxTreeCtrl* treeView, const wxTreeIt
 	}
 	auto data = reinterpret_cast<QTreeItemData<IndexInfo> *>(treeView->GetItemData(itemId));
 	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-delete"));
 		return false;
 	}
 
@@ -881,6 +1140,14 @@ bool LeftTreeDelegate::duplicateDatabaseItem(wxTreeCtrl* treeView, const wxTreeI
 		return false;
 	}
 
+	if (data->getDataPtr()->name == "information_schema"
+		|| data->getDataPtr()->name == "mysql"
+		|| data->getDataPtr()->name == "performance_schema"
+		|| data->getDataPtr()->name == "sys") {
+		QAnimateBox::error(S("system-schema-cannot-duplicate"));
+		return false;
+	}
+
 	DuplicateDatabaseDialog dialog;
 	dialog.Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, S("duplicate-database"), wxDefaultPosition, wxDefaultSize);
 	return dialog.ShowModal() == wxID_OK;
@@ -888,32 +1155,49 @@ bool LeftTreeDelegate::duplicateDatabaseItem(wxTreeCtrl* treeView, const wxTreeI
 
 bool LeftTreeDelegate::duplicateTableItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserTable> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-duplicate"));
+		return false;
+	}
+	DuplicateTableDialog dialog;
+	dialog.Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, S("duplicate-table"), wxDefaultPosition, wxDefaultSize);
+	return dialog.ShowModal() == wxID_OK;
 }
 
 bool LeftTreeDelegate::duplicateViewItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	return duplicateObjectItem(treeView, itemId, DuplicateObjectType::DUPLICATE_VIEW);
 }
 
 bool LeftTreeDelegate::duplicateProcedureItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	return duplicateObjectItem(treeView, itemId, DuplicateObjectType::DUPLICATE_STORE_PROCEDURE);
 }
 
 bool LeftTreeDelegate::duplicateFunctionItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	return duplicateObjectItem(treeView, itemId, DuplicateObjectType::DUPLICATE_FUNCTION);
 }
 
 bool LeftTreeDelegate::duplicateTriggerItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	return duplicateObjectItem(treeView, itemId, DuplicateObjectType::DUPLICATE_TRIGGER);
 }
 
 bool LeftTreeDelegate::duplicateEventItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
-	return false;
+	return duplicateObjectItem(treeView, itemId, DuplicateObjectType::DUPLICATE_EVENT);
 }
 
 bool LeftTreeDelegate::duplicateTableColumnItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
@@ -924,4 +1208,183 @@ bool LeftTreeDelegate::duplicateTableColumnItem(wxTreeCtrl* treeView, const wxTr
 bool LeftTreeDelegate::duplicateTableIndexItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId)
 {
 	return false;
+}
+
+/**
+ * Duplicate the object item.(object include:view/store procedure/function/trigger/event)
+ * 
+ * @param treeView
+ * @param itemId
+ * @param type - object type ,must be VIEW/STORE_PROCEDURE/FUNCTION/TRIGGER/EVENT
+ * @return 
+ */
+bool LeftTreeDelegate::duplicateObjectItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId, DuplicateObjectType type)
+{
+	if (!treeView || !itemId.IsOk()) {
+		return false;
+	}
+	auto data = reinterpret_cast<QTreeItemData<UserTable> *>(treeView->GetItemData(itemId));
+	if (!data || !data->getDataId()) {
+		return false;
+	}
+
+	if (data->getDataPtr()->schema == "information_schema"
+		|| data->getDataPtr()->schema == "mysql"
+		|| data->getDataPtr()->schema == "performance_schema"
+		|| data->getDataPtr()->schema == "sys") {
+		QAnimateBox::error(S("system-object-cannot-duplicate"));
+		return false;
+	}
+	DuplicateObjectDialog dialog(type);
+	dialog.Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	return dialog.ShowModal() == wxID_OK;
+}
+
+wxTreeItemId LeftTreeDelegate::findConnectItemFromRootItem(wxTreeCtrl* treeView, uint64_t connectId)
+{
+	auto rootItemId = treeView->GetRootItem();
+	wxTreeItemIdValue cookie;
+	auto connectItemId = treeView->GetFirstChild(rootItemId, cookie);
+	while (connectItemId.IsOk()) {
+		auto data = reinterpret_cast<QTreeItemData<UserConnect>*>(treeView->GetItemData(connectItemId));
+		if (data == nullptr || data->getDataPtr() == nullptr) {
+			return wxTreeItemId();
+		}
+		// found
+		if (data->getDataPtr()->id == connectId) {
+			break;
+		}
+		connectItemId = treeView->GetNextSibling(connectItemId);
+	}
+	return connectItemId;
+}
+
+/**
+ * Find children database item from connection item..
+ * 
+ * @param treeView
+ * @param connectItemId
+ * @param schema
+ * @return 
+ */
+wxTreeItemId LeftTreeDelegate::findDbItemFromConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& connectItemId, const std::string& schema)
+{
+	if (!connectItemId.IsOk()) {
+		return wxTreeItemId();
+	}
+	wxTreeItemIdValue cookie;
+	auto dbItemId = treeView->GetFirstChild(connectItemId, cookie);
+	while (dbItemId.IsOk()) {
+		auto data = reinterpret_cast<QTreeItemData<UserDb>*>(treeView->GetItemData(dbItemId));
+		if (data == nullptr || data->getDataPtr() == nullptr) {
+			return wxTreeItemId();
+		}
+		// found
+		if (data->getDataPtr()->name == schema) {
+			break;
+		}
+		dbItemId = treeView->GetNextSibling(dbItemId);
+	}
+	return dbItemId;
+}
+
+/**
+ * Find children folder item from database item.
+ * 
+ * @param treeView
+ * @param dbItemId
+ * @param folderType
+ * @return 
+ */
+wxTreeItemId LeftTreeDelegate::findFolderItemFromDbItem(wxTreeCtrl* treeView, const wxTreeItemId& dbItemId, const TreeObjectType folderType)
+{
+	if (!dbItemId.IsOk()) {
+		return wxTreeItemId();
+	}
+
+	wxTreeItemIdValue cookie;
+	auto follderItemId = treeView->GetFirstChild(dbItemId, cookie);
+	while (follderItemId.IsOk()) {
+		auto data = reinterpret_cast<QTreeItemData<UserDb>*>(treeView->GetItemData(follderItemId));
+		if (data == nullptr || data->getDataPtr() == nullptr) {
+			return wxTreeItemId();
+		}
+		// found
+		if (data->getType() == folderType) {
+			break;
+		}
+		follderItemId = treeView->GetNextSibling(follderItemId);
+	}
+	return follderItemId;
+}
+
+TreeObjectType LeftTreeDelegate::objectTypeToFolderType(const TreeObjectType objectType)
+{
+	auto folderType = TreeObjectType::TABLES_FOLDER;
+	if (objectType == TreeObjectType::TABLE) {
+		folderType = TreeObjectType::TABLES_FOLDER;
+	} else if (objectType == TreeObjectType::VIEW) {
+		folderType = TreeObjectType::VIEWS_FOLDER;
+	} else if (objectType == TreeObjectType::STORE_PROCEDURE) {
+		folderType = TreeObjectType::STORE_PROCEDURE_FOLDER;
+	} else if (objectType == TreeObjectType::FUNCTION) {
+		folderType = TreeObjectType::FUNCTIONS_FOLDER;
+	} else if (objectType == TreeObjectType::TRIGGER) {
+		folderType = TreeObjectType::TRIGGERS_FOLDER;
+	} else if (objectType == TreeObjectType::EVENT) {
+		folderType = TreeObjectType::EVENTS_FOLDER;
+	}
+
+	return folderType;
+}
+
+/**
+ * Select children object item in the specified database folder.
+ * 
+ * @param treeView
+ * @param folderItemId
+ * @param findSelData - Data of will be selected item 
+ *						params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
+ *								findSelData.dataPtr - find object name(such as tableName/viewName/triggerName...)
+ */
+void LeftTreeDelegate::selectDbObjectItemFromFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, const QTreeItemData<std::string>& findSelData)
+{
+	if (!folderItemId.IsOk()) {
+		return;
+	}
+	if (findSelData.getDataPtr() == nullptr || findSelData.getDataPtr()->empty()) {
+		treeView->SelectItem(folderItemId);
+		return;
+	}
+
+	wxTreeItemIdValue cookie;
+	auto itemId = treeView->GetFirstChild(folderItemId, cookie);
+
+	std::string itemName;
+	while (itemId.IsOk()) {
+		if (findSelData.getType() == TreeObjectType::TABLE) {
+			auto itemData = reinterpret_cast<QTreeItemData<UserTable>*>(treeView->GetItemData(itemId));
+			itemName = itemData->getDataPtr()->name;
+		} else if (findSelData.getType() == TreeObjectType::VIEW) {
+			auto itemData = reinterpret_cast<QTreeItemData<UserView>*>(treeView->GetItemData(itemId));
+			itemName = itemData->getDataPtr()->name;
+		} else if (findSelData.getType() == TreeObjectType::STORE_PROCEDURE 
+			|| findSelData.getType() == TreeObjectType::FUNCTION
+			|| findSelData.getType() == TreeObjectType::TRIGGER) {
+			auto itemData = reinterpret_cast<QTreeItemData<UserRoutine>*>(treeView->GetItemData(itemId));
+			itemName = itemData->getDataPtr()->name;
+		}else if (findSelData.getType() == TreeObjectType::EVENT) {
+			auto itemData = reinterpret_cast<QTreeItemData<UserEvent>*>(treeView->GetItemData(itemId));
+			itemName = itemData->getDataPtr()->name;
+		} 
+
+		if (itemName == *findSelData.getDataPtr()) {
+			break;
+		}
+		itemId = treeView->GetNextSibling(itemId);
+	}
+
+	if (itemId.IsOk()) {
+		treeView->SelectItem(itemId);
+	}
 }

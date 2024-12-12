@@ -107,6 +107,10 @@ xcopy ..\third-party\lib\sqlite3\x86\sqlite3.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y
 
+xcopy ..\third-party\lib\mysql\mysql.exe "$(OutDir)" /Y
+
+xcopy ..\third-party\lib\mysql\mysqldump.exe "$(OutDir)" /Y
+
 xcopy ..\third-party\mysql-connector-c++8.0.33\win32\debug\lib\debug\mysqlcppconn-9-vs14.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\mysql-connector-c++8.0.33\win32\debug\lib\debug\mysqlcppconn-9-vs14.pdb "$(OutDir)" /Y
@@ -146,6 +150,10 @@ xcopy ..\third-party\lib\sqlite3\x86\sqlite3.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y
 
+xcopy ..\third-party\lib\mysql\mysql.exe "$(OutDir)" /Y
+
+xcopy ..\third-party\lib\mysql\mysqldump.exe "$(OutDir)" /Y
+
 xcopy ..\third-party\mysql-connector-c++8.0.33\win32\lib\mysqlcppconn8-2-vs14.dll "$(OutDir)" /Y
 
 </Command>
@@ -171,6 +179,10 @@ xcopy res "$(OutDir)res" /Y /s
 xcopy ..\third-party\lib\sqlite3\x64\sqlite3.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y
+
+xcopy ..\third-party\lib\mysql\mysql.exe "$(OutDir)" /Y
+
+xcopy ..\third-party\lib\mysql\mysqldump.exe "$(OutDir)" /Y
 
 xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\debug\lib64\debug\mysqlcppconn8-2-vs14.dll "$(OutDir)" /Y
 
@@ -206,6 +218,10 @@ xcopy ..\third-party\lib\sqlite3\x64\sqlite3.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\lib\sqlite3\sqlite3.exe "$(OutDir)" /Y
 
+xcopy ..\third-party\lib\mysql\mysql.exe "$(OutDir)" /Y
+
+xcopy ..\third-party\lib\mysql\mysqldump.exe "$(OutDir)" /Y
+
 xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\mysqlcppconn8-2-vs14.dll "$(OutDir)" /Y
 
 xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\mysqlcppconn-9-vs14.dll "$(OutDir)" /Y
@@ -217,7 +233,7 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ui\common\process\QProcessBar.cpp" />
+    <ClCompile Include="src\ui\common\progress\QProgressBar.cpp" />
     <ClCompile Include="src\ui\common\delegate\EmptyDelegate.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.cpp" />
     <ClCompile Include="src\ui\common\msgbox\QAnimateBox.cpp" />
@@ -265,6 +281,10 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\ui\database\DatabasePanel.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\database\delegate\DuplicateDatabaseDialogDelegate.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\database\DuplicateDatabaseDialog.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\object\delegate\DuplicateObjectDialogDelegate.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\object\DuplicateObjectDialog.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\table\delegate\DuplicateTableDialogDelegate.cpp" />
+    <ClCompile Include="src\ui\dialog\duplicate\table\DuplicateTableDialog.cpp" />
     <ClCompile Include="src\ui\home\HomePanel.cpp" />
     <ClCompile Include="src\ui\home\list\ConnectListItem.cpp" />
     <ClCompile Include="src\ui\setting\SettingPanel.cpp" />
@@ -283,7 +303,8 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\db\MetadataService.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ui\common\process\QProcessBar.h" />
+    <ClInclude Include="src\ui\common\process\QProcess.h" />
+    <ClInclude Include="src\ui\common\progress\QProgressBar.h" />
     <ClInclude Include="src\ui\common\delegate\EmptyDelegate.h" />
     <ClInclude Include="src\ui\dialog\delegate\QDialogDelegate.h" />
     <ClInclude Include="src\ui\common\dialog\QFormDialog.h" />
@@ -348,6 +369,10 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClInclude Include="src\ui\database\DatabasePanel.h" />
     <ClInclude Include="src\ui\dialog\duplicate\database\delegate\DuplicateDatabaseDialogDelegate.h" />
     <ClInclude Include="src\ui\dialog\duplicate\database\DuplicateDatabaseDialog.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\object\delegate\DuplicateObjectDialogDelegate.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\object\DuplicateObjectDialog.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\table\delegate\DuplicateTableDialogDelegate.h" />
+    <ClInclude Include="src\ui\dialog\duplicate\table\DuplicateTableDialog.h" />
     <ClInclude Include="src\ui\home\HomePanel.h" />
     <ClInclude Include="src\ui\home\list\ConnectListItem.h" />
     <ClInclude Include="src\ui\setting\SettingPanel.h" />

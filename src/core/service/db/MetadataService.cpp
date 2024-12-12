@@ -95,6 +95,16 @@ CollationInfoList MetadataService::getCollations(uint64_t connectId, const std::
     return collationRepository->getAll(connectId, charset);
 }
 
+UserView MetadataService::getUserView(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+    return userViewRepository->get(connectId, schema, name);
+}
+
+std::string MetadataService::getUserViewDDL(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+    return userViewRepository->getDDL(connectId, schema, name);
+}
+
 bool MetadataService::removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
 {
     return getRepository()->remove(connectId, schema, tableName);
@@ -133,4 +143,14 @@ bool MetadataService::removeTableColumn(uint64_t connectId, const std::string& s
 bool MetadataService::removeTableIndex(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName)
 {
     return tableIndexRepository->remove(connectId, schema, tableName, indexName);
+}
+
+bool MetadataService::hasUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
+{
+    return getRepository()->has(connectId, schema, tableName);
+}
+
+bool MetadataService::hasUserObject(uint64_t connectId, const std::string& schema, const DuplicateObjectType& dupObjectType, const std::string& tableName)
+{
+    return false;
 }

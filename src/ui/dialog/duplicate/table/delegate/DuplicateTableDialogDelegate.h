@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DuplicateDatabaseDialogDelegate.h
+ * @file   DuplicateTableDialogDelegate.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
@@ -22,14 +22,15 @@
 #include "ui/dialog/delegate/QDialogDelegate.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 
-class DuplicateDatabaseDialogDelegate :  public QDialogDelegate<DuplicateDatabaseDialogDelegate>
+class DuplicateTableDialogDelegate :  public QDialogDelegate<DuplicateTableDialogDelegate>
 {
 public:
-	DuplicateDatabaseDialogDelegate();
+	DuplicateTableDialogDelegate();
 	void loadForTreeListCtrl(wxTreeListCtrl * treeListCtrl);
 	std::string getIgnoreTablesStringFromTreeListCtrl(wxTreeListCtrl * treeListCtrl, const std::string& schema);
 	std::string getObjectsStringFromTreeListCtrl(wxTreeListCtrl * treeListCtrl);
 private:
+
 	// For Database
 	void loadTablesForDatabase(wxTreeListCtrl * treeListCtrl, const  wxTreeListItem & folderItem, uint64_t connectId, const std::string & schema);
 	void loadViewsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem & folderItem, uint64_t connectId, const std::string & schema);

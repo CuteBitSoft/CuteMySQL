@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DuplicateDatabaseDialog.h
+ * @file   DuplicateTableDialog.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
@@ -23,22 +23,24 @@
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "core/service/db/ConnectService.h"
-#include "ui/dialog/duplicate/database/delegate/DuplicateDatabaseDialogDelegate.h"
+#include "core/service/db/MetadataService.h"
+#include "ui/dialog/duplicate/table/delegate/DuplicateTableDialogDelegate.h"
 #include "ui/common/progress/QProgressBar.h"
 #include "ui/common/process/QProcess.h"
 
-class DuplicateDatabaseDialog :  public QFormDialog<DuplicateDatabaseDialogDelegate>
+class DuplicateTableDialog :  public QFormDialog<DuplicateTableDialogDelegate>
 {
 	DECLARE_EVENT_TABLE()
 public:
-	DuplicateDatabaseDialog();
-	~DuplicateDatabaseDialog();
+	DuplicateTableDialog();
+	~DuplicateTableDialog();
 
 	// handle export process and import process
-	void OnAsyncProcessTermination(QProcess<DuplicateDatabaseDialog>* process);
+	void OnAsyncProcessTermination(QProcess<DuplicateTableDialog>* process);
 private:
-	UserConnect userConnect ;
+	UserConnect userConnect;
 	UserDb userDb;
+	UserTable userTable;
 
 	// top
 	wxBoxSizer* topHoriLayout;
@@ -48,7 +50,7 @@ private:
 	wxBoxSizer* center1RightVertLayout;
 	// center2
 	wxBoxSizer* center2HoriLayout;
-	wxStaticBoxSizer* center2LeftVertLayout;
+	wxBoxSizer* center2LeftVertLayout;
 	wxBoxSizer* center2RightVertLayout;
 	wxStaticBoxSizer* dulicateSettingsVertLayout;
 	wxStaticBoxSizer* lockSettingsVertLayout;
@@ -63,15 +65,13 @@ private:
 	//source controls - in center1 left layout
 	wxTextCtrl* sourceConnectEdit;
 	wxTextCtrl* sourceDatabaseEdit;
+	wxTextCtrl* sourceTableEdit;
 
 	//target controls - in center1 right layout
-	wxBitmapComboBox* targetConnectComboBox;
-	wxTextCtrl* targetDatabaseEdit;
+	wxBitmapComboBox*	targetConnectComboBox;
+	wxBitmapComboBox*	targetDatabaseComboBox;
+	wxTextCtrl*			targetTableEdit;
 
-	// source objects
-	wxTreeListCtrl * treeListCtrl;
-	wxButton* selectAllButton;
-	wxButton* unSelectAllButton;
 
 	// duplicate settings
 	wxCheckBox* structOnlyCheckBox;
@@ -84,12 +84,13 @@ private:
 
 	// process bar 
 	QProgressBar* progressbar;
-	QProcess<DuplicateDatabaseDialog>* exportProcess;
-	QProcess<DuplicateDatabaseDialog>* importProcess;
+	QProcess<DuplicateTableDialog>* exportProcess;
+	QProcess<DuplicateTableDialog>* importProcess;
 
 	DatabaseSupplier* databaseSupplier;
 	DatabaseService* databaseService = DatabaseService::getInstance();
 	ConnectService* connectService = ConnectService::getInstance();
+	MetadataService* metadataService = MetadataService::getInstance();
 
 	virtual void createInputs();
 	virtual void createTopControls();
@@ -101,18 +102,14 @@ private:
 	// combobox
 	void OnSelChangeConnectCombobox(wxCommandEvent& event);
 	void OnClickOkButton(wxCommandEvent& event);
-	void OnClickSelectAllButton(wxCommandEvent& event);
-	void OnClickUnSelectAllButton(wxCommandEvent& event);
 	void OnStructAndDataCheckBoxChecked(wxCommandEvent& event);
-	void OnTreeListItemChecked(wxTreeListEvent& event);
 
 	// export
-	bool exportDatabaseToTmp(const std::string & tmpSqlPath);
+	bool exportTableToTmp(const std::string & tmpSqlPath);
 	// replace database name
-	bool replaceDatabaseNameInTmp();
+	bool replaceDatabaseAndTableInTmp();
 	// import
-	bool importDatabaseFromTmp(const std::string & tmpSqlPath);
-
+	bool importTableFromTmp(const std::string & tmpSqlPath);
 	void afterDuplicated();
 };
 

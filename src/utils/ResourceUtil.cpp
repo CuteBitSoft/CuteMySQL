@@ -64,6 +64,9 @@ wxString ResourceUtil::getProductTmpDir()
 {
 	wxString path = getResourceDir();
 	path.Append("/tmp");
+	if (_access(path.c_str(), 0) != 0) {
+		_mkdir(path.c_str());
+	}
 	return path;
 }
 

@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DuplicateDatabaseDialog.h
+ * @file   DuplicateObjectDialog.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
@@ -19,26 +19,39 @@
 
 #pragma once
 #include <wx/treelist.h>
+#include <wx/stc/stc.h>
 #include "ui/common/dialog/QFormDialog.h"
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "core/service/db/ConnectService.h"
-#include "ui/dialog/duplicate/database/delegate/DuplicateDatabaseDialogDelegate.h"
+#include "core/service/db/MetadataService.h"
+#include "ui/dialog/duplicate/object/delegate/DuplicateObjectDialogDelegate.h"
 #include "ui/common/progress/QProgressBar.h"
 #include "ui/common/process/QProcess.h"
 
-class DuplicateDatabaseDialog :  public QFormDialog<DuplicateDatabaseDialogDelegate>
+class DuplicateObjectDialog :  public QFormDialog<DuplicateObjectDialogDelegate>
 {
 	DECLARE_EVENT_TABLE()
 public:
-	DuplicateDatabaseDialog();
-	~DuplicateDatabaseDialog();
+	DuplicateObjectDialog(DuplicateObjectType _dupObjectType);
+	~DuplicateObjectDialog();
 
 	// handle export process and import process
-	void OnAsyncProcessTermination(QProcess<DuplicateDatabaseDialog>* process);
+	void OnAsyncProcessTermination(QProcess<DuplicateObjectDialog>* process);
 private:
-	UserConnect userConnect ;
+	DuplicateObjectType dupObjectType;
+	wxString caption;
+	wxString description;
+	wxString sourceLabelText;
+	wxString targetLabelText;
+	wxString sourceObjectName;
+
+	UserConnect userConnect;
 	UserDb userDb;
+	UserView userView;
+	UserRoutine userRoutine;
+	UserTrigger userTrigger;
+	UserEvent userEvent;
 
 	// top
 	wxBoxSizer* topHoriLayout;
@@ -47,11 +60,7 @@ private:
 	wxBoxSizer* center1LeftVertLayout;
 	wxBoxSizer* center1RightVertLayout;
 	// center2
-	wxBoxSizer* center2HoriLayout;
-	wxStaticBoxSizer* center2LeftVertLayout;
-	wxBoxSizer* center2RightVertLayout;
-	wxStaticBoxSizer* dulicateSettingsVertLayout;
-	wxStaticBoxSizer* lockSettingsVertLayout;
+	wxBoxSizer* center2VertLayout;
 
 	// bottom
 	wxBoxSizer* bottomHoriLayout;
@@ -63,19 +72,14 @@ private:
 	//source controls - in center1 left layout
 	wxTextCtrl* sourceConnectEdit;
 	wxTextCtrl* sourceDatabaseEdit;
+	wxTextCtrl* sourceObjectEdit;
 
 	//target controls - in center1 right layout
-	wxBitmapComboBox* targetConnectComboBox;
-	wxTextCtrl* targetDatabaseEdit;
+	wxBitmapComboBox*	targetConnectComboBox;
+	wxBitmapComboBox*	targetDatabaseComboBox;
+	wxTextCtrl*			targetObjectEdit;
 
-	// source objects
-	wxTreeListCtrl * treeListCtrl;
-	wxButton* selectAllButton;
-	wxButton* unSelectAllButton;
-
-	// duplicate settings
-	wxCheckBox* structOnlyCheckBox;
-	wxCheckBox* structAndDataCheckBox;
+	wxStyledTextCtrl*	ddlPreviewEdit;
 
 	// lock settings
 	wxCheckBox* lockTablesCheckBox;
@@ -84,13 +88,15 @@ private:
 
 	// process bar 
 	QProgressBar* progressbar;
-	QProcess<DuplicateDatabaseDialog>* exportProcess;
-	QProcess<DuplicateDatabaseDialog>* importProcess;
+	QProcess<DuplicateObjectDialog>* exportProcess;
+	QProcess<DuplicateObjectDialog>* importProcess;
 
 	DatabaseSupplier* databaseSupplier;
-	DatabaseService* databaseService = DatabaseService::getInstance();
-	ConnectService* connectService = ConnectService::getInstance();
+	DatabaseService* databaseService;
+	ConnectService* connectService;
+	MetadataService* metadataService;
 
+	virtual void init();
 	virtual void createInputs();
 	virtual void createTopControls();
 	virtual void createCenter1Inputs();
@@ -101,18 +107,13 @@ private:
 	// combobox
 	void OnSelChangeConnectCombobox(wxCommandEvent& event);
 	void OnClickOkButton(wxCommandEvent& event);
-	void OnClickSelectAllButton(wxCommandEvent& event);
-	void OnClickUnSelectAllButton(wxCommandEvent& event);
-	void OnStructAndDataCheckBoxChecked(wxCommandEvent& event);
-	void OnTreeListItemChecked(wxTreeListEvent& event);
 
 	// export
-	bool exportDatabaseToTmp(const std::string & tmpSqlPath);
+	bool exportTableToTmp(const std::string & tmpSqlPath);
 	// replace database name
-	bool replaceDatabaseNameInTmp();
+	bool replaceDatabaseAndTableInTmp();
 	// import
-	bool importDatabaseFromTmp(const std::string & tmpSqlPath);
-
+	bool importTableFromTmp(const std::string & tmpSqlPath);
 	void afterDuplicated();
 };
 

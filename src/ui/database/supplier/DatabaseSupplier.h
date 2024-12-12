@@ -24,7 +24,15 @@ class DatabaseSupplier :  public QSupplier<DatabaseSupplier>
 {
 public:
 	UserConnect * runtimeUserConnect = nullptr; // runtime user connect
-	UserDb * runtimeUserDb = nullptr; // runtime user database ()
+	UserDb * runtimeUserDb = nullptr; // runtime user database (for selected db from tree)
+	UserTable * runtimeUserTable = nullptr; // runtime user table (for selected table from tree)
+	UserView * runtimeUserView = nullptr; // runtime user view (for selected view from tree)
+	UserRoutine * runtimeUserRoutine = nullptr; // runtime user routine(store_procedure/function) (for selected routine from tree)
+	UserTrigger * runtimeUserTrigger = nullptr; // runtime user trigger (for selected trigger from tree)
+	UserEvent * runtimeUserEvent = nullptr; // runtime user event (for selected event from tree)
+
 	UserDb handleUserDb; // handleUserDb user database(added and removed user db)
+	UserTable handleUserTable; // handleUserDb user database(added and removed user db)
+	
 };
 

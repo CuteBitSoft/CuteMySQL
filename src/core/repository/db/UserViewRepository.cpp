@@ -21,12 +21,8 @@
 
 UserViewList UserViewRepository::getAll(uint64_t connectId, const std::string& schema)
 {
-    UserViewList result;
-
-    if (connectId <= 0 || schema.empty()) {
-		return result;
-	}
-	
+    assert(connectId > 0 && !schema.empty());
+	UserViewList result;
 	try {
 		std::list<sql::SQLString> types{"VIEW"};
 		auto connect = getUserConnect(connectId);
@@ -56,7 +52,7 @@ bool UserViewRepository::remove(uint64_t connectId, const std::string& schema, c
 	assert(connectId > 0 && !schema.empty() && !name.empty());
 	
 	try {
-		sql::SQLString sql = fmt::format("DROP VIEW IF EXISTS {}", name);
+		sql::SQLString sql = fmt::format("DROP VIEW IF EXISTS `{}`", name);
 		auto connect = getUserConnect(connectId);
 		connect->setSchema(schema);
 		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
@@ -73,6 +69,56 @@ bool UserViewRepository::remove(uint64_t connectId, const std::string& schema, c
 	}
 
 	return false;
+}
+
+UserView UserViewRepository::get(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty());
+	UserView result;
+	
+	try {
+		std::list<sql::SQLString> types{"VIEW"};
+		auto connect = getUserConnect(connectId);
+		auto catalog = connect->getCatalog();
+		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, name, types));
+		if (resultSet->next()) {
+			result = toUserView(resultSet.get());
+		}
+		resultSet->close();
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to getAll(),code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+    return result;
+}
+
+std::string UserViewRepository::getDDL(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty());
+	std::string result;
+	try {
+		sql::SQLString sql = "SHOW CREATE VIEW ";
+		sql.append(" `").append(name).append("`");
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery(sql));
+		if (resultSet->next()) {
+			result = resultSet->getString("Create View").asStdString();
+		}
+		resultSet->close();
+		stmt->close();
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to getAll(),code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
 }
 
 UserView UserViewRepository::toUserView(sql::ResultSet* rs)

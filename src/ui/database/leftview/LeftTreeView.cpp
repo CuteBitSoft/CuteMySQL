@@ -43,12 +43,14 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	// Handle the message
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
+	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_TABLE_ID, OnHandleNewTable)
 END_EVENT_TABLE()
 
 LeftTreeView::LeftTreeView():QPanel()
 {
 	AppContext::getInstance()->subscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_ADD_DATABASE_ID);
+	AppContext::getInstance()->subscribe(this, Config::MSG_NEW_TABLE_ID);
 	leftTreeDelegate = LeftTreeDelegate::getInstance(this);
 	leftTopbarDelegate = LeftTopbarDelegate::getInstance(this);
 }
@@ -57,6 +59,7 @@ LeftTreeView::~LeftTreeView()
 {
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_ADD_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(this, Config::MSG_NEW_TABLE_ID);
 	
 	LeftTreeDelegate::destroyInstance();
 	leftTreeDelegate = nullptr;	
@@ -222,13 +225,13 @@ void LeftTreeView::OnTreeItemExpended(wxTreeEvent& event)
 		if (nImage == 1) { // 1 - connection
 			auto connData = reinterpret_cast<QTreeItemData<UserConnect> *>(treeView->GetItemData(itemId));
 			auto selDbData = leftTreeDelegate->getSelectedDbItemData(treeView);
-			if (selDbData && connData && selDbData->connectId != connData->getDataId()) {
+			if (!treeView->IsSelected(itemId) && selDbData && connData && selDbData->connectId != connData->getDataId()) {
 				treeView->SelectItem(itemId);
-			} else if (!selDbData || !connData) {
+			} else if (!treeView->IsSelected(itemId) && (!selDbData || !connData)) {
 				treeView->SelectItem(itemId);
 			}
-		} else {
-			treeView->SelectItem(itemId);
+		} else if (!treeView->IsSelected(itemId)){
+			//treeView->SelectItem(itemId);
 		}
 	}
 }
@@ -250,28 +253,63 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 
 	auto data = (QTreeItemData<int> *)treeView->GetItemData(selItemId);
 	auto connectId = data->getDataId();
-	if (!connectId) {
+	if (!connectId) { 
 		return;
 	}
 	auto selConnectData = leftTreeDelegate->getSelectedConnectItemData(treeView);
 	auto selDbData = leftTreeDelegate->getSelectedDbItemData(treeView);
+	auto selTableData = leftTreeDelegate->getSelectedTableItemData(treeView);
+	
+	supplier->runtimeUserView = nullptr;
+	supplier->runtimeUserRoutine = nullptr;
+	supplier->runtimeUserTrigger = nullptr;
+	supplier->runtimeUserEvent = nullptr;
+
+	if (selTableData == nullptr) {
+		auto selViewData = leftTreeDelegate->getSelectedViewItemData(treeView);
+		if (selViewData != nullptr) {
+			supplier->runtimeUserView = selViewData;
+		} else {
+			auto selRoutineData = leftTreeDelegate->getSelectedRoutineItemData(treeView);
+			if (selRoutineData != nullptr) {
+				supplier->runtimeUserRoutine = selRoutineData;
+			} else {
+				auto selTriggerData = leftTreeDelegate->getSelectedTriggerItemData(treeView);
+				if (selTriggerData != nullptr) {
+					supplier->runtimeUserTrigger = selTriggerData;
+				} else {
+					auto selEventData = leftTreeDelegate->getSelectedEventItemData(treeView);
+					supplier->runtimeUserEvent = selEventData;
+				} //trigger
+			} // routine
+		} // routine
+	} // view 
+	
 	
 	if (supplier->runtimeUserConnect && selConnectData == supplier->runtimeUserConnect) {
 		if (selDbData == supplier->runtimeUserDb) {
+			supplier->runtimeUserTable = selTableData;
 			return;
 		} else {
 			supplier->runtimeUserDb = selDbData;
+			supplier->runtimeUserTable = selTableData;
 			bool ret = leftTopbarDelegate->selectDbsForComboBox(selectedDbComboBox);
 			if (!ret) {
 				leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 			}
 			return;
 		}
-	} else if (selDbData != supplier->runtimeUserDb) {
-		supplier->runtimeUserDb = selDbData;
 	}
 	supplier->runtimeUserConnect = selConnectData;
-	leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+
+	if (selDbData != supplier->runtimeUserDb) {
+		supplier->runtimeUserDb = selDbData;
+		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+	}
+
+	if (selTableData != supplier->runtimeUserTable) {
+		supplier->runtimeUserTable = selTableData;
+	}
 }
 
 void LeftTreeView::OnHandleConnectionConnected(MsgDispatcherEvent& event)
@@ -288,6 +326,19 @@ void LeftTreeView::OnHandleAddDatabase(MsgDispatcherEvent& event)
 	auto connectId = clientData->getDataPtr();
 
 	leftTreeDelegate->loadForLeftTree(treeView, connectId, supplier->handleUserDb.name);
+}
+
+void LeftTreeView::OnHandleNewTable(MsgDispatcherEvent& event)
+{
+	// findSelData - Data of will be selected item 
+ 	// 				params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
+ 	//						findSelData.dataPtr - find object name(such as tableName/viewName/triggerName...)*/
+	QTreeItemData<std::string> findSelData(supplier->handleUserDb.connectId, 
+		new std::string(supplier->handleUserTable.name), 
+		TreeObjectType::TABLE);
+
+	// refresh the database item and select object item
+	leftTreeDelegate->refreshDbItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name, findSelData);
 }
 
 void LeftTreeView::OnClickConnectButton(wxCommandEvent& event)

@@ -23,14 +23,14 @@
 #include <wx/font.h>
 #include <wx/colour.h>
 
-class QProcessBar : public wxControl
+class QProgressBar : public wxControl
 {
-	DECLARE_DYNAMIC_CLASS(QProcessBar)
+	DECLARE_DYNAMIC_CLASS(QProgressBar)
 	DECLARE_EVENT_TABLE()
 public:
-	QProcessBar();
+	QProgressBar();
 
-	QProcessBar(wxWindow * parent, 
+	QProgressBar(wxWindow * parent, 
 		wxWindowID id, 
 		const wxPoint & pos = wxDefaultPosition,
 		const wxSize & size = wxDefaultSize,

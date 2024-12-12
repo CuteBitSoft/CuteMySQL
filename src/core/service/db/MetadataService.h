@@ -18,6 +18,7 @@
  *********************************************************************/
 #pragma once
 #include "core/common/service/BaseService.h"
+#include "core/entity/Enum.h"
 #include "core/repository/db/UserTableRepository.h"
 #include "core/repository/db/UserViewRepository.h"
 #include "core/repository/db/UserSchemaObjectRepository.h"
@@ -32,6 +33,7 @@ class MetadataService : public BaseService<MetadataService, UserTableRepository>
 {
 public:
 	~MetadataService();
+	// get object list 
 	UserTableList getUserTables(uint64_t connectId, const std::string& schema);
 	UserViewList getUserViews(uint64_t connectId, const std::string& schema);
 	UserProcedureList getUserProcedures(uint64_t connectId, const std::string& schema);
@@ -45,6 +47,11 @@ public:
 	CharsetInfoList getCharsets(uint64_t connectId);
 	CollationInfoList getCollations(uint64_t connectId, const std::string& charset);
 
+	// get one object
+	UserView getUserView(uint64_t connectId, const std::string& schema, const std::string& name);
+	std::string getUserViewDDL(uint64_t connectId, const std::string& schema, const std::string& name);
+
+	// remove
 	bool removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
 	bool removeUserView(uint64_t connectId, const std::string& schema, const std::string& viewName);
 	bool removeUserProcedure(uint64_t connectId, const std::string& schema, const std::string& procedureName);
@@ -53,6 +60,9 @@ public:
 	bool removeUserEvent(uint64_t connectId, const std::string& schema, const std::string& eventName);
 	bool removeTableColumn(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& columnName);
 	bool removeTableIndex(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName);
+
+	bool hasUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
+	bool hasUserObject(uint64_t connectId, const std::string& schema, const DuplicateObjectType &dupObjectType, const std::string& tableName);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();

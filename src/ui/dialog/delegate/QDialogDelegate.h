@@ -23,30 +23,56 @@
 #include "core/common/Lang.h"
 #include "ui/common/data/QClientData.h"
 #include "ui/common/delegate/QDelegate.h"
+#include "core/entity/Entity.h"
 #include "core/service/db/ConnectService.h"
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/MetadataService.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/common/msgbox/QAnimateBox.h"
 
-template <typename T, typename S = EmptySupplier, typename V = wxWindow>
-class QDialogDelegate : public QDelegate<T, S, V>
+/**
+ * template T - subclass, S - subclass of QSupplier ,V - dataView class such as 
+ */
+template <typename TT, typename SS = EmptySupplier, typename VV = wxWindow>
+class QDialogDelegate : public QDelegate<TT, SS, VV>
 {
 public:
+	QDialogDelegate();
 	void loadForConnectComboBox(wxBitmapComboBox * connectComboBox);
 	void loadForSchemaComboBox(wxBitmapComboBox * schemaComboBox, uint64_t connectId, const std::string & defval = "");
 	void loadForCharsetComboBox(wxComboBox * charsetComboBox, uint64_t connectId, const std::string & defval = "");
 	void loadForCollationComboBox(wxComboBox * collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval = "");
 protected:
-	DatabaseSupplier * databaseSupplier = DatabaseSupplier::getInstance();
+	UserConnect userConnect;
+	UserDb userDb;
+	UserTable userTable;
+
+	DatabaseSupplier * databaseSupplier;
+
 	ConnectService* connectService = ConnectService::getInstance();
 	DatabaseService* databaseService = DatabaseService::getInstance();
 	MetadataService* metadataService = MetadataService::getInstance();
 };
 
+template <typename TT, typename SS, typename VV>
+QDialogDelegate<TT, SS, VV>::QDialogDelegate()
+{
+	databaseSupplier = DatabaseSupplier::getInstance();
+	if (databaseSupplier->runtimeUserConnect) {
+		userConnect = *databaseSupplier->runtimeUserConnect;
+	}
 
-template <typename T, typename S, typename V>
-void QDialogDelegate<T, S, V>::loadForConnectComboBox(wxBitmapComboBox* connectComboBox)
+	if (databaseSupplier->runtimeUserDb) {
+		userDb = *databaseSupplier->runtimeUserDb;
+	}
+
+	if (databaseSupplier->runtimeUserTable) {
+		userTable = *databaseSupplier->runtimeUserTable;
+	}
+}
+
+template <typename TT, typename SS, typename VV>
+void QDialogDelegate<TT, SS, VV>::loadForConnectComboBox(wxBitmapComboBox* connectComboBox)
 {
 	assert(connectComboBox != nullptr);
 	try {
@@ -61,7 +87,7 @@ void QDialogDelegate<T, S, V>::loadForConnectComboBox(wxBitmapComboBox* connectC
 			wxString connnectName = item.name;
 			connnectName.Append(" [").Append(item.host).Append(":").Append(std::to_string(item.port)).Append("]");
 			int n = connectComboBox->Append(connnectName, bitmap, data);
-			if (databaseSupplier->runtimeUserConnect && databaseSupplier->runtimeUserConnect->id == item.id) {
+			if (databaseSupplier->runtimeUserConnect && userConnect.id == item.id) {
 				nSelItem = n;
 			}
 		}
@@ -77,20 +103,25 @@ void QDialogDelegate<T, S, V>::loadForConnectComboBox(wxBitmapComboBox* connectC
 }
 
 
-template <typename T, typename S /*= EmptySupplier*/, typename V /*= wxWindow*/>
-void QDialogDelegate<T, S, V>::loadForSchemaComboBox(wxBitmapComboBox* schemaComboBox, uint64_t connectId, const std::string& defval /*= ""*/)
+template <typename TT, typename SS /*= EmptySupplier*/, typename VV /*= wxWindow*/>
+void QDialogDelegate<TT, SS, VV>::loadForSchemaComboBox(wxBitmapComboBox* schemaComboBox, uint64_t connectId, const std::string& defval /*= ""*/)
 {
 	assert(schemaComboBox != nullptr);
 
 	try {
-		auto schemaList = databaseService->getAllUserDbs(databaseSupplier->runtimeUserConnect->id);
+		auto schemaList = databaseService->getAllUserDbs(connectId);
 
 		schemaComboBox->Clear();
 		schemaComboBox->AppendString(S("default"));
+		
+		auto imgdir = ResourceUtil::getProductImagesDir();
+		wxString path = imgdir + "/dialog/database/database.bmp";
+		wxBitmap bitmap(path, wxBITMAP_TYPE_BMP);
+
 		int n = 0, nSelItem = 0;
 		for (auto& item : schemaList) {
-			auto data = new QClientData<CharsetInfo>(connectId, new UserDb(item));
-			n = schemaComboBox->Append(item.name, data);
+			auto data = new QClientData<UserDb>(connectId, new UserDb(item));
+			n = schemaComboBox->Append(item.name, bitmap, data);
 			if (item.name == defval) {
 				nSelItem = n;
 			}
@@ -102,13 +133,13 @@ void QDialogDelegate<T, S, V>::loadForSchemaComboBox(wxBitmapComboBox* schemaCom
 	}
 }
 
-template <typename T, typename S, typename V>
-void QDialogDelegate<T, S, V>::loadForCharsetComboBox(wxComboBox* charsetComboBox, uint64_t connectId, const std::string & defval)
+template <typename TT, typename SS /*= EmptySupplier*/, typename VV /*= wxWindow*/>
+void QDialogDelegate<TT, SS, VV>::loadForCharsetComboBox(wxComboBox* charsetComboBox, uint64_t connectId, const std::string & defval)
 {
 	assert(charsetComboBox != nullptr);
 
 	try {
-		auto charsetList = metadataService->getCharsets(databaseSupplier->runtimeUserConnect->id);
+		auto charsetList = metadataService->getCharsets(userConnect.id);
 
 		charsetComboBox->Clear();
 		charsetComboBox->AppendString(S("default"));
@@ -127,8 +158,8 @@ void QDialogDelegate<T, S, V>::loadForCharsetComboBox(wxComboBox* charsetComboBo
 	}
 }
 
-template <typename T, typename S, typename V>
-void QDialogDelegate<T, S, V>::loadForCollationComboBox(wxComboBox* collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval)
+template <typename TT, typename SS /*= EmptySupplier*/, typename VV /*= wxWindow*/>
+void QDialogDelegate<TT, SS, VV>::loadForCollationComboBox(wxComboBox* collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval)
 {
 	assert(collationComboBox != nullptr);
 
@@ -142,7 +173,7 @@ void QDialogDelegate<T, S, V>::loadForCollationComboBox(wxComboBox* collationCom
 	}
 
 	try {
-		auto list = metadataService->getCollations(databaseSupplier->runtimeUserConnect->id, charset);
+		auto list = metadataService->getCollations(userConnect.id, charset);
 
 		int n = 0, nSelItem = 0;
 		for (auto& item : list) {

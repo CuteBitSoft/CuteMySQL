@@ -24,14 +24,14 @@ public :
 	QClientData();
 	~QClientData();
 
-	QClientData(uint16_t _dataId);
-	QClientData(uint16_t _dataId, T* _dataPtr);
+	QClientData(uint64_t _dataId);
+	QClientData(uint64_t _dataId, T* _dataPtr);
 
 
-	uint64_t getDataId() { return dataId; }
+	uint64_t getDataId() const { return dataId; }
 	void setDataId(uint64_t _dataId) { dataId = _dataId; }
 
-	T* getDataPtr() { return dataPtr; }
+	T* getDataPtr() const { return dataPtr; }
 	void setDataPtr(T* _dataPtr) { dataPtr = _dataPtr; }
 protected:
 	uint64_t dataId;
@@ -39,13 +39,13 @@ protected:
 };
 
 template<typename T>
-QClientData<T>::QClientData(uint16_t _dataId, T* _dataPtr) : wxClientData(), dataId(_dataId), dataPtr(_dataPtr)
+QClientData<T>::QClientData(uint64_t _dataId, T* _dataPtr) : wxClientData(), dataId(_dataId), dataPtr(_dataPtr)
 {
 
 }
 
 template<typename T>
-QClientData<T>::QClientData(uint16_t _dataId): wxClientData(), dataId(_dataId), dataPtr(nullptr)
+QClientData<T>::QClientData(uint64_t _dataId): wxClientData(), dataId(_dataId), dataPtr(nullptr)
 {
 
 }

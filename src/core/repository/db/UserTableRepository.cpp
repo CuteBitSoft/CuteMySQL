@@ -53,7 +53,7 @@ bool UserTableRepository::remove(uint64_t connectId, const std::string& schema, 
 {
 	assert(connectId > 0 && !schema.empty() && !name.empty());
 	try {
-		sql::SQLString sql = fmt::format("DROP TABLE IF EXISTS {}", name);
+		sql::SQLString sql = fmt::format("DROP TABLE IF EXISTS `{}`", name);
 		auto connect = getUserConnect(connectId);
 		connect->setSchema(schema);
 		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
@@ -70,6 +70,70 @@ bool UserTableRepository::remove(uint64_t connectId, const std::string& schema, 
 	}
 
 	return false;
+}
+
+bool UserTableRepository::has(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+	if (connectId <= 0 || schema.empty()) {
+		return false;
+	}
+	
+	try {
+		std::list<sql::SQLString> types = (schema == "information_schema") ? 
+			std::list<sql::SQLString>({"TEMPORARY TABLE", "VIEW"}) : std::list<sql::SQLString>({"TABLE", "SYSTEM TABLE"});
+		auto connect = getUserConnect(connectId);
+		auto catalog = connect->getCatalog();
+		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, name, types));
+		bool hasFound = false;
+		while (resultSet->next()) {
+			UserTable item = toUserTable(resultSet.get());
+			if (item.name == name) {
+				hasFound = true;
+				break;
+			}
+		}
+		resultSet->close();
+		return hasFound;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to has,code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+    return false;
+}
+
+UserTable UserTableRepository::get(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+	UserTable result;
+	if (connectId <= 0 || schema.empty()) {
+		return result;
+	}
+	
+	try {
+		std::list<sql::SQLString> types = (schema == "information_schema") ? 
+			std::list<sql::SQLString>({"TEMPORARY TABLE", "VIEW"}) : std::list<sql::SQLString>({"TABLE", "SYSTEM TABLE"});
+		auto connect = getUserConnect(connectId);
+		auto catalog = connect->getCatalog();
+		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getTables(catalog, schema, name, types));
+		while (resultSet->next()) {
+			UserTable item = toUserTable(resultSet.get());
+			if (item.name == name) {
+				result = item;
+				break;
+			}
+		}
+		resultSet->close();
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to has,code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+    return result;
 }
 
 UserTable UserTableRepository::toUserTable(sql::ResultSet* rs)

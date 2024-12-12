@@ -110,6 +110,7 @@ typedef struct _UserTable {
 	std::string createTime;
 	std::string updateTime;
 	std::string checkTime;
+	std::string ddl;
 } UserTable, UserView;
 
 typedef std::vector<UserTable> UserTableList;

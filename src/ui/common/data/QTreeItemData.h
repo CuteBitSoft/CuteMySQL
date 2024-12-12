@@ -30,7 +30,7 @@ public:
 	QTreeItemData(uint16_t _dataId);
 	QTreeItemData(uint16_t _dataId, T* _dataPtr, TreeObjectType _type = TreeObjectType::ROOT);
 
-	int getType() { return type; }
+	int getType() const { return type; } ;
 	void setType(int val) { type = val; }
 private:
 	TreeObjectType type;

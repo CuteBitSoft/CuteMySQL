@@ -16,16 +16,16 @@
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
  * @date   2024-12-06
  *********************************************************************/
-#include "QProcessBar.h"
+#include "QProgressBar.h"
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 #include "core/common/Lang.h"
 
-IMPLEMENT_DYNAMIC_CLASS(QProcessBar, wxControl)
-BEGIN_EVENT_TABLE(QProcessBar, wxControl)
-	EVT_PAINT(QProcessBar::OnPaint)
+IMPLEMENT_DYNAMIC_CLASS(QProgressBar, wxControl)
+BEGIN_EVENT_TABLE(QProgressBar, wxControl)
+	EVT_PAINT(QProgressBar::OnPaint)
 END_EVENT_TABLE()
-QProcessBar::QProcessBar() : 
+QProgressBar::QProgressBar() : 
 	wxControl(), 
 	bkgColor(192, 192, 192, 192), 
 	processColor(49, 139, 202, 49), 
@@ -38,7 +38,7 @@ QProcessBar::QProcessBar() :
 	init();
 }
 
-QProcessBar::QProcessBar(wxWindow* parent, wxWindowID id, 
+QProgressBar::QProgressBar(wxWindow* parent, wxWindowID id, 
 	const wxPoint& pos /*= wxDefaultPosition*/, 
 	const wxSize& size /*= wxDefaultSize*/, 
 	long style /*= wxSUNKEN_BORDER*/, 
@@ -55,7 +55,7 @@ QProcessBar::QProcessBar(wxWindow* parent, wxWindowID id,
 	Create(parent, id, pos, size, style, validator);
 }
 
-bool QProcessBar::Create(wxWindow* parent, wxWindowID id, 
+bool QProgressBar::Create(wxWindow* parent, wxWindowID id, 
 	const wxPoint& pos /*= wxDefaultPosition*/, 
 	const wxSize& size /*= wxDefaultSize*/, 
 	long style /*= wxSUNKEN_BORDER*/, 
@@ -68,7 +68,7 @@ bool QProcessBar::Create(wxWindow* parent, wxWindowID id,
 	return true;
 }
 
-void QProcessBar::init()
+void QProgressBar::init()
 {
 	percent = 0;
 
@@ -76,7 +76,7 @@ void QProcessBar::init()
 	textPen = wxPen(textColor, 1);
 }
 
-void QProcessBar::OnPaint(wxPaintEvent& event)
+void QProgressBar::OnPaint(wxPaintEvent& event)
 {
 	wxBufferedPaintDC dc(this);
 	auto clientRect = GetClientRect();
@@ -105,11 +105,11 @@ void QProcessBar::OnPaint(wxPaintEvent& event)
 		dc.DrawRoundedRectangle(rect, radius);
 	}
 
-	// draw text
+	// draw percent text
 	if (percent == 0) {
 		return ;
 	}
-	wxString text = wxString::Format("%d", percent).Append("%");
+	wxString perText = wxString::Format("%d", percent).Append("%");
 
 	x = (clientRect.GetWidth() - 80) / 2, y = rect.y + 2, w = 80, h = 20;
 	wxRect textRect(x, y, w, h);
@@ -125,7 +125,21 @@ void QProcessBar::OnPaint(wxPaintEvent& event)
 	dc.SetTextBackground(textBkColor);
 	dc.SetFont(textFont);
 	dc.SetPen(textPen);
-	dc.DrawText(text, x, y);
+	dc.DrawText(perText, x, y);
+
+	// draw status text
+	std::string statusText;
+	if (err.empty()) {
+		statusText = percent < 100 ? "Waiting..." : "Done";
+	} else {
+		statusText = err;
+		dc.SetTextForeground(errorColor);
+	}
+	textBkColor = percent < 90 ? bkgColor : processColor;
+	auto size = dc.GetTextExtent(statusText.c_str());
+	x = clientRect.GetWidth() - size.GetWidth() - 10;
+	dc.SetTextBackground(textBkColor);
+	dc.DrawText(statusText, x, y);
 
 	//release 
 	dc.SetTextBackground(oldBkgColor);
@@ -137,26 +151,26 @@ void QProcessBar::OnPaint(wxPaintEvent& event)
 	
 }
 
-void QProcessBar::run(int percent /*= 0*/)
+void QProgressBar::run(int percent /*= 0*/)
 {
 	this->percent = percent <= 100 ? percent : 100;
 	if (percent <= 5) {
 		err.clear();
 	}
 	
-	Update();
+	Refresh();
 }
 
-void QProcessBar::error(const wxString& err)
+void QProgressBar::error(const wxString& err)
 {
 	this->err = err;
-	Update();
+	Refresh();
 }
 
-void QProcessBar::reset()
+void QProgressBar::reset()
 {
 	this->percent = 0;
 	this->err.clear();
-	Update();
+	Refresh();
 }
 

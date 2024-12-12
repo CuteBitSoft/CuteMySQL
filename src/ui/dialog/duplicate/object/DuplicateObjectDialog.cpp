@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DuplicateDatabaseDialog.cpp
+ * @file   DuplicateObjectDialog.cpp
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
  * @date   2024-12-05
  *********************************************************************/
-#include "DuplicateDatabaseDialog.h"
+#include "DuplicateObjectDialog.h"
 #include <wx/process.h>
 #include <wx/txtstrm.h>
 #include <spdlog/fmt/fmt.h>
@@ -24,34 +24,84 @@
 #include "common/AppContext.h"
 #include "utils/ResourceUtil.h"
 #include "utils/StringUtil.h"
+#include "core/entity/Enum.h"
 
-BEGIN_EVENT_TABLE(DuplicateDatabaseDialog, wxDialog)
+BEGIN_EVENT_TABLE(DuplicateObjectDialog, wxDialog)
 	EVT_BUTTON(wxID_OK, OnClickOkButton)
-	EVT_BUTTON(Config::SELECT_ALL_BUTTON_ID, OnClickSelectAllButton)
-	EVT_BUTTON(Config::UN_SELECT_ALL_BUTTON_ID, OnClickUnSelectAllButton)
 	EVT_COMBOBOX(Config::DUPLICATE_SOURCE_CONNECT_COMBOBOX_ID, OnSelChangeConnectCombobox)
-	EVT_CHECKBOX(Config::STRUCTURE_ONLY_CHECKBOX_ID, OnStructAndDataCheckBoxChecked)
-	EVT_CHECKBOX(Config::STRUCTURE_DATA_CHECKBOX_ID, OnStructAndDataCheckBoxChecked)
-	EVT_TREELIST_ITEM_CHECKED(Config::DUPLICATE_DATABASE_TREELISTCTRL_ID, OnTreeListItemChecked)
 END_EVENT_TABLE()
 
-DuplicateDatabaseDialog::DuplicateDatabaseDialog() : QFormDialog()
+DuplicateObjectDialog::DuplicateObjectDialog(DuplicateObjectType _dupObjectType) : QFormDialog(),dupObjectType(_dupObjectType)
 {
+	init();	
+}
+
+void DuplicateObjectDialog::init()
+{
+	exportProcess = nullptr;
+	importProcess = nullptr;
+
 	databaseSupplier = DatabaseSupplier::getInstance();
+	databaseService = DatabaseService::getInstance();
+	connectService = ConnectService::getInstance();
+	metadataService = MetadataService::getInstance();
+
 	if (databaseSupplier->runtimeUserConnect) {
 		userConnect = *databaseSupplier->runtimeUserConnect;
 	}
-	
 	if (databaseSupplier->runtimeUserDb) {
 		userDb = *databaseSupplier->runtimeUserDb;
-	}	
-
-	exportProcess = nullptr;
-	importProcess = nullptr;
+	}
+	if (dupObjectType == DuplicateObjectType::DUPLICATE_VIEW) {
+		userView = *databaseSupplier->runtimeUserView;
+		caption = S("duplicate-view");
+		description = S("duplicate-view-description");
+		sourceLabelText = S("source-view");
+		targetLabelText = S("target-view");
+		sourceObjectName = userView.name;
+		try {
+			userView.ddl = metadataService->getUserViewDDL(userConnect.id, userDb.name, userView.name);
+		} catch (QRuntimeException& ex) {
+			QAnimateBox::error(ex);
+			return;
+		}		
+	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_STORE_PROCEDURE) {
+		userRoutine = *databaseSupplier->runtimeUserRoutine;
+		caption = S("duplicate-store-procedure");
+		description = S("duplicate-store-procedure-description");
+		sourceLabelText = S("source-store-procedure");
+		targetLabelText = S("target-store-procedure");
+		sourceObjectName = userRoutine.name;
+	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_FUNCTION) {
+		userRoutine = *databaseSupplier->runtimeUserRoutine;
+		caption = S("duplicate-function");
+		description = S("duplicate-function-description");
+		sourceLabelText = S("source-function");
+		targetLabelText = S("target-function");
+		sourceObjectName = userRoutine.name;
+	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_TRIGGER) {
+		userTrigger = *databaseSupplier->runtimeUserTrigger;
+		caption = S("duplicate-trigger");
+		description = S("duplicate-trigger-description");
+		sourceLabelText = S("source-trigger");
+		targetLabelText = S("target-trigger");
+		sourceObjectName = userTrigger.name;
+	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_EVENT) {
+		userEvent = *databaseSupplier->runtimeUserEvent;
+		caption = S("duplicate-event");
+		description = S("duplicate-event-description");
+		sourceLabelText = S("source-event");
+		targetLabelText = S("target-event");
+		sourceObjectName = userEvent.name;
+	}
+	
+	
 }
 
-void DuplicateDatabaseDialog::createInputs()
+void DuplicateObjectDialog::createInputs()
 {
+	SetLabel(caption);
+
 	// top layout
 	topHoriLayout = new wxBoxSizer(wxHORIZONTAL);
 	tLayout->Add(topHoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
@@ -72,29 +122,10 @@ void DuplicateDatabaseDialog::createInputs()
 
 	tLayout->AddSpacer(20);
 	// center2 layout
-	center2HoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	tLayout->Add(center2HoriLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	center2VertLayout = new wxBoxSizer(wxVERTICAL);
+	tLayout->Add(center2VertLayout, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
-	center2HoriLayout->AddSpacer(20);
-	auto center2LeftBox = new wxStaticBox(this, wxID_ANY, S("source-objects"), wxDefaultPosition, {200, -1});
-	center2LeftVertLayout = new wxStaticBoxSizer(center2LeftBox, wxVERTICAL);
-	center2HoriLayout->Add(center2LeftVertLayout, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
-
-	center2HoriLayout->AddSpacer(20);	
-	center2RightVertLayout = new wxBoxSizer(wxVERTICAL);
-	center2HoriLayout->Add(center2RightVertLayout, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
-
-	auto dulicateSettingsBox = new wxStaticBox(this, wxID_ANY, S("duplicate-settings"), wxDefaultPosition, {200, -1});
-	dulicateSettingsVertLayout = new wxStaticBoxSizer(dulicateSettingsBox, wxVERTICAL);
-	center2RightVertLayout->Add(dulicateSettingsVertLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP);
-	center2RightVertLayout->AddSpacer(10);
-
-	auto lockTablesBox = new wxStaticBox(this, wxID_ANY, S("lock-settings"), wxDefaultPosition, { 200, -1 });
-	lockSettingsVertLayout = new wxStaticBoxSizer(lockTablesBox, wxVERTICAL);
-	center2RightVertLayout->Add(lockSettingsVertLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP);
-
-	center2HoriLayout->AddSpacer(20); 
-
+	
 	tLayout->AddSpacer(20);
 	// bottom
 	bottomHoriLayout = new wxBoxSizer(wxHORIZONTAL);
@@ -106,7 +137,7 @@ void DuplicateDatabaseDialog::createInputs()
 	createBottomInputs();
 }
 
-void DuplicateDatabaseDialog::createTopControls()
+void DuplicateObjectDialog::createTopControls()
 {
 	topHoriLayout->AddSpacer(20);
 
@@ -119,11 +150,11 @@ void DuplicateDatabaseDialog::createTopControls()
 	topHoriLayout->Add(image, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
 
 	topHoriLayout->AddSpacer(10);
-	label = new wxStaticText(this, wxID_ANY, S("duplicate-database-description"), wxDefaultPosition, {400, -1}, wxALIGN_LEFT);
+	label = new wxStaticText(this, wxID_ANY, description, wxDefaultPosition, {400, -1}, wxALIGN_LEFT);
 	topHoriLayout->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
 }
 
-void DuplicateDatabaseDialog::createCenter1Inputs()
+void DuplicateObjectDialog::createCenter1Inputs()
 {
 	// Center left
 	auto sourceConnectLabel = new wxStaticText(this, wxID_ANY, S("source-connection"), wxDefaultPosition, {180, -1}, wxALIGN_LEFT);
@@ -145,6 +176,16 @@ void DuplicateDatabaseDialog::createCenter1Inputs()
 	sourceDatabaseEdit->SetBackgroundColour(disabledColor);
 	sourceDatabaseEdit->SetForegroundColour(textColor);
 
+	center1LeftVertLayout->AddSpacer(10);
+	auto sourceObjectLabel = new wxStaticText(this, wxID_ANY, sourceLabelText, wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT);
+	center1LeftVertLayout->Add(sourceObjectLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+
+	center1LeftVertLayout->AddSpacer(10);
+	sourceObjectEdit = new wxTextCtrl(this, Config::DUPLICATE_SOURCE_OBJECT_EDIT_ID, wxEmptyString, wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT | wxTE_READONLY);
+	center1LeftVertLayout->Add(sourceObjectEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	sourceObjectEdit->SetBackgroundColour(disabledColor);
+	sourceObjectEdit->SetForegroundColour(textColor);
+
 	// center right
 	auto targetConnectLabel = new wxStaticText(this, wxID_ANY, S("target-connection"), wxDefaultPosition, {180, -1}, wxALIGN_LEFT);
 	center1RightVertLayout->Add(targetConnectLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
@@ -159,53 +200,43 @@ void DuplicateDatabaseDialog::createCenter1Inputs()
 	center1RightVertLayout->Add(targetDatabaseLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 
 	center1RightVertLayout->AddSpacer(10);
-	targetDatabaseEdit = new wxTextCtrl(this, Config::DUPLICATE_TARGET_DATABASE_EDIT_ID,  S("target-database"), wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT );
-	center1RightVertLayout->Add(targetDatabaseEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+	targetDatabaseComboBox = new wxBitmapComboBox(this, Config::DUPLICATE_TARGET_DATABASE_COMBOBOX_ID, wxEmptyString, wxDefaultPosition,
+		{ 180, -1 }, wxArrayString(), wxNO_BORDER | wxCLIP_CHILDREN | wxCB_READONLY);
+	center1RightVertLayout->Add(targetDatabaseComboBox, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+
+	center1RightVertLayout->AddSpacer(10);
+	auto targetObjectLabel = new wxStaticText(this, wxID_ANY, targetLabelText, wxDefaultPosition, { 180, -1 }, wxALIGN_LEFT);
+	center1RightVertLayout->Add(targetObjectLabel, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
+
+	center1RightVertLayout->AddSpacer(10);
+	targetObjectEdit = new wxTextCtrl(this, Config::DUPLICATE_TARGET_OBJECT_EDIT_ID, wxEmptyString, wxDefaultPosition,
+		{ 180, -1 }, wxCLIP_CHILDREN | wxALIGN_LEFT);
+	center1RightVertLayout->Add(targetObjectEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 }
 
-void DuplicateDatabaseDialog::createCenter2Inputs()
+void DuplicateObjectDialog::createCenter2Inputs()
 {
-	// center2 left  - source object treeListCtrl / select all /un select all 
-	treeListCtrl = new wxTreeListCtrl(this, Config::DUPLICATE_DATABASE_TREELISTCTRL_ID, wxDefaultPosition, { 180, 250 }, wxTL_MULTIPLE | wxTL_CHECKBOX | wxTL_NO_HEADER);
-	center2LeftVertLayout->Add(treeListCtrl, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
-	//treeListCtrl->SetBackgroundColour(bkgColor);
-	//treeListCtrl->SetForegroundColour(textColor);
+	// center2 left  - ddl preview
+	auto ddlPreviewLabel = new wxStaticText(this, wxID_ANY, S("ddl-preview"), wxDefaultPosition, {180, -1}, wxALIGN_LEFT);
+	center2VertLayout->Add(ddlPreviewLabel, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
 
-	center2LeftVertLayout->AddSpacer(10);
-	auto center2BottomHoriLayout = new wxBoxSizer(wxHORIZONTAL);
-	center2LeftVertLayout->Add(center2BottomHoriLayout, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP);
+	center2VertLayout->AddSpacer(10);
 
-	center2BottomHoriLayout->AddSpacer(10);
-	selectAllButton = new wxButton(this, Config::SELECT_ALL_BUTTON_ID, S("select-all"), wxDefaultPosition, { -1, 20 });
-	center2BottomHoriLayout->Add(selectAllButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
-
-	center2BottomHoriLayout->AddSpacer(10);
-	unSelectAllButton = new wxButton(this, Config::UN_SELECT_ALL_BUTTON_ID, S("un-select-all"), wxDefaultPosition, { -1, 20 });
-	center2BottomHoriLayout->Add(unSelectAllButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 5);
-
-	// center2 RIGHT  - duplicate settings/lock settings
-	structOnlyCheckBox = new wxCheckBox(this, Config::STRUCTURE_ONLY_CHECKBOX_ID, S("structure-only"), wxDefaultPosition, wxDefaultSize);
-	dulicateSettingsVertLayout->Add(structOnlyCheckBox, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
-	dulicateSettingsVertLayout->AddSpacer(10);
-	structAndDataCheckBox = new wxCheckBox(this, Config::STRUCTURE_DATA_CHECKBOX_ID, S("structure-and-data"), wxDefaultPosition, wxDefaultSize);
-	dulicateSettingsVertLayout->Add(structAndDataCheckBox, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
-
-	lockTablesCheckBox = new wxCheckBox(this, Config::LOCK_TABLES_CHECKBOX_ID, S("lock-tables"), wxDefaultPosition, wxDefaultSize);
-	lockSettingsVertLayout->AddSpacer(10);
-	lockSettingsVertLayout->Add(lockTablesCheckBox, 0, wxALIGN_LEFT | wxALIGN_TOP, 5);
-	lockSettingsVertLayout->AddSpacer(95);
+	ddlPreviewEdit = new wxStyledTextCtrl(this, Config::DUPLICATE_DDL_PREVIEW_EDIT_ID, wxDefaultPosition,
+		{ 400, 200 }, wxCLIP_CHILDREN | wxALIGN_LEFT);
+	center2VertLayout->Add(ddlPreviewEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 }
 
-void DuplicateDatabaseDialog::createBottomInputs()
+void DuplicateObjectDialog::createBottomInputs()
 {
 	progressbar = new QProgressBar(this, wxID_ANY, wxDefaultPosition, { 400, 20 });
 	bottomHoriLayout->Add(progressbar, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_CENTRE);
-	//progressbar->run(50);
 }
 
-void DuplicateDatabaseDialog::loadControls()
+void DuplicateObjectDialog::loadControls()
 {
-	assert(userConnect.id && !userDb.name.empty());
+	assert(userConnect.id && !userDb.name.empty() && !sourceObjectName.empty());
+	
 	okButton->SetLabel(S("start"));
 	cancelButton->SetLabel(S("close"));
 
@@ -214,21 +245,23 @@ void DuplicateDatabaseDialog::loadControls()
 		.Append(":").Append(std::to_string(userConnect.port)).Append("]");
 	sourceConnectEdit->SetValue(connnectName);
 	sourceDatabaseEdit->SetValue(userDb.name);
+	sourceObjectEdit->SetValue(sourceObjectName);
 
 	delegate->loadForConnectComboBox(targetConnectComboBox);
-	wxString targetDbName = userDb.name;
-	targetDbName.Append(" (copy)");
-	targetDatabaseEdit->SetValue(targetDbName);
-	targetDatabaseEdit->SelectAll();
-	targetDatabaseEdit->SetFocus();
+	delegate->loadForSchemaComboBox(targetDatabaseComboBox,
+		userConnect.id,
+		userDb.name);
+	wxString targetObjectName = sourceObjectName;
+	targetObjectName.Append(" (copy)");
+	targetObjectEdit->SetValue(targetObjectName);
+	targetObjectEdit->SelectAll();
+	targetObjectEdit->SetFocus();
 
-	delegate->loadForTreeListCtrl(treeListCtrl);
-
-	structOnlyCheckBox->SetValue(true);
-	lockTablesCheckBox->SetValue(true);
+	// preview ddl
+	ddlPreviewEdit->SetText(userView.ddl);
 }
 
-void DuplicateDatabaseDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
+void DuplicateObjectDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
 {
 	if (targetConnectComboBox->GetSelection() ==  wxNOT_FOUND) {
 		return;
@@ -237,26 +270,27 @@ void DuplicateDatabaseDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
 	if (!connectData) {
 		return;
 	}
-
-	
 }
 
-void DuplicateDatabaseDialog::OnClickOkButton(wxCommandEvent& event)
+void DuplicateObjectDialog::OnClickOkButton(wxCommandEvent& event)
 {
 	progressbar->reset();
 	auto tmpdir = ResourceUtil::getStdProductTmpDir();
-	tmpSqlPath = tmpdir + "/duplicate_database_" + DateUtil::getCurrentDateTime("%Y%m%d_%H%M%S") + ".sql";
-	bool isStructOnly = structOnlyCheckBox->GetValue();
-	auto targetSchema = targetDatabaseEdit->GetValue();
-	if (targetSchema.empty()) {
-		QAnimateBox::error(S("no-target-database"));
+	tmpSqlPath = tmpdir + "/duplicate_table_" + DateUtil::getCurrentDateTime("%Y%m%d_%H%M%S") + ".sql";
+	
+	auto targetSchema = targetDatabaseComboBox->GetValue();
+	auto targetObject = targetObjectEdit->GetValue();
+	if (targetObject.empty()) {
+		QAnimateBox::error(S("no-target-object"));
+		targetObjectEdit->SelectAll();
+		targetObjectEdit->SetFocus();
 		return;
 	}
 	try {
 		auto nSelItem = targetConnectComboBox->GetSelection();
 		auto data = reinterpret_cast<QClientData<UserConnect> *>(targetConnectComboBox->GetClientObject(nSelItem));
-		if (databaseService->hasUserDb(data->getDataPtr()->id, targetSchema.ToStdString())) {
-			QAnimateBox::error(S("exists-target-database"));
+		if (metadataService->hasUserObject(data->getDataPtr()->id, targetSchema.ToStdString(), dupObjectType , targetObject.ToStdString())) {
+			QAnimateBox::error(S("exists-target-object"));
 			return;
 		}
 	} catch (QRuntimeException& ex) {
@@ -264,60 +298,7 @@ void DuplicateDatabaseDialog::OnClickOkButton(wxCommandEvent& event)
 		return;
 	}
 	okButton->Disable();
-	exportDatabaseToTmp(tmpSqlPath);
-}
-
-void DuplicateDatabaseDialog::OnClickSelectAllButton(wxCommandEvent& event)
-{
-	auto rootItem = treeListCtrl->GetRootItem();
-	if (!rootItem.IsOk()) {
-		return;
-	}
-	treeListCtrl->CheckItem(rootItem, wxCHK_CHECKED);
-	treeListCtrl->CheckItemRecursively(rootItem, wxCHK_CHECKED);
-}
-
-void DuplicateDatabaseDialog::OnClickUnSelectAllButton(wxCommandEvent& event)
-{
-	auto rootItem = treeListCtrl->GetRootItem();
-	if (!rootItem.IsOk()) {
-		return;
-	}
-	treeListCtrl->CheckItem(rootItem, wxCHK_UNCHECKED);
-	treeListCtrl->CheckItemRecursively(rootItem, wxCHK_UNCHECKED);
-}
-
-void DuplicateDatabaseDialog::OnStructAndDataCheckBoxChecked(wxCommandEvent& event)
-{
-	auto id = event.GetId();
-	auto item = reinterpret_cast<wxCheckBox *>(FindItem(id));
-	bool state = item->GetValue();
-	if (id == Config::STRUCTURE_ONLY_CHECKBOX_ID) {
-		structAndDataCheckBox->SetValue(!state);
-	} else if (id == Config::STRUCTURE_DATA_CHECKBOX_ID) {
-		structOnlyCheckBox->SetValue(!state);
-	}
-}
-
-void DuplicateDatabaseDialog::OnTreeListItemChecked(wxTreeListEvent& event)
-{
-	auto item = event.GetItem();
-	if (!item.IsOk()) {
-		return;
-	}
-
-	auto state = treeListCtrl->GetCheckedState(item);
-	auto firstChildItem = treeListCtrl->GetFirstChild(item);
-	
-	if (firstChildItem.IsOk()) {
-		treeListCtrl->CheckItemRecursively(item, state);
-	}
-	if (!treeListCtrl->GetNextSibling(item).IsOk()) {
-		auto parentItem = treeListCtrl->GetItemParent(item);
-		if (parentItem.IsOk() && treeListCtrl->GetFirstChild(parentItem) == item) {
-			treeListCtrl->CheckItem(parentItem, state);
-		}
-	}
+	exportTableToTmp(tmpSqlPath);
 }
 
 
@@ -327,7 +308,7 @@ void DuplicateDatabaseDialog::OnTreeListItemChecked(wxTreeListEvent& event)
  * @param tmpSqlPath - expert sql statements to template file path
  * @return 
  */
-bool DuplicateDatabaseDialog::exportDatabaseToTmp(const std::string& tmpSqlPath)
+bool DuplicateObjectDialog::exportTableToTmp(const std::string& tmpSqlPath)
 {
 	std::string productDir = ResourceUtil::getStdProductBinDir();
 	std::string executePath = productDir + "/mysqldump.exe";
@@ -337,34 +318,19 @@ bool DuplicateDatabaseDialog::exportDatabaseToTmp(const std::string& tmpSqlPath)
 		return false;
 	}
 
-	
 	std::string cmd(executePath);
 	cmd.append(" -h").append(userConnect.host)
 		.append(" -P").append(std::to_string(userConnect.port))
 		.append(" -u").append(userConnect.userName)
 		.append(" -p").append(userConnect.password)
+		.append(" --no-create-db ")
 		.append(" --default-character-set=utf8")
-		.append(" --databases \"").append(userDb.name).append("\"");
+		.append(" --databases \"").append(userDb.name).append("\"")
+		.append(" --tables \"").append(userView.name).append("\"");
 	
-	std::string ignoreTables = delegate->getIgnoreTablesStringFromTreeListCtrl(treeListCtrl, userDb.name);
-	if (!ignoreTables.empty()) {
-		cmd.append(ignoreTables);
-	}
-	std::string objects = delegate->getObjectsStringFromTreeListCtrl(treeListCtrl);
-	if (!objects.empty()) {
-		cmd.append(objects);
-	}
-
-	bool isStuctOnly = structOnlyCheckBox->GetValue();
-	bool isLockTables = lockTablesCheckBox->GetValue();
-	if (isStuctOnly) {
-		cmd.append(" --no-data");
-	}
-	if (isLockTables) {
-		cmd.append(" --lock-tables");
-	}
+	
 	cmd.append(" --result-file=\"").append(tmpSqlPath).append("\"");
-	exportProcess = new QProcess<DuplicateDatabaseDialog>(this, cmd);
+	exportProcess = new QProcess<DuplicateObjectDialog>(this, cmd);
 	progressbar->run(5);
 	if (!exportProcess->open()) {
 		Q_ERROR("Failed to launch the command.");
@@ -382,7 +348,7 @@ bool DuplicateDatabaseDialog::exportDatabaseToTmp(const std::string& tmpSqlPath)
 	return true;
 }
 
-bool DuplicateDatabaseDialog::replaceDatabaseNameInTmp()
+bool DuplicateObjectDialog::replaceDatabaseAndTableInTmp()
 {
 	if (_access(tmpSqlPath.c_str(), 0) != 0) {
 		auto err = fmt::format("file not found. Path:{}", tmpSqlPath);
@@ -397,11 +363,15 @@ bool DuplicateDatabaseDialog::replaceDatabaseNameInTmp()
 	fout.open(newTmpPath.c_str(), std::ios_base::out);
 
 	std::string sourceDbName("`" + userDb.name + "`");
-	std::string targetDbName("`" + targetDatabaseEdit->GetValue().ToStdString() + "`");
+	std::string targetDbName("`" + targetDatabaseComboBox->GetValue().ToStdString() + "`");
+
+	std::string sourceTableName("`" + sourceObjectEdit->GetValue().ToStdString() + "`");
+	std::string targetTableName("`" + targetObjectEdit->GetValue().ToStdString() + "`");
 
 	std::string line;
 	while (std::getline(fin, line)) {
 		line = StringUtil::replace(line, sourceDbName, targetDbName);
+		line = StringUtil::replace(line, sourceTableName, targetTableName);
 		fout << line << std::endl;
 	}
 	fout.close();
@@ -417,7 +387,7 @@ bool DuplicateDatabaseDialog::replaceDatabaseNameInTmp()
 	return true;
 }
 
-bool DuplicateDatabaseDialog::importDatabaseFromTmp(const std::string& tmpSqlPath)
+bool DuplicateObjectDialog::importTableFromTmp(const std::string& tmpSqlPath)
 {
 	std::string productDir = ResourceUtil::getStdProductBinDir();
 	std::string executePath = productDir + "/mysql.exe";
@@ -429,17 +399,19 @@ bool DuplicateDatabaseDialog::importDatabaseFromTmp(const std::string& tmpSqlPat
 
 	auto nSelItem = targetConnectComboBox->GetSelection();
 	auto data = reinterpret_cast<QClientData<UserConnect> *>(targetConnectComboBox->GetClientObject(nSelItem));
-	auto userConnect = data->getDataPtr();
-	auto schema = targetDatabaseEdit->GetValue();
+	auto userConnectPtr = data->getDataPtr();
+	auto schema = targetDatabaseComboBox->GetValue();
+	auto objectName = targetObjectEdit->GetValue();
 
 	std::string cmd(executePath);
-	cmd.append(" -h").append(userConnect->host)
-		.append(" -P").append(std::to_string(userConnect->port))
-		.append(" -u").append(userConnect->userName)
-		.append(" -p").append(userConnect->password)
+	cmd.append(" -h").append(userConnectPtr->host)
+		.append(" -P").append(std::to_string(userConnectPtr->port))
+		.append(" -u").append(userConnectPtr->userName)
+		.append(" -p").append(userConnectPtr->password)
 		.append(" --default-character-set=utf8")
+		.append(" --database ").append(schema)
 		.append(" -e \"source ").append(tmpSqlPath).append("\"");
-	importProcess = new QProcess<DuplicateDatabaseDialog>(this, cmd);
+	importProcess = new QProcess<DuplicateObjectDialog>(this, cmd);
 	progressbar->run(65);
 	if (!importProcess->open()) {
 		Q_ERROR("Failed to launch the command.");
@@ -455,7 +427,7 @@ bool DuplicateDatabaseDialog::importDatabaseFromTmp(const std::string& tmpSqlPat
 	return true;
 }
 
-DuplicateDatabaseDialog::~DuplicateDatabaseDialog()
+DuplicateObjectDialog::~DuplicateObjectDialog()
 {
 	if (exportProcess) {
 		wxProcess::Kill(exportProcess->GetPid());
@@ -475,7 +447,7 @@ DuplicateDatabaseDialog::~DuplicateDatabaseDialog()
 	}
 }
 
-void DuplicateDatabaseDialog::OnAsyncProcessTermination(QProcess<DuplicateDatabaseDialog>* process)
+void DuplicateObjectDialog::OnAsyncProcessTermination(QProcess<DuplicateObjectDialog>* process)
 {
 	if (exportProcess  && process->GetPid() == exportProcess->GetPid()) {
 		// 1.ending export process
@@ -501,14 +473,14 @@ void DuplicateDatabaseDialog::OnAsyncProcessTermination(QProcess<DuplicateDataba
 		delete exportProcess;
 		exportProcess = nullptr;
 		// 2.replace database name in the templace sql file;
-		if (!replaceDatabaseNameInTmp()) {
+		if (!replaceDatabaseAndTableInTmp()) {
 			okButton->Enable();
 			return;
 		}
 		progressbar->run(60);
 
-		// 3.import sql file to new database when ending export process
-		importDatabaseFromTmp(tmpSqlPath);
+		// 3.import sql file to new table when ending export process
+		importTableFromTmp(tmpSqlPath);
 
 	} else if (importProcess && process->GetPid() == importProcess->GetPid()) {
 		progressbar->run(80);
@@ -540,15 +512,18 @@ void DuplicateDatabaseDialog::OnAsyncProcessTermination(QProcess<DuplicateDataba
 	}
 }
 
-
-void DuplicateDatabaseDialog::afterDuplicated()
+void DuplicateObjectDialog::afterDuplicated()
 {
 	auto connectData = (QClientData<UserConnect> *)targetConnectComboBox->GetClientObject(targetConnectComboBox->GetSelection());
 	if (!connectData) {
 		return;
 	}
 
+	databaseSupplier->handleUserDb = userDb;
 	databaseSupplier->handleUserDb.connectId = connectData->getDataPtr()->id;
-	databaseSupplier->handleUserDb.name = targetDatabaseEdit->GetValue().ToStdString();
-	AppContext::getInstance()->dispatch(Config::MSG_ADD_DATABASE_ID, databaseSupplier->handleUserDb.connectId); 
+	databaseSupplier->handleUserDb.name = targetDatabaseComboBox->GetValue().ToStdString();
+
+	databaseSupplier->handleUserTable.schema = databaseSupplier->handleUserDb.name;
+	databaseSupplier->handleUserTable.name = targetObjectEdit->GetValue().ToStdString();
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID); 
 }

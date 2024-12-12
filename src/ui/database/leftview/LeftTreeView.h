@@ -66,6 +66,7 @@ private:
 	// handle message event
 	void OnHandleConnectionConnected(MsgDispatcherEvent& event);
 	void OnHandleAddDatabase(MsgDispatcherEvent& event);
+	void OnHandleNewTable(MsgDispatcherEvent& event);
 
 	// button id
 	void OnClickConnectButton(wxCommandEvent & event);

@@ -10,24 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   UserViewRepository.h
+ * @file   DuplicateObjectDialogDelegate.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-25
+ * @date   2024-11-30
  *********************************************************************/
 #pragma once
-#include "core/common/repository/BaseUserRepository.h"
-#include "core/entity/Entity.h"
-class UserViewRepository : public BaseUserRepository<UserViewRepository>
+#include <wx/treelist.h>
+#include <wx/process.h>
+#include "ui/dialog/delegate/QDialogDelegate.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
+
+class DuplicateObjectDialogDelegate :  public QDialogDelegate<DuplicateObjectDialogDelegate>
 {
 public:
-	UserViewList getAll(uint64_t connectId, const std::string& schema);
-	bool remove(uint64_t connectId, const std::string& schema, const std::string& name);
-
-	UserView get(uint64_t connectId, const std::string& schema, const std::string & name);
-	std::string getDDL(uint64_t connectId, const std::string& schema, const std::string & name);
-private:
-	UserView toUserView(sql::ResultSet* rs);
+	DuplicateObjectDialogDelegate();
 };
 

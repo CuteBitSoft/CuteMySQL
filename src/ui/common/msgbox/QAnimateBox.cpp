@@ -28,9 +28,11 @@ BEGIN_EVENT_TABLE(QAnimateBox, wxDialog)
 	EVT_TIMER(MOVE_TIMER_ID, OnMoveTimeOut)
 END_EVENT_TABLE()
 
+unsigned int QAnimateBox::boxCount = 0;
 
 QAnimateBox::~QAnimateBox()
 {
+	boxCount--;
 }
 
 QAnimateBox::QAnimateBox(const std::string &text, NotifyType type):wxDialog(), moveTimer(this, MOVE_TIMER_ID), stayTimer(this, STAY_TIMER_ID)
@@ -80,6 +82,7 @@ bool QAnimateBox::Create(wxWindow* parent, wxWindowID id, const wxString& captio
 
 void QAnimateBox::init()
 {
+	boxCount++;
 	bkgColor = {43, 45, 48, 43};
 	textColor = { 223, 225, 229, 213 };
 }
@@ -134,7 +137,11 @@ void QAnimateBox::createTimers()
 
 void QAnimateBox::startMove()
 {
-	moveTimer.Start(80);
+	wxRect rect = this->GetScreenRect();
+	wxRect frmRect = AppContext::getInstance()->getMainFrmWindow()->GetScreenRect();
+	minY = frmRect.GetY() + frmRect.GetHeight() - (rect.GetHeight() + 20) * boxCount;
+
+	moveTimer.Start(80);	
 }
 
 void QAnimateBox::OnStayTimeOut(wxTimerEvent& event)
@@ -152,8 +159,8 @@ void QAnimateBox::OnMoveTimeOut(wxTimerEvent& event)
 	}
 
 	int x = frmRect.GetX() + frmRect.GetWidth() - rect.GetWidth() - 20,
-		y = rect.GetTop() - 5,
-		minY = frmRect.GetY() + frmRect.GetHeight() - rect.GetHeight() - 20;
+		y = rect.GetTop() - 5;
+		
 	Move({x, y});
 	if (y <= minY) {
 		moveTimer.Stop();
@@ -165,8 +172,6 @@ void QAnimateBox::message(const std::string& text, NotifyType type)
 {
 	auto msgbox = new QAnimateBox(text, type);
 	
-	
-		
 	msgbox->Create(AppContext::getInstance()->getMainFrmWindow(), wxID_ANY, wxEmptyString, wxDefaultPosition, { 200, 100 }, wxNO_BORDER);
 	msgbox->Show(false);
 

@@ -51,6 +51,9 @@ private:
 	QAnimateBox(const std::string &text = "", NotifyType type = MSG_NOTICE);
 	~QAnimateBox();
 
+	static unsigned int boxCount;
+	int minY;
+
 	std::string text;
 	NotifyType type;
 	wxTimer moveTimer, stayTimer;

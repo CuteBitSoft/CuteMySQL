@@ -23,6 +23,7 @@
 #include "core/service/db/ConnectService.h"
 #include "core/service/db/DatabaseService.h"
 #include "core/service/db/MetadataService.h"
+#include "ui/common/data/QTreeItemData.h"
 
 class LeftTreeDelegate :  public QDelegate<LeftTreeDelegate, DatabaseSupplier>
 {
@@ -34,9 +35,16 @@ public:
 
 	UserConnect* getSelectedConnectItemData(wxTreeCtrl* treeView);
 	UserDb* getSelectedDbItemData(wxTreeCtrl* treeView);
+	UserTable* getSelectedTableItemData(wxTreeCtrl* treeView);
+	UserView* getSelectedViewItemData(wxTreeCtrl* treeView);
+	UserRoutine* getSelectedRoutineItemData(wxTreeCtrl* treeView);
+	UserTrigger* getSelectedTriggerItemData(wxTreeCtrl* treeView);
+	UserEvent* getSelectedEventItemData(wxTreeCtrl* treeView);
 
 	bool removeForLeftTree(wxTreeCtrl* treeView);
 	bool duplicateForLeftTree(wxTreeCtrl* treeView);
+
+	void refreshDbItemsForLeftTree(wxTreeCtrl * treeView, uint64_t connectId, const std::string& schema, const QTreeItemData<std::string> & findSelData);
 private:
 	ConnectService * connectService = ConnectService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();
@@ -56,7 +64,7 @@ private:
 	void loadColomnsForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
 	void loadIndexesForTable(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, uint64_t connectId, const std::string& schema, const std::string tableName);
 
-	
+	wxTreeItemId expendedDbItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, const TreeObjectType &findFolderData);
 	void expendedTableItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId, UserTable * userTable);
 
 	// loading for lazy load
@@ -86,5 +94,16 @@ private:
 	bool duplicateEventItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
 	bool duplicateTableColumnItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
 	bool duplicateTableIndexItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId);
+	bool duplicateObjectItem(wxTreeCtrl* treeView, const wxTreeItemId& itemId, DuplicateObjectType type);
+
+	// Found item
+	wxTreeItemId findConnectItemFromRootItem(wxTreeCtrl* treeView, uint64_t connectId);
+	wxTreeItemId findDbItemFromConnectionItem(wxTreeCtrl* treeView, const wxTreeItemId& connectItemId, const std::string & schema);
+	wxTreeItemId findFolderItemFromDbItem(wxTreeCtrl* treeView, const wxTreeItemId& dbItemId, const TreeObjectType folderType);
+
+	TreeObjectType objectTypeToFolderType(const TreeObjectType objectType);
+
+	// select item
+	void selectDbObjectItemFromFolder(wxTreeCtrl* treeView, const wxTreeItemId& folderItemId, const QTreeItemData<std::string>& findSelData);
 };
 

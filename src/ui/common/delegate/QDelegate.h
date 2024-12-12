@@ -23,7 +23,7 @@
 /**
  * template T - subclass, S - subclass of QSupplier ,V - dataView class such as 
  */
-template <typename T,typename S = EmptySupplier, typename V = wxWindow>
+template <typename T, typename S = EmptySupplier, typename V = wxWindow>
 class QDelegate
 {
 public:

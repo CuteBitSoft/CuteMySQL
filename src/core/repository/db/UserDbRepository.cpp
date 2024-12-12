@@ -31,7 +31,7 @@ uint64_t UserDbRepository::create(const UserDb & item)
 	//sql
 	std::string sql = " ";
 	try {
-		sql::SQLString sql = fmt::format("CREATE DATABASE IF NOT EXISTS {} CHARACTER SET={} COLLATE ={}", item.name, item.charset, item.collation);
+		sql::SQLString sql = fmt::format("CREATE DATABASE IF NOT EXISTS `{}` CHARACTER SET={} COLLATE ={}", item.name, item.charset, item.collation);
 		auto connect = getUserConnect(item.connectId);
 		std::unique_ptr<sql::Statement> stmt(connect->createStatement()); 
 		
@@ -54,7 +54,7 @@ bool UserDbRepository::remove(uint64_t connectId, const std::string& schema)
 	//sql
 	std::string sql = " ";
 	try {
-		sql::SQLString sql = fmt::format("DROP DATABASE IF EXISTS {}", schema);
+		sql::SQLString sql = fmt::format("DROP DATABASE IF EXISTS `{}`", schema);
 		auto connect = getUserConnect(connectId);
 		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
 

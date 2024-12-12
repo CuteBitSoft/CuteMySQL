@@ -10,23 +10,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   DuplicateDatabaseDialogDelegate.cpp
+ * @file   DuplicateTableDialogDelegate.cpp
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
  * @date   2024-11-30
  *********************************************************************/
-#include "DuplicateDatabaseDialogDelegate.h"
+#include "DuplicateTableDialogDelegate.h"
 #include "ui/common/data/QClientData.h"
 #include "core/entity/Entity.h"
 #include "core/entity/Enum.h"
 
-DuplicateDatabaseDialogDelegate::DuplicateDatabaseDialogDelegate() : QDialogDelegate()
+DuplicateTableDialogDelegate::DuplicateTableDialogDelegate():QDialogDelegate()
 {
 	
 }
 
-void DuplicateDatabaseDialogDelegate::loadForTreeListCtrl(wxTreeListCtrl* treeListCtrl)
+void DuplicateTableDialogDelegate::loadForTreeListCtrl(wxTreeListCtrl* treeListCtrl)
 {
 	if (!treeListCtrl->HasImages()) {
 		auto imgdir = ResourceUtil::getProductImagesDir();
@@ -63,24 +63,25 @@ void DuplicateDatabaseDialogDelegate::loadForTreeListCtrl(wxTreeListCtrl* treeLi
                        wxCOL_RESIZABLE | wxCOL_SORTABLE);
 	}
 	
-	auto connectId = userConnect.id;
-	auto& schema = userDb.name;
+	auto connectId = databaseSupplier->runtimeUserConnect->id;
+	auto& item = *(databaseSupplier->runtimeUserDb);
+	auto& schema = databaseSupplier->runtimeUserDb->name;
 
 	auto rootItem = treeListCtrl->GetRootItem();
 	
-	auto tblsFolderData = new QClientData<UserDb>(TreeObjectType::TABLES_FOLDER, new UserDb(userDb));
+	auto tblsFolderData = new QClientData<UserDb>(TreeObjectType::TABLES_FOLDER, new UserDb(item));
 	auto tblsFolderItem = treeListCtrl->AppendItem(rootItem, S("tables"), 0, 0, tblsFolderData);
 
-	auto viewsFolderData = new QClientData<UserDb>(TreeObjectType::VIEWS_FOLDER, new UserDb(userDb));
+	auto viewsFolderData = new QClientData<UserDb>(TreeObjectType::VIEWS_FOLDER, new UserDb(item));
 	auto viewsFolderItem = treeListCtrl->AppendItem(rootItem, S("views"), 0, 0, viewsFolderData);
 
-	auto routinesData = new QClientData<UserDb>(TreeObjectType::ROUTINES, new UserDb(userDb));
+	auto routinesData = new QClientData<UserDb>(TreeObjectType::ROUTINES, new UserDb(item));
 	auto routinesItem = treeListCtrl->AppendItem(rootItem, S("store-procedures-and-functions"), 3, 3, routinesData);
 
-	auto triggersFolderData = new QClientData<UserDb>(TreeObjectType::TRIGGERS_FOLDER, new UserDb(userDb));
+	auto triggersFolderData = new QClientData<UserDb>(TreeObjectType::TRIGGERS_FOLDER, new UserDb(item));
 	auto triggersFolderItem = treeListCtrl->AppendItem(rootItem, S("triggers"), 5, 5, triggersFolderData);
 
-	auto eventsFolderData = new QClientData<UserDb>(TreeObjectType::EVENTS_FOLDER, new UserDb(userDb));
+	auto eventsFolderData = new QClientData<UserDb>(TreeObjectType::EVENTS_FOLDER, new UserDb(item));
 	auto eventsFolderItem = treeListCtrl->AppendItem(rootItem, S("events"), 6, 6, eventsFolderData);
 
 	loadTablesForDatabase(treeListCtrl, tblsFolderItem, connectId, schema);
@@ -100,7 +101,7 @@ void DuplicateDatabaseDialogDelegate::loadForTreeListCtrl(wxTreeListCtrl* treeLi
  * @param schema
  * @return ignore table string ,for example, "--ignore-table=schema.table_name1 --ignore-table=schema.table_name2 ..."
  */
-std::string DuplicateDatabaseDialogDelegate::getIgnoreTablesStringFromTreeListCtrl(wxTreeListCtrl* treeListCtrl, const std::string& schema)
+std::string DuplicateTableDialogDelegate::getIgnoreTablesStringFromTreeListCtrl(wxTreeListCtrl* treeListCtrl, const std::string& schema)
 {
 	auto rootItem = treeListCtrl->GetRootItem();
 	auto tablesFolderItem = treeListCtrl->GetFirstChild(rootItem);
@@ -123,7 +124,7 @@ std::string DuplicateDatabaseDialogDelegate::getIgnoreTablesStringFromTreeListCt
 			tableItem = treeListCtrl->GetNextSibling(tableItem);
 			continue;
 		}
-		result.append(" --ignore-table=\"").append(schema).append(".").append(data->getDataPtr()->name).append("\"");
+		result.append(" --ignore-table=").append(schema).append(".").append(data->getDataPtr()->name);
 		tableItem = treeListCtrl->GetNextSibling(tableItem);
 	}
 	
@@ -136,7 +137,7 @@ std::string DuplicateDatabaseDialogDelegate::getIgnoreTablesStringFromTreeListCt
  * @param treeListCtrl
  * @return 
  */
-std::string DuplicateDatabaseDialogDelegate::getObjectsStringFromTreeListCtrl(wxTreeListCtrl* treeListCtrl)
+std::string DuplicateTableDialogDelegate::getObjectsStringFromTreeListCtrl(wxTreeListCtrl* treeListCtrl)
 {
 	auto rootItem = treeListCtrl->GetRootItem();
 	auto tablesFolderItem = treeListCtrl->GetFirstChild(rootItem);
@@ -171,7 +172,7 @@ std::string DuplicateDatabaseDialogDelegate::getObjectsStringFromTreeListCtrl(wx
 	return result;
 }
 
-void DuplicateDatabaseDialogDelegate::loadTablesForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem& folderItem, uint64_t connectId, const std::string& schema)
+void DuplicateTableDialogDelegate::loadTablesForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem& folderItem, uint64_t connectId, const std::string& schema)
 {
 	if (!folderItem.IsOk() || !connectId || schema.empty()) {
 		return;
@@ -190,7 +191,7 @@ void DuplicateDatabaseDialogDelegate::loadTablesForDatabase(wxTreeListCtrl * tre
 	}
 }
 
-void DuplicateDatabaseDialogDelegate::loadViewsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem& folderItem, uint64_t connectId, const std::string& schema)
+void DuplicateTableDialogDelegate::loadViewsForDatabase(wxTreeListCtrl * treeListCtrl, const wxTreeListItem& folderItem, uint64_t connectId, const std::string& schema)
 {
 	if (!folderItem.IsOk() || !connectId || schema.empty()) {
 		return;
