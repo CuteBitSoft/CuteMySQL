@@ -67,7 +67,16 @@ UserFunctionList MetadataService::getUserFunctions(uint64_t connectId, const std
 
 UserTriggerList MetadataService::getUserTriggers(uint64_t connectId, const std::string& schema)
 {
-    return userSchemaObjectRepository->getAllByObjectType(connectId, schema, "trigger");
+    auto list = userSchemaObjectRepository->getAllByObjectType(connectId, schema, "trigger");
+    for (auto& item : list) {
+        auto npos = item.name.find_last_of('.');
+        if (npos == std::string::npos) {
+            continue;
+        }
+
+        item.name = item.name.substr(npos + 1);
+    }
+    return list;
 }
 
 UserEventList MetadataService::getUserEvents(uint64_t connectId, const std::string& schema)
@@ -100,9 +109,18 @@ UserView MetadataService::getUserView(uint64_t connectId, const std::string& sch
     return userViewRepository->get(connectId, schema, name);
 }
 
-std::string MetadataService::getUserViewDDL(uint64_t connectId, const std::string& schema, const std::string& name)
+/**
+ * Get object DDL.
+ * 
+ * @param connectId - connection id from sqlite.user_connect.id
+ * @param schema - database name 
+ * @param name - object name
+ * @param objectType - object type : "DATABASE", "TABLE", "VIEW", "PROCEDURE", "FUNCTION", "TRIGGER", "EVENT"
+ * @return DDL string
+ */
+std::string MetadataService::getUserObjectDDL(uint64_t connectId, const std::string& schema, const std::string& name, const std::string& objectType)
 {
-    return userViewRepository->getDDL(connectId, schema, name);
+    return getRepository()->getObjectDDL(connectId, schema, name, objectType);
 }
 
 bool MetadataService::removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
@@ -150,7 +168,7 @@ bool MetadataService::hasUserTable(uint64_t connectId, const std::string& schema
     return getRepository()->has(connectId, schema, tableName);
 }
 
-bool MetadataService::hasUserObject(uint64_t connectId, const std::string& schema, const DuplicateObjectType& dupObjectType, const std::string& tableName)
+bool MetadataService::hasUserObject(uint64_t connectId, const std::string& schema, const std::string& name, const std::string &objectType)
 {
-    return false;
+    return getRepository()->hasObject(connectId, schema, name, objectType);
 }

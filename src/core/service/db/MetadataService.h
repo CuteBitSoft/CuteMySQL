@@ -49,7 +49,9 @@ public:
 
 	// get one object
 	UserView getUserView(uint64_t connectId, const std::string& schema, const std::string& name);
-	std::string getUserViewDDL(uint64_t connectId, const std::string& schema, const std::string& name);
+
+	// get object DDL
+	std::string getUserObjectDDL(uint64_t connectId, const std::string& schema, const std::string& name, const std::string & objectType);
 
 	// remove
 	bool removeUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
@@ -62,7 +64,7 @@ public:
 	bool removeTableIndex(uint64_t connectId, const std::string& schema, const std::string& tableName, const std::string& indexName);
 
 	bool hasUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
-	bool hasUserObject(uint64_t connectId, const std::string& schema, const DuplicateObjectType &dupObjectType, const std::string& tableName);
+	bool hasUserObject(uint64_t connectId, const std::string& schema, const std::string& name, const std::string &objectType);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();

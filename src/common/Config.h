@@ -623,6 +623,7 @@ typedef enum {
 	MSG_ADD_DATABASE_ID, // Send this msg when clicking "Add Database/Open Database" menu or toolbar button , wParam=userDbId, lParam=NULL
 	MSG_DELETE_DATABASE_ID, // Send this msg when clicking "Delete Database" menu or toolbar button , wParam=userDbId, lParam=NULL
 	MSG_NEW_TABLE_ID, // Send this msg when clicking "New table" menu or toolbar button , wParam=NULL, lParam=NULL
+	MSG_NEW_OBJECT_ID, // Send this msg when clicking "New Object" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_NEW_VIEW_ID, // Send this msg when clicking "New view" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_OPEN_VIEW_ID, // Send this msg when clicking "Open view" menu or toolbar button , wParam=NULL, lParam=NULL
 	MSG_DROP_VIEW_ID, // Send this msg when clicking "Drop view" menu or toolbar button , wParam=NULL, lParam=NULL

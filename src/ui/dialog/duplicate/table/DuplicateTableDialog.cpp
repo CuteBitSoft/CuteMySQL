@@ -264,6 +264,8 @@ void DuplicateTableDialog::OnClickOkButton(wxCommandEvent& event)
 		auto data = reinterpret_cast<QClientData<UserConnect> *>(targetConnectComboBox->GetClientObject(nSelItem));
 		if (metadataService->hasUserTable(data->getDataPtr()->id, targetSchema.ToStdString(), targetTable.ToStdString())) {
 			QAnimateBox::error(S("exists-target-table"));
+			targetTableEdit->SelectAll();
+			targetTableEdit->SetFocus();
 			return;
 		}
 	} catch (QRuntimeException& ex) {

@@ -32,7 +32,8 @@ public:
 	UserEvent * runtimeUserEvent = nullptr; // runtime user event (for selected event from tree)
 
 	UserDb handleUserDb; // handleUserDb user database(added and removed user db)
-	UserTable handleUserTable; // handleUserDb user database(added and removed user db)
+	UserTable handleUserTable; // handleUserDb user table(added and removed user table)
+	UserObject handleUserObject; // handleUserDb user object(added and removed user object)
 	
 };
 

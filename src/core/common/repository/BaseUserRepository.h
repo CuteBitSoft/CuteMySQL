@@ -20,6 +20,8 @@
 #pragma once
 #include "core/common/repository/BaseRepository.h"
 #include <string>
+#include <vector>
+#include <unordered_map>
 #include <memory>
 #include <unordered_map>
 #include <cassert>
@@ -41,21 +43,41 @@ public:
 	void testUserConnect(uint64_t userConnectId);	
 	void closeUserConnect(uint64_t userConnectId);	
 	void closeAllUserConnect();	
+	// object ddl
+	std::string getObjectDDL(uint64_t connectId, const std::string& schema, const std::string & name, const std::string & objectType);
+	bool hasObject(uint64_t connectId, const std::string& schema, const std::string & name, const std::string & objectType);
 protected:
+	// const Object Types
+	const std::vector<std::string> objectTypes{"DATABASE", "TABLE", "VIEW", "PROCEDURE", "FUNCTION", "TRIGGER", "EVENT"};
 	
+	// Object Type and the object's DDL column for ResultSet response
+	const std::unordered_map<std::string, std::string> objectTypeDDLColumnMap{ 
+		{"DATABASE", "Create Database"}, 
+		{"TABLE", "Create Table"}, 
+		{"VIEW", "Create View"}, 
+		{"PROCEDURE","Create Procedure"}, 
+		{"FUNCTION", "Create Function"}, 
+		{"TRIGGER", "SQL Original Statement"}, 
+		{"EVENT", "Create Event"}
+	};
+
+	// Object Type and the object's name column for ResultSet response
+	const std::unordered_map<std::string, std::string> objectTypeNameColumnMap{ 
+		{"DATABASE", "Database"}, 
+		{"TABLE", "Table"}, 
+		{"VIEW", "View"}, 
+		{"PROCEDURE","Procedure"}, 
+		{"FUNCTION", "Function"}, 
+		{"TRIGGER", "Trigger"}, 
+		{"EVENT", "Event"}
+	};
+
 	UserConnect getUserConnectEntity(uint64_t userConnectId);
 	UserConnect toUserConnect(SQLite::QSqlStatement& query);
 
 	RowItem toRowItem(sql::Statement* query);
 };
 
-template <typename T>
-RowItem BaseUserRepository<T>::toRowItem(sql::Statement * query)
-{
-	RowItem rowItem;
-	
-	return rowItem;
-}
 
 template<typename T>
 BaseUserRepository<T>::~BaseUserRepository()
@@ -271,4 +293,91 @@ UserConnect BaseUserRepository<T>::toUserConnect(SQLite::QSqlStatement & query)
 	item.createdAt = query.getColumn("created_at").getText();
 	item.updatedAt = query.getColumn("updated_at").getText();
 	return item;
+}
+
+/**
+ * Get object DDL.
+ * 
+ * @param connectId - connection id from sqlite.user_connect.id
+ * @param schema - database name 
+ * @param name - object name
+ * @param objectType - object type : "DATABASE", "TABLE", "VIEW", "PROCEDURE", "FUNCTION", "TRIGGER", "EVENT"
+ * @return 
+ */
+template <typename T>
+std::string BaseUserRepository<T>::getObjectDDL(uint64_t connectId, const std::string& schema, const std::string& name, const std::string& objectType)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty() && !objectType.empty());
+	auto iter = std::find(objectTypes.begin(), objectTypes.end(), objectType);
+	if (iter == objectTypes.end()) {
+		Q_ERROR("Invalid params , objectType:{} (code:{})", objectType, "200004");
+		throw QRuntimeException("200004");
+	}
+
+	std::string result;
+	try {
+		// SHOW CREATE {DATABASE | TABLE | VIEW | PROCEDURE | FUNCTION | TRIGGER | EVENT| `${objectName}` 
+		sql::SQLString sql = "SHOW CREATE ";
+		sql.append(objectType).append(" `").append(name).append("`");
+
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery(sql));
+		if (resultSet->next()) {
+			result = resultSet->getString(objectTypeDDLColumnMap.at(objectType)).asStdString();
+		}
+		resultSet->close();
+		stmt->close();
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		Q_ERROR("Fail to getObjectDDL(),code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+}
+
+template<typename T>
+bool BaseUserRepository<T>::hasObject(uint64_t connectId, const std::string& schema, const std::string& name, const std::string& objectType)
+{
+	assert(connectId > 0 && !schema.empty() && !name.empty() && !objectType.empty());
+	auto iter = std::find(objectTypes.begin(), objectTypes.end(), objectType);
+	if (iter == objectTypes.end()) {
+		Q_ERROR("Invalid params , objectType:{} (code:{})", objectType, "200004");
+		throw QRuntimeException("200004");
+	}
+
+	bool isFound = false;
+	std::string objectName;
+	try {
+		// SHOW CREATE {DATABASE | TABLE | VIEW | PROCEDURE | FUNCTION | TRIGGER | EVENT| `${objectName}` 
+		sql::SQLString sql = "SHOW CREATE ";
+		sql.append(objectType).append(" `").append(name).append("`");
+
+		auto connect = getUserConnect(connectId);
+		connect->setSchema(schema);
+		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery(sql));
+		
+		if (resultSet->next()) {
+			objectName = resultSet->getString(objectTypeNameColumnMap.at(objectType)).asStdString();
+			isFound = objectName == name;
+		}
+		resultSet->close();
+		stmt->close();
+		return isFound;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		Q_ERROR("Fail to getObjectDDL(),code:{}, error:{}", code, ex.what());
+		// throw QRuntimeException(code, ex.what());
+		return false;
+	}
+}
+
+template <typename T>
+RowItem BaseUserRepository<T>::toRowItem(sql::Statement* query)
+{
+	RowItem rowItem;
+
+	return rowItem;
 }

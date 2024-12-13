@@ -31,6 +31,15 @@
 #include "ui/dialog/duplicate/table/DuplicateTableDialog.h"
 #include "ui/dialog/duplicate/object/DuplicateObjectDialog.h"
 
+const std::unordered_map<std::string, TreeObjectType> LeftTreeDelegate::objectTypeMap{
+	{"DATABASE", TreeObjectType::SCHEMA},
+	{"TABLE", TreeObjectType::TABLE},
+	{"VIEW", TreeObjectType::VIEW},
+	{"PROCEDURE", TreeObjectType::STORE_PROCEDURE},
+	{"FUNCTION", TreeObjectType::FUNCTION},
+	{"TRIGGER", TreeObjectType::TRIGGER},
+	{"EVENT", TreeObjectType::EVENT}
+};
 LeftTreeDelegate::~LeftTreeDelegate()
 {
 	ConnectService::destroyInstance();

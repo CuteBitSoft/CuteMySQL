@@ -29,6 +29,7 @@
 BEGIN_EVENT_TABLE(DuplicateObjectDialog, wxDialog)
 	EVT_BUTTON(wxID_OK, OnClickOkButton)
 	EVT_COMBOBOX(Config::DUPLICATE_SOURCE_CONNECT_COMBOBOX_ID, OnSelChangeConnectCombobox)
+	EVT_TEXT(Config::DUPLICATE_TARGET_OBJECT_EDIT_ID, OnChangeTargetObjectEditText)
 END_EVENT_TABLE()
 
 DuplicateObjectDialog::DuplicateObjectDialog(DuplicateObjectType _dupObjectType) : QFormDialog(),dupObjectType(_dupObjectType)
@@ -38,7 +39,6 @@ DuplicateObjectDialog::DuplicateObjectDialog(DuplicateObjectType _dupObjectType)
 
 void DuplicateObjectDialog::init()
 {
-	exportProcess = nullptr;
 	importProcess = nullptr;
 
 	databaseSupplier = DatabaseSupplier::getInstance();
@@ -59,12 +59,7 @@ void DuplicateObjectDialog::init()
 		sourceLabelText = S("source-view");
 		targetLabelText = S("target-view");
 		sourceObjectName = userView.name;
-		try {
-			userView.ddl = metadataService->getUserViewDDL(userConnect.id, userDb.name, userView.name);
-		} catch (QRuntimeException& ex) {
-			QAnimateBox::error(ex);
-			return;
-		}		
+		sourceObjectType = "VIEW";
 	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_STORE_PROCEDURE) {
 		userRoutine = *databaseSupplier->runtimeUserRoutine;
 		caption = S("duplicate-store-procedure");
@@ -72,6 +67,7 @@ void DuplicateObjectDialog::init()
 		sourceLabelText = S("source-store-procedure");
 		targetLabelText = S("target-store-procedure");
 		sourceObjectName = userRoutine.name;
+		sourceObjectType = "PROCEDURE";
 	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_FUNCTION) {
 		userRoutine = *databaseSupplier->runtimeUserRoutine;
 		caption = S("duplicate-function");
@@ -79,6 +75,7 @@ void DuplicateObjectDialog::init()
 		sourceLabelText = S("source-function");
 		targetLabelText = S("target-function");
 		sourceObjectName = userRoutine.name;
+		sourceObjectType = "FUNCTION";
 	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_TRIGGER) {
 		userTrigger = *databaseSupplier->runtimeUserTrigger;
 		caption = S("duplicate-trigger");
@@ -86,6 +83,7 @@ void DuplicateObjectDialog::init()
 		sourceLabelText = S("source-trigger");
 		targetLabelText = S("target-trigger");
 		sourceObjectName = userTrigger.name;
+		sourceObjectType = "TRIGGER";
 	} else if (dupObjectType == DuplicateObjectType::DUPLICATE_EVENT) {
 		userEvent = *databaseSupplier->runtimeUserEvent;
 		caption = S("duplicate-event");
@@ -93,9 +91,15 @@ void DuplicateObjectDialog::init()
 		sourceLabelText = S("source-event");
 		targetLabelText = S("target-event");
 		sourceObjectName = userEvent.name;
+		sourceObjectType = "EVENT";
 	}
 	
-	
+	try {
+		ddl = metadataService->getUserObjectDDL(userConnect.id, userDb.name, sourceObjectName, sourceObjectType);
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+		return;
+	}
 }
 
 void DuplicateObjectDialog::createInputs()
@@ -224,6 +228,7 @@ void DuplicateObjectDialog::createCenter2Inputs()
 
 	ddlPreviewEdit = new wxStyledTextCtrl(this, Config::DUPLICATE_DDL_PREVIEW_EDIT_ID, wxDefaultPosition,
 		{ 400, 200 }, wxCLIP_CHILDREN | wxALIGN_LEFT);
+	ddlPreviewEdit->SetEditable(false);
 	center2VertLayout->Add(ddlPreviewEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 }
 
@@ -258,7 +263,9 @@ void DuplicateObjectDialog::loadControls()
 	targetObjectEdit->SetFocus();
 
 	// preview ddl
-	ddlPreviewEdit->SetText(userView.ddl);
+	ddlPreviewEdit->SetEditable(true);
+	ddlPreviewEdit->SetText(generateNewDDL(ddl));
+	ddlPreviewEdit->SetEditable(false);
 }
 
 void DuplicateObjectDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
@@ -270,6 +277,14 @@ void DuplicateObjectDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
 	if (!connectData) {
 		return;
 	}
+}
+
+void DuplicateObjectDialog::OnChangeTargetObjectEditText(wxCommandEvent& event)
+{
+	auto targetObjectName = targetObjectEdit->GetValue();
+	ddlPreviewEdit->SetEditable(true);
+	ddlPreviewEdit->SetText(generateNewDDL(ddl));
+	ddlPreviewEdit->SetEditable(false);
 }
 
 void DuplicateObjectDialog::OnClickOkButton(wxCommandEvent& event)
@@ -289,8 +304,10 @@ void DuplicateObjectDialog::OnClickOkButton(wxCommandEvent& event)
 	try {
 		auto nSelItem = targetConnectComboBox->GetSelection();
 		auto data = reinterpret_cast<QClientData<UserConnect> *>(targetConnectComboBox->GetClientObject(nSelItem));
-		if (metadataService->hasUserObject(data->getDataPtr()->id, targetSchema.ToStdString(), dupObjectType , targetObject.ToStdString())) {
+		if (metadataService->hasUserObject(data->getDataPtr()->id, targetSchema.ToStdString() , targetObject.ToStdString(), sourceObjectType)) {
 			QAnimateBox::error(S("exists-target-object"));
+			targetObjectEdit->SelectAll();
+			targetObjectEdit->SetFocus();
 			return;
 		}
 	} catch (QRuntimeException& ex) {
@@ -298,96 +315,45 @@ void DuplicateObjectDialog::OnClickOkButton(wxCommandEvent& event)
 		return;
 	}
 	okButton->Disable();
-	exportTableToTmp(tmpSqlPath);
+	exportObjectToTmp(tmpSqlPath);
+	importObjectFromTmp(tmpSqlPath);
 }
 
-
+std::string DuplicateObjectDialog::generateNewDDL(const std::string& orignalDdl)
+{
+	if (orignalDdl.empty()) {
+		return orignalDdl;
+	}
+	auto targetObjectName = targetObjectEdit->GetValue().ToStdString();
+	auto ddlContent = StringUtil::replace(orignalDdl, sourceObjectName, targetObjectName);
+	std::stringstream newDdl;
+	newDdl << "DELIMITER $$" << std::endl;
+	newDdl << ddlContent << "$$" << std::endl;
+	newDdl << "DELIMITER ;" << std::endl;
+	return newDdl.str();
+}
 /**
  * Export sql statements to specified template file.
  * 
  * @param tmpSqlPath - expert sql statements to template file path
  * @return 
  */
-bool DuplicateObjectDialog::exportTableToTmp(const std::string& tmpSqlPath)
+bool DuplicateObjectDialog::exportObjectToTmp(const std::string& tmpSqlPath)
 {
-	std::string productDir = ResourceUtil::getStdProductBinDir();
-	std::string executePath = productDir + "/mysqldump.exe";
-	if (_access(executePath.c_str(), 0) != 0) {
-		Q_ERROR("file not found. Path:{}", executePath);
-		okButton->Enable();
+	auto newDdl = ddlPreviewEdit->GetText();
+	if (newDdl.empty()) {
 		return false;
 	}
-
-	std::string cmd(executePath);
-	cmd.append(" -h").append(userConnect.host)
-		.append(" -P").append(std::to_string(userConnect.port))
-		.append(" -u").append(userConnect.userName)
-		.append(" -p").append(userConnect.password)
-		.append(" --no-create-db ")
-		.append(" --default-character-set=utf8")
-		.append(" --databases \"").append(userDb.name).append("\"")
-		.append(" --tables \"").append(userView.name).append("\"");
-	
-	
-	cmd.append(" --result-file=\"").append(tmpSqlPath).append("\"");
-	exportProcess = new QProcess<DuplicateObjectDialog>(this, cmd);
-	progressbar->run(5);
-	if (!exportProcess->open()) {
-		Q_ERROR("Failed to launch the command.");
-		okButton->Enable();
-		return false;
-	}
-	
-	if (!exportProcess) {
-		Q_ERROR("Failed to launch the command.");
-		okButton->Enable();
-		return false;
-	}
-	Q_INFO("PID of the new process: {}", exportProcess->GetPid());
-	progressbar->run(10);
-	return true;
-}
-
-bool DuplicateObjectDialog::replaceDatabaseAndTableInTmp()
-{
-	if (_access(tmpSqlPath.c_str(), 0) != 0) {
-		auto err = fmt::format("file not found. Path:{}", tmpSqlPath);
-		Q_ERROR(err);
-		QAnimateBox::error(err);
-		return false;
-	}
-	std::string newTmpPath = tmpSqlPath + ".tmp";
-	std::ifstream fin;
 	std::ofstream fout;
-	fin.open(tmpSqlPath.c_str(), std::ios_base::in);
-	fout.open(newTmpPath.c_str(), std::ios_base::out);
+	fout.open(tmpSqlPath.c_str(), std::ios::out | std::ios::binary);
+	fout << newDdl.ToStdString() << std::endl;
 
-	std::string sourceDbName("`" + userDb.name + "`");
-	std::string targetDbName("`" + targetDatabaseComboBox->GetValue().ToStdString() + "`");
-
-	std::string sourceTableName("`" + sourceObjectEdit->GetValue().ToStdString() + "`");
-	std::string targetTableName("`" + targetObjectEdit->GetValue().ToStdString() + "`");
-
-	std::string line;
-	while (std::getline(fin, line)) {
-		line = StringUtil::replace(line, sourceDbName, targetDbName);
-		line = StringUtil::replace(line, sourceTableName, targetTableName);
-		fout << line << std::endl;
-	}
 	fout.close();
-	fin.close();
-
-	// delete original file
-	_unlink(tmpSqlPath.c_str());
-
-	// rename new temp file
-	rename(newTmpPath.c_str(), tmpSqlPath.c_str());
-	Q_INFO("rename file. original:{}, target:{}", newTmpPath, tmpSqlPath);
-
 	return true;
 }
 
-bool DuplicateObjectDialog::importTableFromTmp(const std::string& tmpSqlPath)
+
+bool DuplicateObjectDialog::importObjectFromTmp(const std::string& tmpSqlPath)
 {
 	std::string productDir = ResourceUtil::getStdProductBinDir();
 	std::string executePath = productDir + "/mysql.exe";
@@ -429,12 +395,6 @@ bool DuplicateObjectDialog::importTableFromTmp(const std::string& tmpSqlPath)
 
 DuplicateObjectDialog::~DuplicateObjectDialog()
 {
-	if (exportProcess) {
-		wxProcess::Kill(exportProcess->GetPid());
-		delete exportProcess;
-		exportProcess = nullptr;
-	}
-
 	if (importProcess) {
 		wxProcess::Kill(importProcess->GetPid());
 		delete importProcess;
@@ -449,40 +409,7 @@ DuplicateObjectDialog::~DuplicateObjectDialog()
 
 void DuplicateObjectDialog::OnAsyncProcessTermination(QProcess<DuplicateObjectDialog>* process)
 {
-	if (exportProcess  && process->GetPid() == exportProcess->GetPid()) {
-		// 1.ending export process
-		progressbar->run(50);
-
-		auto msg = process->getOutputText();
-		if (!msg.empty()) {
-			QAnimateBox::notice(msg);
-		}
-			
-		auto error = process->getOutputError();
-		if (error.empty() == false) {
-			QAnimateBox::error(error);
-			progressbar->error("Dumping failed.");
-			okButton->Enable();
-			delete exportProcess;
-			exportProcess = nullptr;
-			return;
-		}
-
-		QAnimateBox::success("Export success! Pid:" + std::to_string(process->GetPid()));		
-		
-		delete exportProcess;
-		exportProcess = nullptr;
-		// 2.replace database name in the templace sql file;
-		if (!replaceDatabaseAndTableInTmp()) {
-			okButton->Enable();
-			return;
-		}
-		progressbar->run(60);
-
-		// 3.import sql file to new table when ending export process
-		importTableFromTmp(tmpSqlPath);
-
-	} else if (importProcess && process->GetPid() == importProcess->GetPid()) {
+	if (importProcess && process->GetPid() == importProcess->GetPid()) {
 		progressbar->run(80);
 
 		auto msg = process->getOutputText();
@@ -523,7 +450,8 @@ void DuplicateObjectDialog::afterDuplicated()
 	databaseSupplier->handleUserDb.connectId = connectData->getDataPtr()->id;
 	databaseSupplier->handleUserDb.name = targetDatabaseComboBox->GetValue().ToStdString();
 
-	databaseSupplier->handleUserTable.schema = databaseSupplier->handleUserDb.name;
-	databaseSupplier->handleUserTable.name = targetObjectEdit->GetValue().ToStdString();
-	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID); 
+	databaseSupplier->handleUserObject.schema = databaseSupplier->handleUserDb.name;
+	databaseSupplier->handleUserObject.name = targetObjectEdit->GetValue().ToStdString();
+	databaseSupplier->handleUserObject.type = sourceObjectType;
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_OBJECT_ID); 
 }

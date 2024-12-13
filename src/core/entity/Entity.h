@@ -111,10 +111,11 @@ typedef struct _UserTable {
 	std::string updateTime;
 	std::string checkTime;
 	std::string ddl;
-} UserTable, UserView;
+} UserTable, UserView, UserObject;
 
 typedef std::vector<UserTable> UserTableList;
 typedef std::vector<UserView> UserViewList;
+typedef std::vector<UserObject> UserObjectList;
 
 typedef enum {
 	ROUTINE_PROCEDURE = 7,

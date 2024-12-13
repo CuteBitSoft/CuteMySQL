@@ -44,6 +44,7 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_TABLE_ID, OnHandleNewTable)
+	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_OBJECT_ID, OnHandleNewObject)
 END_EVENT_TABLE()
 
 LeftTreeView::LeftTreeView():QPanel()
@@ -51,6 +52,7 @@ LeftTreeView::LeftTreeView():QPanel()
 	AppContext::getInstance()->subscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_ADD_DATABASE_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_NEW_TABLE_ID);
+	AppContext::getInstance()->subscribe(this, Config::MSG_NEW_OBJECT_ID);
 	leftTreeDelegate = LeftTreeDelegate::getInstance(this);
 	leftTopbarDelegate = LeftTopbarDelegate::getInstance(this);
 }
@@ -60,6 +62,7 @@ LeftTreeView::~LeftTreeView()
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_CONNECTION_CONNECTED_ID);
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_ADD_DATABASE_ID);
 	AppContext::getInstance()->unsubscribe(this, Config::MSG_NEW_TABLE_ID);
+	AppContext::getInstance()->unsubscribe(this, Config::MSG_NEW_OBJECT_ID);
 	
 	LeftTreeDelegate::destroyInstance();
 	leftTreeDelegate = nullptr;	
@@ -340,6 +343,22 @@ void LeftTreeView::OnHandleNewTable(MsgDispatcherEvent& event)
 	// refresh the database item and select object item
 	leftTreeDelegate->refreshDbItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name, findSelData);
 }
+
+void LeftTreeView::OnHandleNewObject(MsgDispatcherEvent& event)
+{
+	TreeObjectType objectType = LeftTreeDelegate::objectTypeMap.at(supplier->handleUserObject.type);
+
+	// findSelData - Data of will be selected item 
+ 	// 				params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
+ 	//						findSelData.dataPtr - find object name(such as tableName/viewName/triggerName...)*/
+	QTreeItemData<std::string> findSelData(supplier->handleUserDb.connectId, 
+		new std::string(supplier->handleUserObject.name), 
+		objectType);
+
+	// refresh the database item and select object item
+	leftTreeDelegate->refreshDbItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name, findSelData);
+}
+
 
 void LeftTreeView::OnClickConnectButton(wxCommandEvent& event)
 {

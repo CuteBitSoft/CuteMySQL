@@ -40,11 +40,13 @@ public:
 	void OnAsyncProcessTermination(QProcess<DuplicateObjectDialog>* process);
 private:
 	DuplicateObjectType dupObjectType;
-	wxString caption;
-	wxString description;
-	wxString sourceLabelText;
-	wxString targetLabelText;
-	wxString sourceObjectName;
+	std::string caption;
+	std::string description;
+	std::string sourceLabelText;
+	std::string targetLabelText;
+	std::string sourceObjectName;
+	std::string sourceObjectType;
+	std::string ddl;
 
 	UserConnect userConnect;
 	UserDb userDb;
@@ -88,7 +90,6 @@ private:
 
 	// process bar 
 	QProgressBar* progressbar;
-	QProcess<DuplicateObjectDialog>* exportProcess;
 	QProcess<DuplicateObjectDialog>* importProcess;
 
 	DatabaseSupplier* databaseSupplier;
@@ -106,14 +107,17 @@ private:
 
 	// combobox
 	void OnSelChangeConnectCombobox(wxCommandEvent& event);
+	void OnChangeTargetObjectEditText(wxCommandEvent& event);
 	void OnClickOkButton(wxCommandEvent& event);
 
+	std::string generateNewDDL(const std::string & orignalDdl);
+
 	// export
-	bool exportTableToTmp(const std::string & tmpSqlPath);
+	bool exportObjectToTmp(const std::string & tmpSqlPath);
 	// replace database name
 	bool replaceDatabaseAndTableInTmp();
 	// import
-	bool importTableFromTmp(const std::string & tmpSqlPath);
+	bool importObjectFromTmp(const std::string & tmpSqlPath);
 	void afterDuplicated();
 };
 

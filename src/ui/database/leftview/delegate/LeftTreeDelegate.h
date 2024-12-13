@@ -17,6 +17,7 @@
  * @date   2024-11-23
  *********************************************************************/
 #pragma once
+#include <unordered_map>
 #include <wx/treectrl.h>
 #include "ui/common/delegate/QDelegate.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
@@ -28,6 +29,8 @@
 class LeftTreeDelegate :  public QDelegate<LeftTreeDelegate, DatabaseSupplier>
 {
 public:
+	const static std::unordered_map<std::string, TreeObjectType> objectTypeMap;
+
 	~LeftTreeDelegate();
 	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0, const std::string & schema = "");
 	void expendedForLeftTree(wxTreeCtrl * treeView, wxTreeItemId &itemId);
@@ -45,6 +48,8 @@ public:
 	bool duplicateForLeftTree(wxTreeCtrl* treeView);
 
 	void refreshDbItemsForLeftTree(wxTreeCtrl * treeView, uint64_t connectId, const std::string& schema, const QTreeItemData<std::string> & findSelData);
+
+	
 private:
 	ConnectService * connectService = ConnectService::getInstance();
 	DatabaseService * databaseService = DatabaseService::getInstance();

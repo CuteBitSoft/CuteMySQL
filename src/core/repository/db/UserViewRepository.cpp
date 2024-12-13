@@ -98,27 +98,7 @@ UserView UserViewRepository::get(uint64_t connectId, const std::string& schema, 
 
 std::string UserViewRepository::getDDL(uint64_t connectId, const std::string& schema, const std::string& name)
 {
-	assert(connectId > 0 && !schema.empty() && !name.empty());
-	std::string result;
-	try {
-		sql::SQLString sql = "SHOW CREATE VIEW ";
-		sql.append(" `").append(name).append("`");
-		auto connect = getUserConnect(connectId);
-		connect->setSchema(schema);
-		std::unique_ptr<sql::Statement> stmt(connect->createStatement());
-		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery(sql));
-		if (resultSet->next()) {
-			result = resultSet->getString("Create View").asStdString();
-		}
-		resultSet->close();
-		stmt->close();
-		return result;
-	} catch (sql::SQLException& ex) {
-		auto code = std::to_string(ex.getErrorCode());
-		BaseRepository::setError(code, ex.what());
-		Q_ERROR("Fail to getAll(),code:{}, error:{}", code, ex.what());
-		throw QRuntimeException(code, ex.what());
-	}
+	return getObjectDDL(connectId, schema, name, "VIEW");
 }
 
 UserView UserViewRepository::toUserView(sql::ResultSet* rs)
