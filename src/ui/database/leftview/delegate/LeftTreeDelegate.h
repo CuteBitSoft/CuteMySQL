@@ -32,7 +32,7 @@ public:
 	const static std::unordered_map<std::string, TreeObjectType> objectTypeMap;
 
 	~LeftTreeDelegate();
-	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0, const std::string & schema = "");
+	void loadForLeftTree(wxTreeCtrl * treeView, uint64_t connectId = 0, const std::string & schema = "", bool allowSelect = true);
 	void expendedForLeftTree(wxTreeCtrl * treeView, wxTreeItemId &itemId);
 	void expendedConnectionItem(wxTreeCtrl* treeView, wxTreeItemId& itemId, uint64_t connectId);
 
@@ -47,6 +47,9 @@ public:
 	bool removeForLeftTree(wxTreeCtrl* treeView);
 	bool duplicateForLeftTree(wxTreeCtrl* treeView);
 
+	// refresh
+	void beforeFreshForLeftTree(wxTreeCtrl * treeView);// before fresh 
+	void refreshConnectItemsForLeftTree(wxTreeCtrl * treeView, uint64_t connectId, const std::string& schema);
 	void refreshDbItemsForLeftTree(wxTreeCtrl * treeView, uint64_t connectId, const std::string& schema, const QTreeItemData<std::string> & findSelData);
 
 	

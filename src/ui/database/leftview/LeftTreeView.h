@@ -25,6 +25,8 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/leftview/delegate/LeftTreeDelegate.h"
 #include "ui/database/leftview/delegate/LeftTopbarDelegate.h"
+#include "ui/database/leftview/delegate/DatabaseMenuDelegate.h"
+#include "ui/database/leftview/delegate/TableMenuDelegate.h"
 
 class LeftTreeView : public QPanel<DatabaseSupplier>
 {
@@ -48,6 +50,9 @@ private:
 
 	LeftTreeDelegate* leftTreeDelegate;
 	LeftTopbarDelegate* leftTopbarDelegate;
+	DatabaseMenuDelegate* databaseMenuDelegate;
+	TableMenuDelegate* tableMenuDelegate;
+
 	virtual void init();
 	virtual void createControls();
 	void createButtons();
@@ -63,10 +68,10 @@ private:
 	void OnPaint(wxPaintEvent& event);
 	void OnTreeItemExpended(wxTreeEvent& event);
 	void OnTreeItemSelChanged(wxTreeEvent& event);
+	void OnTreeItemRightClicked(wxTreeEvent& event);
 	// handle message event
 	void OnHandleConnectionConnected(MsgDispatcherEvent& event);
 	void OnHandleAddDatabase(MsgDispatcherEvent& event);
-	void OnHandleNewTable(MsgDispatcherEvent& event);
 	void OnHandleNewObject(MsgDispatcherEvent& event);
 
 	// button id
@@ -74,6 +79,7 @@ private:
 	void OnClickCreateButton(wxCommandEvent & event);
 	void OnClickDeleteButton(wxCommandEvent & event);
 	void OnClickDuplicateButton(wxCommandEvent & event);
+	void OnClickRefreshButton(wxCommandEvent & event);
 
 	// combobox
 	void OnSelectedDbCombobox(wxCommandEvent & event);

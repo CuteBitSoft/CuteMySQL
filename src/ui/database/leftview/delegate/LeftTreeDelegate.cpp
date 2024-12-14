@@ -59,7 +59,7 @@ LeftTreeDelegate::~LeftTreeDelegate()
  * @param connectId - selected connection
  * @param schema - selected schema
  */
-void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId /*= 0 */, const std::string & schema /*= "" */)
+void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId /*= 0 */, const std::string & schema /* = "" */, bool allowSelect/* = true */)
 {
 	if (!treeView->HasImages()) {
 		auto imgdir = ResourceUtil::getProductImagesDir();
@@ -105,7 +105,12 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId 
 		treeView->DeleteChildren(rootId);
 	}
 	
-	auto userConnectList = connectService->getAllUserConnects();
+	UserConnectList userConnectList;
+	try {
+		userConnectList = connectService->getAllUserConnects();
+	} catch (QRuntimeException& ex) {
+		QAnimateBox::error(ex);
+	}
 	for (auto& item : userConnectList) {
 		QTreeItemData<UserConnect>* data = new QTreeItemData<UserConnect>(item.id, new UserConnect(item), TreeObjectType::CONNECTION);
 		std::string connectName = item.name;
@@ -120,7 +125,7 @@ void LeftTreeDelegate::loadForLeftTree(wxTreeCtrl* treeView, uint64_t connectId 
 		}
 	}
 	
-	if (!connectId) {
+	if (!connectId && allowSelect) {
 		wxTreeItemIdValue cookie;
 		auto firstItemId = treeView->GetFirstChild(rootId, cookie);
 		if (firstItemId.IsOk()) {
@@ -170,7 +175,7 @@ void LeftTreeDelegate::expendedForLeftTree(wxTreeCtrl* treeView, wxTreeItemId& i
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
 			loadViewsForDatabase(treeView, itemId, connectId, userDbPtr->name);
-		} else if (data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER) { // STORE PROCEDURE folder
+		} else if (data->getType() == TreeObjectType::STORE_PROCEDURES_FOLDER) { // STORE PROCEDURE folder
 			auto userDbData = (QTreeItemData<UserDb> *)data;
 			auto connectId = userDbData->getDataId();
 			auto userDbPtr = userDbData->getDataPtr();
@@ -370,7 +375,7 @@ bool LeftTreeDelegate::removeForLeftTree(wxTreeCtrl* treeView)
 
 	if (data->getType() == TreeObjectType::TABLES_FOLDER 
 		|| data->getType() == TreeObjectType::VIEWS_FOLDER
-		|| data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER
+		|| data->getType() == TreeObjectType::STORE_PROCEDURES_FOLDER
 		|| data->getType() == TreeObjectType::FUNCTIONS_FOLDER
 		|| data->getType() == TreeObjectType::TRIGGERS_FOLDER
 		|| data->getType() == TreeObjectType::EVENTS_FOLDER
@@ -425,7 +430,7 @@ bool LeftTreeDelegate::duplicateForLeftTree(wxTreeCtrl* treeView)
 
 	if (data->getType() == TreeObjectType::TABLES_FOLDER
 		|| data->getType() == TreeObjectType::VIEWS_FOLDER
-		|| data->getType() == TreeObjectType::STORE_PROCEDURE_FOLDER
+		|| data->getType() == TreeObjectType::STORE_PROCEDURES_FOLDER
 		|| data->getType() == TreeObjectType::FUNCTIONS_FOLDER
 		|| data->getType() == TreeObjectType::TRIGGERS_FOLDER
 		|| data->getType() == TreeObjectType::EVENTS_FOLDER
@@ -460,6 +465,101 @@ bool LeftTreeDelegate::duplicateForLeftTree(wxTreeCtrl* treeView)
 }
 
 /**
+ * Prepare handleUserDb and handleUserObject data for refresh.
+ * 
+ * @param treeView
+ */
+void LeftTreeDelegate::beforeFreshForLeftTree(wxTreeCtrl* treeView)
+{
+	// 1. Prepare handleDb
+	auto selItemId = treeView->GetSelection();
+	if (!selItemId.IsOk() || selItemId == treeView->GetRootItem()) {
+		return;
+	}
+
+	auto data = reinterpret_cast<QTreeItemData<int>*>(treeView->GetItemData(selItemId));
+	if (data == nullptr || supplier->runtimeUserDb == nullptr) {
+		return;
+	}
+	supplier->handleUserDb = *supplier->runtimeUserDb;
+	if (data->getType() == TreeObjectType::SCHEMA) {		
+		supplier->handleUserObject = UserObject();
+	} else if (data->getType() == TreeObjectType::TABLE 
+		|| data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_COLUMN
+		|| data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER
+		|| data->getType() == TreeObjectType::TABLE_INDEX
+		) {
+		supplier->handleUserObject = *supplier->runtimeUserTable;
+	} else if (data->getType() == TreeObjectType::VIEW) {
+		supplier->handleUserObject = *supplier->runtimeUserView;
+		supplier->handleUserObject.type = "VIEW";
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
+		supplier->handleUserObject.schema = supplier->runtimeUserRoutine->schema;
+		supplier->handleUserObject.name = supplier->runtimeUserRoutine->name;
+		supplier->handleUserObject.type = "PROCEDURE";
+	} else if (data->getType() == TreeObjectType::FUNCTION) {
+		supplier->handleUserObject.schema = supplier->runtimeUserRoutine->schema;
+		supplier->handleUserObject.name = supplier->runtimeUserRoutine->name;
+		supplier->handleUserObject.type = "FUNCTION";
+	} else if (data->getType() == TreeObjectType::TRIGGER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserTrigger->schema;
+		supplier->handleUserObject.name = supplier->runtimeUserTrigger->name;
+		supplier->handleUserObject.type = "TRIGGER";
+	} else if (data->getType() == TreeObjectType::EVENT) {
+		supplier->handleUserObject.schema = supplier->runtimeUserEvent->schema;
+		supplier->handleUserObject.name = supplier->runtimeUserEvent->name;
+		supplier->handleUserObject.type = "EVENT";
+	} else if (data->getType() == TreeObjectType::TABLES_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "TABLE";
+	} else if (data->getType() == TreeObjectType::VIEWS_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "VIEW";
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURES_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "PROCEDURE";
+	} else if (data->getType() == TreeObjectType::FUNCTIONS_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "FUNCTION";
+	} else if (data->getType() == TreeObjectType::TRIGGERS_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "TRIGGER";
+	} else if (data->getType() == TreeObjectType::EVENTS_FOLDER) {
+		supplier->handleUserObject.schema = supplier->runtimeUserDb->name;
+		supplier->handleUserObject.name = "";
+		supplier->handleUserObject.type = "EVENT";
+	}
+}
+
+void LeftTreeDelegate::refreshConnectItemsForLeftTree(wxTreeCtrl* treeView, uint64_t connectId, const std::string& schema)
+{
+	// 1.Find the connection item
+	auto connectItemId = findConnectItemFromRootItem(treeView, connectId);
+	if (!connectItemId.IsOk()) {
+		return;
+	}
+
+	// 2.Expend the connection item and load databases for the connectItemId
+	expendedConnectionItem(treeView, connectItemId, connectId);
+
+	// 3.Find the database item and load object
+	auto dbItemId = findDbItemFromConnectionItem(treeView, connectItemId, schema);
+	
+	if (!dbItemId.IsOk()) {
+		return;
+	}
+
+	// 4.select the database item
+	treeView->SelectItem(dbItemId);
+}
+
+/**
  * .
  * 
  * @param treeView
@@ -481,15 +581,16 @@ void LeftTreeDelegate::refreshDbItemsForLeftTree(wxTreeCtrl* treeView, uint64_t 
 
 	// 3.Find the database item and load object
 	auto dbItemId = findDbItemFromConnectionItem(treeView, connectItemId, schema);
-	// todo...
+	
 	if (!dbItemId.IsOk()) {
 		return;
 	}
+	
 	// 4.Expend database item
 	auto folderType = objectTypeToFolderType((TreeObjectType)findSelData.getType());
-	auto folderItemId = expendedDbItem(treeView, dbItemId, folderType); 
 
 	// 5.select object item
+	auto folderItemId = expendedDbItem(treeView, dbItemId, folderType);	
 	selectDbObjectItemFromFolder(treeView, folderItemId, findSelData);
 	return ;
 }
@@ -537,7 +638,7 @@ wxTreeItemId LeftTreeDelegate::expendedDbItem(wxTreeCtrl* treeView, wxTreeItemId
 		loadTablesForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
 	} else if (findFolderType == TreeObjectType::VIEWS_FOLDER) {
 		loadViewsForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
-	} else if (findFolderType == TreeObjectType::STORE_PROCEDURE_FOLDER) {
+	} else if (findFolderType == TreeObjectType::STORE_PROCEDURES_FOLDER) {
 		loadProceduresForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
 	} else if (findFolderType == TreeObjectType::FUNCTIONS_FOLDER) {
 		loadFunctionsForDatabase(treeView, folderItem, data->getDataPtr()->connectId, data->getDataPtr()->name);
@@ -636,7 +737,7 @@ void LeftTreeDelegate::loadDbsForConnection(wxTreeCtrl* treeView, const wxTreeIt
 			auto viewsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::VIEWS_FOLDER);
 			auto viewsFolderItemId = treeView->AppendItem(dbItemId, S("views"), 3, 3, viewsFolderData);
 
-			auto storeProcsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::STORE_PROCEDURE_FOLDER);
+			auto storeProcsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::STORE_PROCEDURES_FOLDER);
 			auto storeProcsFolderItemId = treeView->AppendItem(dbItemId, S("store-procedures"), 3, 3, storeProcsFolderData);
 
 			auto funsFolderData = new QTreeItemData<UserDb>(connectId, new UserDb(item), TreeObjectType::FUNCTIONS_FOLDER);
@@ -1335,7 +1436,7 @@ TreeObjectType LeftTreeDelegate::objectTypeToFolderType(const TreeObjectType obj
 	} else if (objectType == TreeObjectType::VIEW) {
 		folderType = TreeObjectType::VIEWS_FOLDER;
 	} else if (objectType == TreeObjectType::STORE_PROCEDURE) {
-		folderType = TreeObjectType::STORE_PROCEDURE_FOLDER;
+		folderType = TreeObjectType::STORE_PROCEDURES_FOLDER;
 	} else if (objectType == TreeObjectType::FUNCTION) {
 		folderType = TreeObjectType::FUNCTIONS_FOLDER;
 	} else if (objectType == TreeObjectType::TRIGGER) {

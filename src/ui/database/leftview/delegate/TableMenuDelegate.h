@@ -1,3 +1,4 @@
+
 /*****************************************************************//**
  * Copyright 2024 Xuehan Qin (qinxuehan2018@gmail.com) 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -10,58 +11,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   Enum.h
- * @brief  Public Enum type
+ * @file   TableMenuDelegate.h
+ * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
- * @date   2024-11-23
+ * @date   2024-11-28
  *********************************************************************/
-#pragma once
+#include <wx/bmpcbox.h>
+#include <wx/treectrl.h>
+#include "ui/common/delegate/QDelegate.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
+#include "ui/common/menu/QMenu.h"
+#include "core/service/db/DatabaseService.h"
+class TableMenuDelegate : public QDelegate<TableMenuDelegate, DatabaseSupplier>
+{
+public:
+	~TableMenuDelegate();
 
-/**
- * Database LeftTreeView use object for wxTreeCtrl.ClientData.
- */
-typedef enum {
-	ROOT,
-	CONNECTION,
-	SCHEMA,
-	TABLES_FOLDER,
-	TABLE,
-	TABLE_COLUMNS_FOLDER,
-	TABLE_COLUMN,
-	TABLE_INDEXES_FOLDER,
-	TABLE_INDEX,
-	VIEWS_FOLDER,
-	VIEW,
-	TRIGGERS_FOLDER,
-	TRIGGER,
-	STORE_PROCEDURES_FOLDER,
-	STORE_PROCEDURE,
-	FUNCTIONS_FOLDER,
-	FUNCTION,
-	EVENTS_FOLDER,
-	EVENT,
-	LOADING,
-	ROUTINES
-} TreeObjectType;
+	void setTreeView(wxTreeCtrl * treeView);
+	void createMenu();
+	void popMenu(int x, int y);
+private:
+	wxTreeCtrl * treeView;
+	QMenu* menu = nullptr;
+	QMenu* newSubMenu = nullptr;
+	wxColour bkgColor{ 43, 45, 48, 43 };
+	wxColour textColor{223, 225, 229, 213};
 
+	DatabaseService * databaseService = DatabaseService::getInstance();
+};
 
-typedef enum {
-	CONNECT_CREATE,
-	CONNECT_MANAGE
-} ConnectType;
-
-
-typedef enum {
-	DATABASE_CREATE,
-	DATABASE_ALTER
-} DatabaseType;
-
-
-typedef enum {
-	DUPLICATE_VIEW,
-	DUPLICATE_STORE_PROCEDURE,
-	DUPLICATE_FUNCTION,
-	DUPLICATE_TRIGGER,
-	DUPLICATE_EVENT,
-} DuplicateObjectType;

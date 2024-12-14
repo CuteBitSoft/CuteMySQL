@@ -30,6 +30,7 @@ bool CuteMySQL::OnInit()
     }
     // Supported the PNG image in this application
     wxImage::AddHandler(new wxICOHandler);
+    wxImage::AddHandler(new wxPNGHandler);
 
     context = AppContext::getInstance();
     mainFrame = new MainFrame();

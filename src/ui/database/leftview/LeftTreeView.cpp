@@ -35,15 +35,16 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_PAINT(LeftTreeView::OnPaint)
 	EVT_TREE_ITEM_EXPANDED(Config::DATABASE_TREEVIEW_ID, OnTreeItemExpended)
 	EVT_TREE_SEL_CHANGED(Config::DATABASE_TREEVIEW_ID, OnTreeItemSelChanged)
+	EVT_TREE_ITEM_RIGHT_CLICK(Config::DATABASE_TREEVIEW_ID, OnTreeItemRightClicked)
 	EVT_BUTTON(Config::DATABASE_CONNECT_BUTTON_ID, OnClickConnectButton)
 	EVT_BUTTON(Config::DATABASE_CREATE_BUTTON_ID, OnClickCreateButton)
 	EVT_BUTTON(Config::DATABASE_DELETE_BUTTON_ID, OnClickDeleteButton)
 	EVT_BUTTON(Config::DATABASE_DUP_BUTTON_ID, OnClickDuplicateButton)
+	EVT_BUTTON(Config::DATABASE_REFRESH_BUTTON_ID, OnClickRefreshButton)
 	EVT_COMBOBOX(Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, OnSelectedDbCombobox)
 	// Handle the message
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
-	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_TABLE_ID, OnHandleNewTable)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_OBJECT_ID, OnHandleNewObject)
 END_EVENT_TABLE()
 
@@ -53,8 +54,11 @@ LeftTreeView::LeftTreeView():QPanel()
 	AppContext::getInstance()->subscribe(this, Config::MSG_ADD_DATABASE_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_NEW_TABLE_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_NEW_OBJECT_ID);
+
 	leftTreeDelegate = LeftTreeDelegate::getInstance(this);
 	leftTopbarDelegate = LeftTopbarDelegate::getInstance(this);
+	databaseMenuDelegate = DatabaseMenuDelegate::getInstance(this);
+	tableMenuDelegate = TableMenuDelegate::getInstance(this);
 }
 
 LeftTreeView::~LeftTreeView()
@@ -69,6 +73,12 @@ LeftTreeView::~LeftTreeView()
 
 	LeftTopbarDelegate::destroyInstance();
 	leftTopbarDelegate = nullptr;
+
+	DatabaseMenuDelegate::destroyInstance();
+	databaseMenuDelegate = nullptr;
+
+	TableMenuDelegate::destroyInstance();
+	tableMenuDelegate = nullptr;
 }
 
 void LeftTreeView::init()
@@ -166,6 +176,13 @@ void LeftTreeView::createTreeView()
 	treeView->SetForegroundColour(textColor);
 
 	loadTreeView(treeView);
+
+	// create menu
+	databaseMenuDelegate->setTreeView(treeView);
+	tableMenuDelegate->setTreeView(treeView);
+
+	databaseMenuDelegate->createMenu();
+	tableMenuDelegate->createMenu();
 }
 
 void LeftTreeView::resizeComboBox()
@@ -315,6 +332,24 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 	}
 }
 
+void LeftTreeView::OnTreeItemRightClicked(wxTreeEvent& event)
+{
+	auto clickedItemId = event.GetItem();
+	if (!clickedItemId.IsOk()) {
+		return;
+	}
+
+	treeView->SelectItem(clickedItemId);
+
+	auto data = reinterpret_cast<QTreeItemData<int> *>(treeView->GetItemData(clickedItemId));
+	if (data->getType() == TreeObjectType::SCHEMA) {
+		databaseMenuDelegate->popMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::TABLE) {
+		tableMenuDelegate->popMenu(event.GetPoint().x, event.GetPoint().y);
+	}
+	
+}
+
 void LeftTreeView::OnHandleConnectionConnected(MsgDispatcherEvent& event)
 {
 	auto clientData = (MsgClientData *)event.GetClientData();
@@ -329,19 +364,6 @@ void LeftTreeView::OnHandleAddDatabase(MsgDispatcherEvent& event)
 	auto connectId = clientData->getDataPtr();
 
 	leftTreeDelegate->loadForLeftTree(treeView, connectId, supplier->handleUserDb.name);
-}
-
-void LeftTreeView::OnHandleNewTable(MsgDispatcherEvent& event)
-{
-	// findSelData - Data of will be selected item 
- 	// 				params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
- 	//						findSelData.dataPtr - find object name(such as tableName/viewName/triggerName...)*/
-	QTreeItemData<std::string> findSelData(supplier->handleUserDb.connectId, 
-		new std::string(supplier->handleUserTable.name), 
-		TreeObjectType::TABLE);
-
-	// refresh the database item and select object item
-	leftTreeDelegate->refreshDbItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name, findSelData);
 }
 
 void LeftTreeView::OnHandleNewObject(MsgDispatcherEvent& event)
@@ -409,6 +431,35 @@ void LeftTreeView::OnClickDuplicateButton(wxCommandEvent& event)
 	if (leftTreeDelegate->duplicateForLeftTree(treeView)) {
 		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 	}
+}
+
+void LeftTreeView::OnClickRefreshButton(wxCommandEvent& event)
+{
+	// Prepare handleUserDb and handleUserObject data for refresh.
+	leftTreeDelegate->beforeFreshForLeftTree(treeView);
+
+	// Only load connection items, but not select anyone.
+	leftTreeDelegate->loadForLeftTree(treeView, 0, "", false);
+
+	if (supplier->handleUserObject.name.empty() && supplier->handleUserObject.type.empty()) {
+		if (!supplier->handleUserDb.connectId || supplier->handleUserDb.name.empty()) {
+			return;
+		}
+		leftTreeDelegate->refreshConnectItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name);
+		return;
+	}
+
+	TreeObjectType objectType = LeftTreeDelegate::objectTypeMap.at(supplier->handleUserObject.type);
+
+	// findSelData - Data of will be selected item 
+	// 				params: findSelData.type - find type(TreeObjectType::TABLE/VIEW/TRIGGER/STORE_PROCEDURE/FUNCTION/EVENT);   
+	//						findSelData.dataPtr - find object name(such as tableName/viewName/procedureName/functionName/triggerName/eventName)*/
+	QTreeItemData<std::string> findSelData(supplier->handleUserDb.connectId,
+		new std::string(supplier->handleUserObject.name),
+		objectType);
+
+	// refresh the database item and select object item
+	leftTreeDelegate->refreshDbItemsForLeftTree(treeView, supplier->handleUserDb.connectId, supplier->handleUserDb.name, findSelData);
 }
 
 /**

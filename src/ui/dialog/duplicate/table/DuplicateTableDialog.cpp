@@ -519,8 +519,10 @@ void DuplicateTableDialog::afterDuplicated()
 	databaseSupplier->handleUserDb.connectId = connectData->getDataPtr()->id;
 	databaseSupplier->handleUserDb.name = targetDatabaseComboBox->GetValue().ToStdString();
 
-	databaseSupplier->handleUserTable = userTable;
-	databaseSupplier->handleUserTable.schema = databaseSupplier->handleUserDb.name;
-	databaseSupplier->handleUserTable.name = targetTableEdit->GetValue().ToStdString();
-	AppContext::getInstance()->dispatch(Config::MSG_NEW_TABLE_ID); 
+	databaseSupplier->handleUserObject = userTable;
+	databaseSupplier->handleUserObject.schema = databaseSupplier->handleUserDb.name;
+	databaseSupplier->handleUserObject.name = targetTableEdit->GetValue().ToStdString();
+	databaseSupplier->handleUserObject.type = "TABLE";
+
+	AppContext::getInstance()->dispatch(Config::MSG_NEW_OBJECT_ID); 
 }
