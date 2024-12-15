@@ -24,6 +24,6 @@ class ConnectDialogSupplier : public QSupplier<ConnectDialogSupplier>
 {
 public:
 	UserConnect * runtimeUserConnect; // runtime userData for ConnectDialog, ConnectPanel, MysqlParamsPage/SshParamsPage/SslParamsPage
-
+	uint64_t selConnectId{0};
 };
 

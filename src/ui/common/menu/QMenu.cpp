@@ -2,10 +2,10 @@
 #ifdef __WXMSW__
 #include <windows.h>
 #endif
-QMenu::QMenu() : wxMenu()
+QMenu::QMenu() : wxMenu(), bkgColor{ 43, 45, 48, 43 }, textColor{ 223, 225, 229, 213 }
 {
 #ifdef __WXMSW__
-	menuBrush = ::CreateSolidBrush(RGB(43, 45,48));
+	menuBrush = ::CreateSolidBrush(RGB(bkgColor.GetRed(), bkgColor.GetGreen(), bkgColor.GetBlue()));
 	MENUINFO mi;
 	mi.cbSize = sizeof(MENUINFO);
 	mi.fMask = MIM_BACKGROUND | MIM_STYLE; 
@@ -24,6 +24,17 @@ QMenu::~QMenu()
 	
 }
 
+void QMenu::appendItem(int itemId, const wxString& itemLabel, const wxString& iconPath)
+{
+	wxMenuItem* menuItem = new wxMenuItem(0, itemId, itemLabel);
+	menuItem->SetBackgroundColour(bkgColor);
+	menuItem->SetTextColour(textColor);
+	wxBitmap bitmap(iconPath, wxBITMAP_TYPE_ICO);
+	menuItem->SetBitmap(wxBitmapBundle(bitmap));
+	wxMenu::Append(menuItem);
+}
+
+/*
 wxString QMenu::GetName() const
 {
 	return wxEmptyString;
@@ -39,6 +50,7 @@ bool QMenu::OnDrawItem(wxDC& dc, const wxRect& rc,
 {
 	return false;
 }
+*/
 bool QMenu::ProcessEvent(wxEvent& event)
 {
 	int i = 0;

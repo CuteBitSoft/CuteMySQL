@@ -327,7 +327,7 @@ void HomePanel::OnClickCreateConnectButton(wxCommandEvent& event)
 void HomePanel::OnClickManageConnectButton(wxCommandEvent& event)
 {
 	ConnectDialog connectDialog(ConnectType::CONNECT_MANAGE);
-	connectDialog.Create(this, -1, S("create-connection"));
+	connectDialog.Create(this, -1, S("manage-connection"));
 	connectDialog.ShowModal();
 }
 

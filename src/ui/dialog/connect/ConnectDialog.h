@@ -33,7 +33,7 @@ class ConnectDialog : public QDialog<ConnectDialogDelegate, ConnectDialogSupplie
 {
     DECLARE_EVENT_TABLE()
 public:
-    ConnectDialog(ConnectType type);
+    ConnectDialog(ConnectType type, uint64_t selConnectId = 0);
     ~ConnectDialog();
 private:    
     ConnectType connectType;

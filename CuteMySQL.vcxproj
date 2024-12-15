@@ -236,6 +236,7 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\ui\common\menu\QMenu.cpp" />
     <ClCompile Include="src\ui\common\progress\QProgressBar.cpp" />
     <ClCompile Include="src\ui\common\delegate\EmptyDelegate.cpp" />
+    <ClCompile Include="src\ui\database\leftview\delegate\ConnectMenuDelegate.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\DatabaseMenuDelegate.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\TableMenuDelegate.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.cpp" />
@@ -310,6 +311,7 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClInclude Include="src\ui\common\process\QProcess.h" />
     <ClInclude Include="src\ui\common\progress\QProgressBar.h" />
     <ClInclude Include="src\ui\common\delegate\EmptyDelegate.h" />
+    <ClInclude Include="src\ui\database\leftview\delegate\ConnectMenuDelegate.h" />
     <ClInclude Include="src\ui\database\leftview\delegate\DatabaseMenuDelegate.h" />
     <ClInclude Include="src\ui\database\leftview\delegate\TableMenuDelegate.h" />
     <ClInclude Include="src\ui\dialog\delegate\QDialogDelegate.h" />

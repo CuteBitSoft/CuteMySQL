@@ -43,12 +43,14 @@ BEGIN_EVENT_TABLE(ConnectDialog, wxDialog)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CHANGE_NAME_ID, OnHandleConnectionChangeName)
 END_EVENT_TABLE()
 
-ConnectDialog::ConnectDialog(ConnectType type) 
+ConnectDialog::ConnectDialog(ConnectType type, uint64_t selConnectId) 
 	: QDialog(), connectType(type)
 {
 	// Subscribe to Config::MSG_CONNECTION_CHANGE_NAME_ID message
 	AppContext::getInstance()->subscribe(this, Config::MSG_CONNECTION_CREATE_ID);
 	AppContext::getInstance()->subscribe(this, Config::MSG_CONNECTION_CHANGE_NAME_ID);
+
+	supplier->selConnectId = selConnectId;
 }
 
 ConnectDialog::~ConnectDialog()

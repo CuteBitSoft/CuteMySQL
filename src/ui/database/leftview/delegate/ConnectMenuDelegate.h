@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * @file   TableMenuDelegate.h
+ * @file   ConnectMenuDelegate.h
  * @brief  
  * 
  * @author Xuehan Qin (qinxuehan2018@gmail.com) 
@@ -23,30 +23,21 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/common/menu/QMenu.h"
 #include "core/service/db/DatabaseService.h"
-class TableMenuDelegate : public QDelegate<TableMenuDelegate, DatabaseSupplier>
+class ConnectMenuDelegate : public QDelegate<ConnectMenuDelegate, DatabaseSupplier>
 {
 public:
-	~TableMenuDelegate();
+	~ConnectMenuDelegate();
 
 	void setTreeView(wxTreeCtrl * treeView);
-	void createMenus();
+	void createMenu();
 	void popMenu(int x, int y);
-	void popColumnsMenu(int x, int y, bool isColumnItem);
-	void popIndexesMenu(int x, int y, bool isIndexItem);
 private:
 	wxTreeCtrl * treeView;
-	wxString imgdir;
-
 	QMenu* menu = nullptr;
-	QMenu* columnsMenu = nullptr;
-	QMenu* indexesMenu = nullptr;
+	QMenu* newSubMenu = nullptr;
 	wxColour bkgColor{ 43, 45, 48, 43 };
-	wxColour textColor{223, 225, 229, 213};
+	wxColour textColor{ 223, 225, 229, 213 };
 
 	DatabaseService * databaseService = DatabaseService::getInstance();
-
-	void createTableMenu();
-	void createColumnsMenu();
-	void createIndexesMenu();
 };
 

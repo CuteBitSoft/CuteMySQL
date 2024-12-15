@@ -29,15 +29,28 @@ TableMenuDelegate::~TableMenuDelegate()
 	databaseService = nullptr;
 
 	delete menu;
+	delete columnsMenu;
+	delete indexesMenu;
+
 	menu = nullptr;
+	indexesMenu = nullptr;
 }
 
 void TableMenuDelegate::setTreeView(wxTreeCtrl* treeView)
 {
+
 	this->treeView = treeView;
 }
 
-void TableMenuDelegate::createMenu()
+void TableMenuDelegate::createMenus()
+{
+	imgdir = ResourceUtil::getProductImagesDir() + "/database/menu";
+	
+	createTableMenu();
+	createColumnsMenu();
+	createIndexesMenu();
+}
+void TableMenuDelegate::createTableMenu()
 {
 	if (menu) {
 		return;
@@ -45,118 +58,68 @@ void TableMenuDelegate::createMenu()
 	// main menu
 	menu = new QMenu();
 
-	auto imgdir = ResourceUtil::getProductImagesDir();
-
-	wxMenuItem* menuItem = new wxMenuItem(0, Config::TABLE_OPEN_MENU_ID, S("table-open"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap1(imgdir + "/database/menu/open-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap1));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_CREATE_MENU_ID, S("table-create"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap2(imgdir + "/database/menu/create-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap2));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_ALTER_MENU_ID, S("table-alter"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap3(imgdir + "/database/menu/alter-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap3));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_RENAME_MENU_ID, S("table-rename"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap4(imgdir + "/database/menu/rename-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap4));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_TRUNCATE_MENU_ID, S("table-truncate"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap5(imgdir + "/database/menu/truncate-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap5));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_TRUNCATE_MENU_ID, S("table-drop"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap6(imgdir + "/database/menu/drop-table.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap6));
-	menu->Append(menuItem);
+	menu->appendItem(Config::TABLE_OPEN_MENU_ID, S("table-open"), imgdir + "/open-table.ico");
+	menu->appendItem(Config::TABLE_CREATE_MENU_ID, S("table-create"), imgdir + "/create-table.ico");
+	menu->appendItem(Config::TABLE_ALTER_MENU_ID, S("table-alter"), imgdir + "/alter-table.ico");
+	menu->appendItem(Config::TABLE_RENAME_MENU_ID, S("table-rename"), imgdir + "/rename-table.ico");
+	menu->appendItem(Config::TABLE_TRUNCATE_MENU_ID, S("table-truncate"), imgdir + "/truncate-table.ico");
+	menu->appendItem(Config::TABLE_DROP_MENU_ID, S("table-drop"), imgdir + "/drop-table.ico");
+	menu->appendItem(Config::TABLE_COPY_MENU_ID, S("table-copy-as"), imgdir + "/copy.ico");
+	menu->appendItem(Config::TABLE_SHARDING_MENU_ID, S("table-sharding-as"), imgdir + "/sharding.ico");
 
 	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
 
-	menuItem = new wxMenuItem(0, Config::TABLE_COPY_MENU_ID, S("table-copy-as"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap7(imgdir + "/database/menu/copy.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap7));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_SHARDING_MENU_ID, S("table-sharding-as"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap8(imgdir + "/database/menu/sharding.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap8));
-	menu->Append(menuItem);
-
-	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_EXPORT_MENU_ID, S("table-export"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap9(imgdir + "/database/menu/export-as-sql.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap9));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_IMPORT_SQL_MENU_ID, S("table-import-sql"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap10(imgdir + "/database/menu/import-from-sql.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap10));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_IMPORT_CSV_MENU_ID, S("table-import-csv"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap11(imgdir + "/database/menu/import-from-csv.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap11));
-	menu->Append(menuItem);
-
-	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_MANAGE_INDEX_MENU_ID, S("table-manage-index"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap12(imgdir + "/database/menu/manage-index.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap12));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, S("table-manage-foreign-key"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap13(imgdir + "/database/menu/manage-index.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap13));
-	menu->Append(menuItem);
-
-	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
-
-	menuItem = new wxMenuItem(0, Config::TABLE_PROPERTIES_MENU_ID, S("properties"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap14(imgdir + "/database/menu/properties.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap14));
-	menu->Append(menuItem);
-
-}
+	menu->appendItem(Config::TABLE_EXPORT_MENU_ID, S("table-export"), imgdir + "/export-as-sql.ico");
+	menu->appendItem(Config::TABLE_IMPORT_SQL_MENU_ID, S("table-import-sql"), imgdir + "/import-from-sql.ico");
+	menu->appendItem(Config::TABLE_IMPORT_CSV_MENU_ID, S("table-import-csv"), imgdir + "/import-from-csv.ico");
 	
+	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
+
+	menu->appendItem(Config::TABLE_MANAGE_INDEX_MENU_ID, S("table-manage-index"), imgdir + "/manage-index.ico");
+	menu->appendItem(Config::TABLE_MANAGE_FOREIGNKEY_MENU_ID, S("table-manage-foreign-key"), imgdir + "/manage-foreign-key.ico");
+	
+	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
+
+	menu->appendItem(Config::TABLE_PROPERTIES_MENU_ID, S("properties"), imgdir + "/properties.ico");
+}
+
+void TableMenuDelegate::createColumnsMenu()
+{
+	if (columnsMenu) {
+		return;
+	}
+	// main menu
+	columnsMenu = new QMenu();
+
+	columnsMenu->appendItem(Config::TABLE_MANAGE_COLUMNS_MENU_ID, S("table-manage-columns"), imgdir + "/manager-columns.ico");
+	columnsMenu->appendItem(Config::TABLE_DROP_COLUMN_MENU_ID, S("table-drop-column"), imgdir + "/drop-column.ico");
+}
+
+void TableMenuDelegate::createIndexesMenu()
+{
+	if (indexesMenu) {
+		return;
+	}
+	// main menu
+	indexesMenu = new QMenu();
+
+	indexesMenu->appendItem(Config::TABLE_MANAGE_INDEX_MENU_ID, S("table-manage-indexes"), imgdir + "/manage-index.ico");
+	indexesMenu->appendItem(Config::TABLE_DROP_INDEX_MENU_ID, S("table-drop-index"), imgdir + "/drop-index.ico");
+}	
 
 void TableMenuDelegate::popMenu(int x, int y)
 {
 	treeView->PopupMenu(menu, x, y);
+}
+
+void TableMenuDelegate::popColumnsMenu(int x, int y, bool isColumnItem)
+{
+	columnsMenu->Enable(Config::TABLE_DROP_COLUMN_MENU_ID, isColumnItem);
+	treeView->PopupMenu(columnsMenu, x, y);
+}
+
+void TableMenuDelegate::popIndexesMenu(int x, int y, bool isIndexItem)
+{
+	indexesMenu->Enable(Config::TABLE_DROP_INDEX_MENU_ID, isIndexItem);
+	treeView->PopupMenu(indexesMenu, x, y);
 }

@@ -25,6 +25,7 @@
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/leftview/delegate/LeftTreeDelegate.h"
 #include "ui/database/leftview/delegate/LeftTopbarDelegate.h"
+#include "ui/database/leftview/delegate/ConnectMenuDelegate.h"
 #include "ui/database/leftview/delegate/DatabaseMenuDelegate.h"
 #include "ui/database/leftview/delegate/TableMenuDelegate.h"
 
@@ -50,6 +51,7 @@ private:
 
 	LeftTreeDelegate* leftTreeDelegate;
 	LeftTopbarDelegate* leftTopbarDelegate;
+	ConnectMenuDelegate* connectMenuDelegate;
 	DatabaseMenuDelegate* databaseMenuDelegate;
 	TableMenuDelegate* tableMenuDelegate;
 
@@ -83,5 +85,9 @@ private:
 
 	// combobox
 	void OnSelectedDbCombobox(wxCommandEvent & event);
+
+	//Click Connection menu
+	void OnClickConnectionRefreshMenu(wxCommandEvent & event);
+	void OnClickConnectionManageMenu(wxCommandEvent & event);
 };
 

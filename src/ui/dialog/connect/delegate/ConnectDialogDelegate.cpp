@@ -40,18 +40,27 @@ void ConnectDialogDelegate::loadTreeCtrl(wxTreeCtrl* leftTree)
 	auto rootId = leftTree->AddRoot(S("connect-section-text"), 0, 0);
 	auto userConnectList = connectService->getAllUserConnects();
 
+	wxTreeItemId selItemId;
 	for (auto& item : userConnectList) {
 		QTreeItemData<UserConnect>* data = new QTreeItemData<UserConnect>(item.id, new UserConnect(item));
-		leftTree->AppendItem(rootId, item.name, 1, 1, data);
+		auto itemId = leftTree->AppendItem(rootId, item.name, 1, 1, data);
+		if (item.id == supplier->selConnectId) {
+			selItemId = itemId;
+		}
 	}
 	
 	leftTree->Expand(rootId);
 
-	wxTreeItemIdValue cookie;
-	auto firstItemId = leftTree->GetFirstChild(rootId, cookie);
-	if (firstItemId.IsOk()) {
-		leftTree->SelectItem(firstItemId);
+	if (selItemId.IsOk()) {
+		leftTree->SelectItem(selItemId);
+	} else {
+		wxTreeItemIdValue cookie;
+		auto firstItemId = leftTree->GetFirstChild(rootId, cookie);
+		if (firstItemId.IsOk()) {
+			leftTree->SelectItem(firstItemId);
+		}
 	}
+	
 }
 
 void ConnectDialogDelegate::createForTreeCtrl(wxTreeCtrl* leftTree, const std::string & defaultName)

@@ -46,6 +46,13 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_CONNECTION_CONNECTED_ID, OnHandleConnectionConnected)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_ADD_DATABASE_ID, OnHandleAddDatabase)
 	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_NEW_OBJECT_ID, OnHandleNewObject)
+
+	//Connection Menu
+	EVT_MENU(Config::CONNECTION_REFRESH_MENU_ID,  OnClickConnectionRefreshMenu)
+	EVT_MENU(Config::CONNECTION_MANAGE_MENU_ID,  OnClickConnectionManageMenu)
+	EVT_MENU(Config::CONNECTION_CREATE_MENU_ID,  OnClickConnectButton)
+	EVT_MENU(Config::CONNECTION_DELETE_MENU_ID,  OnClickDeleteButton)
+	EVT_MENU(Config::DATABASE_CREATE_MENU_ID,  OnClickCreateButton)
 END_EVENT_TABLE()
 
 LeftTreeView::LeftTreeView():QPanel()
@@ -57,8 +64,9 @@ LeftTreeView::LeftTreeView():QPanel()
 
 	leftTreeDelegate = LeftTreeDelegate::getInstance(this);
 	leftTopbarDelegate = LeftTopbarDelegate::getInstance(this);
+	connectMenuDelegate = ConnectMenuDelegate::getInstance(this);
 	databaseMenuDelegate = DatabaseMenuDelegate::getInstance(this);
-	tableMenuDelegate = TableMenuDelegate::getInstance(this);
+	tableMenuDelegate = TableMenuDelegate::getInstance(this);	
 }
 
 LeftTreeView::~LeftTreeView()
@@ -73,6 +81,9 @@ LeftTreeView::~LeftTreeView()
 
 	LeftTopbarDelegate::destroyInstance();
 	leftTopbarDelegate = nullptr;
+
+	ConnectMenuDelegate::destroyInstance();
+	connectMenuDelegate = nullptr;
 
 	DatabaseMenuDelegate::destroyInstance();
 	databaseMenuDelegate = nullptr;
@@ -177,12 +188,14 @@ void LeftTreeView::createTreeView()
 
 	loadTreeView(treeView);
 
-	// create menu
+	// create menus
+	connectMenuDelegate->setTreeView(treeView);
 	databaseMenuDelegate->setTreeView(treeView);
 	tableMenuDelegate->setTreeView(treeView);
 
-	databaseMenuDelegate->createMenu();
-	tableMenuDelegate->createMenu();
+	connectMenuDelegate->createMenu();
+	databaseMenuDelegate->createMenus();
+	tableMenuDelegate->createMenus();
 }
 
 void LeftTreeView::resizeComboBox()
@@ -342,10 +355,43 @@ void LeftTreeView::OnTreeItemRightClicked(wxTreeEvent& event)
 	treeView->SelectItem(clickedItemId);
 
 	auto data = reinterpret_cast<QTreeItemData<int> *>(treeView->GetItemData(clickedItemId));
-	if (data->getType() == TreeObjectType::SCHEMA) {
-		databaseMenuDelegate->popMenu(event.GetPoint().x, event.GetPoint().y);
+	if (data->getType() == TreeObjectType::CONNECTION) {
+		connectMenuDelegate->popMenu(event.GetPoint().x, event.GetPoint().y);
+	}else if (data->getType() == TreeObjectType::SCHEMA) {
+		databaseMenuDelegate->popDatabaseMenu(event.GetPoint().x, event.GetPoint().y);
 	} else if (data->getType() == TreeObjectType::TABLE) {
 		tableMenuDelegate->popMenu(event.GetPoint().x, event.GetPoint().y);
+	// FOLDER MENU
+	} else if (data->getType() == TreeObjectType::TABLES_FOLDER) {
+		databaseMenuDelegate->popTablesFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::VIEWS_FOLDER) {
+		databaseMenuDelegate->popViewsFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURES_FOLDER) {
+		databaseMenuDelegate->popProceduresFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::FUNCTIONS_FOLDER) {
+		databaseMenuDelegate->popFunctionsFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::TRIGGERS_FOLDER) {
+		databaseMenuDelegate->popTriggersFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::EVENTS_FOLDER) {
+		databaseMenuDelegate->popEventsFolderMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::VIEW) {
+		databaseMenuDelegate->popViewMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::STORE_PROCEDURE) {
+		databaseMenuDelegate->popProcedureMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::FUNCTION) {
+		databaseMenuDelegate->popFunctionMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::TRIGGER) {
+		databaseMenuDelegate->popTriggerMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::EVENT) {
+		databaseMenuDelegate->popEventMenu(event.GetPoint().x, event.GetPoint().y);
+	} else if (data->getType() == TreeObjectType::TABLE_COLUMNS_FOLDER) {
+		tableMenuDelegate->popColumnsMenu(event.GetPoint().x, event.GetPoint().y, false);
+	} else if (data->getType() == TreeObjectType::TABLE_COLUMN) {
+		tableMenuDelegate->popColumnsMenu(event.GetPoint().x, event.GetPoint().y, true);
+	} else if (data->getType() == TreeObjectType::TABLE_INDEXES_FOLDER) {
+		tableMenuDelegate->popIndexesMenu(event.GetPoint().x, event.GetPoint().y, false);
+	} else if (data->getType() == TreeObjectType::TABLE_INDEX) {
+		tableMenuDelegate->popIndexesMenu(event.GetPoint().x, event.GetPoint().y, true);
 	}
 	
 }
@@ -518,4 +564,23 @@ void LeftTreeView::OnSelectedDbCombobox(wxCommandEvent& event)
 
 		dbItemId = treeView->GetNextSibling(dbItemId); 
 	}
+}
+
+void LeftTreeView::OnClickConnectionRefreshMenu(wxCommandEvent& event)
+{
+	if (!supplier->runtimeUserConnect || !supplier->runtimeUserConnect->id) {
+		return;
+	}
+	leftTreeDelegate->loadForLeftTree(treeView, supplier->runtimeUserConnect->id);
+}
+
+void LeftTreeView::OnClickConnectionManageMenu(wxCommandEvent& event)
+{
+	if (!supplier->runtimeUserConnect || !supplier->runtimeUserConnect->id) {
+		return;
+	}
+
+	ConnectDialog connectDialog(ConnectType::CONNECT_MANAGE, supplier->runtimeUserConnect->id);
+	connectDialog.Create(AppContext::getInstance()->getMainFrmWindow(), -1, S("manage-connection"));
+	connectDialog.ShowModal();
 }
