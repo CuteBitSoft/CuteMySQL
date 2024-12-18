@@ -25,6 +25,7 @@
 #include "utils/ResourceUtil.h"
 #include "utils/StringUtil.h"
 #include "core/entity/Enum.h"
+#include "core/common/Lang.h"
 
 BEGIN_EVENT_TABLE(DuplicateObjectDialog, wxDialog)
 	EVT_BUTTON(wxID_OK, OnClickOkButton)
@@ -226,9 +227,10 @@ void DuplicateObjectDialog::createCenter2Inputs()
 
 	center2VertLayout->AddSpacer(10);
 
-	ddlPreviewEdit = new wxStyledTextCtrl(this, Config::DUPLICATE_DDL_PREVIEW_EDIT_ID, wxDefaultPosition,
+	ddlPreviewEdit = new QSqlEditor(this, Config::DUPLICATE_DDL_PREVIEW_EDIT_ID, wxDefaultPosition,
 		{ 400, 200 }, wxCLIP_CHILDREN | wxALIGN_LEFT);
-	ddlPreviewEdit->SetEditable(false);
+	ddlPreviewEdit->setup(12, FN("Microsoft Yahei UI").c_str());
+	ddlPreviewEdit->SetReadOnly(true);
 	center2VertLayout->Add(ddlPreviewEdit, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_TOP, 5);
 }
 

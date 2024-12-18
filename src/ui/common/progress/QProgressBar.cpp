@@ -17,7 +17,6 @@
  * @date   2024-12-06
  *********************************************************************/
 #include "QProgressBar.h"
-#include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 #include "core/common/Lang.h"
 

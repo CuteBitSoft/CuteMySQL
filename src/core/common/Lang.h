@@ -17,6 +17,7 @@
 
 // 取指定语言的字体
 #define FT(key) Lang::font(key)
+#define FN(key) Lang::fontName(key)
 #define FTB(key, bold) Lang::font(key, bold)
 #define FTBP(key, bold, pixed) Lang::font(key, bold, pixed)
 #define FTBPF(key, bold, pixed, fontName) Lang::font(key, bold, pixed, fontName)

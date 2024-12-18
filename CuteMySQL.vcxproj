@@ -233,12 +233,26 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\common\splitter\QSplitterWindow.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\result\ResultTabView.cpp" />
+    <ClCompile Include="src\ui\common\editor\QSqlEditor.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\editor\QueryPageEditor.cpp" />
+    <ClCompile Include="src\ui\database\rightview\panel\RightBarPenel.cpp" />
+    <ClCompile Include="src\ui\database\rightview\panel\RightMainPenel.cpp" />
+    <ClCompile Include="src\ui\common\notebook\QAuiDefaultTabArt.cpp" />
+    <ClCompile Include="src\ui\common\notebook\QNotebook.cpp" />
+    <ClCompile Include="src\ui\database\rightview\delegate\RightWorkViewDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\HistoryPage.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\QueryPage.cpp" />
     <ClCompile Include="src\ui\common\menu\QMenu.cpp" />
     <ClCompile Include="src\ui\common\progress\QProgressBar.cpp" />
     <ClCompile Include="src\ui\common\delegate\EmptyDelegate.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\ConnectMenuDelegate.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\DatabaseMenuDelegate.cpp" />
     <ClCompile Include="src\ui\database\leftview\delegate\TableMenuDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\supplier\QueryPageSupplier.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\supplier\TableStructureSupplier.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\TableStructurePage.cpp" />
     <ClCompile Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.cpp" />
     <ClCompile Include="src\ui\common\msgbox\QAnimateBox.cpp" />
     <ClCompile Include="src\core\repository\db\CharsetRepository.cpp" />
@@ -307,6 +321,19 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\db\MetadataService.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ui\common\splitter\QSplitterWindow.h" />
+    <ClInclude Include="src\ui\database\rightview\page\result\ResultTabView.h" />
+    <ClInclude Include="src\ui\common\editor\QSqlEditor.h" />
+    <ClInclude Include="src\ui\database\rightview\page\editor\QueryPageEditor.h" />
+    <ClInclude Include="src\ui\database\rightview\panel\RightBarPenel.h" />
+    <ClInclude Include="src\ui\database\rightview\panel\RightMainPenel.h" />
+    <ClInclude Include="src\ui\common\notebook\QAuiDefaultTabArt.h" />
+    <ClInclude Include="src\ui\common\notebook\QNotebook.h" />
+    <ClInclude Include="src\ui\database\rightview\delegate\RightWorkViewDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\common\QPageSupplier.h" />
+    <ClInclude Include="src\ui\database\rightview\common\QTabPage.h" />
+    <ClInclude Include="src\ui\database\rightview\page\HistoryPage.h" />
+    <ClInclude Include="src\ui\database\rightview\page\QueryPage.h" />
     <ClInclude Include="src\ui\common\menu\QMenu.h" />
     <ClInclude Include="src\ui\common\process\QProcess.h" />
     <ClInclude Include="src\ui\common\progress\QProgressBar.h" />
@@ -314,6 +341,9 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClInclude Include="src\ui\database\leftview\delegate\ConnectMenuDelegate.h" />
     <ClInclude Include="src\ui\database\leftview\delegate\DatabaseMenuDelegate.h" />
     <ClInclude Include="src\ui\database\leftview\delegate\TableMenuDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\supplier\QueryPageSupplier.h" />
+    <ClInclude Include="src\ui\database\rightview\page\supplier\TableStructureSupplier.h" />
+    <ClInclude Include="src\ui\database\rightview\page\TableStructurePage.h" />
     <ClInclude Include="src\ui\dialog\delegate\QDialogDelegate.h" />
     <ClInclude Include="src\ui\common\dialog\QFormDialog.h" />
     <ClInclude Include="src\ui\dialog\duplicate\connection\DuplicateConnectionDialog.h" />

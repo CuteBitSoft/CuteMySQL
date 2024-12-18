@@ -68,7 +68,7 @@ void MainView::createOrShowUI()
 	resizePanel(Config::DATABASE_PANEL, databasePanel, clientRect);
 	resizePanel(Config::ANALYSIS_PANEL, analysisPanel, clientRect);
 	resizePanel(Config::SETTING_PANEL, settingPanel, clientRect);
-	//std::wstring initPanel = SettingService::getInstance()->getSysInit(L"init-panel");
+	//std::string initPanel = SettingService::getInstance()->getSysInit(L"init-panel");
 	Config::PanelId nPanel = selectedPannelId == 0 ? Config::HOME_PANEL : selectedPannelId;
 
 	changePanelByPanelId(nPanel);

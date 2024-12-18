@@ -33,8 +33,10 @@ public:
 	void popMenu(int x, int y);
 private:
 	wxTreeCtrl * treeView;
+	wxString imgdir;
 	QMenu* menu = nullptr;
 	QMenu* newSubMenu = nullptr;
+
 	wxColour bkgColor{ 43, 45, 48, 43 };
 	wxColour textColor{ 223, 225, 229, 213 };
 

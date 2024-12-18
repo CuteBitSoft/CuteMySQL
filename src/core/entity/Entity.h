@@ -186,6 +186,7 @@ typedef struct _ColumnInfo {
 	uint8_t isNullable = 0; // is nullable
 	uint8_t ai = 0; // auto increment
 	uint8_t un = 0; // unsigned
+	uint8_t pk = 0; // primary key
 	uint64_t size = 0; // size
 
 	std::string catalog;

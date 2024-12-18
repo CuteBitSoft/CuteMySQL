@@ -39,66 +39,27 @@ void ConnectMenuDelegate::setTreeView(wxTreeCtrl* treeView)
 
 void ConnectMenuDelegate::createMenu()
 {
+	imgdir = ResourceUtil::getProductImagesDir() + "/database/menu";
 	if (menu) {
 		return;
 	}
 	// main menu
 	menu = new QMenu();
 	
-	auto imgdir = ResourceUtil::getProductImagesDir();
+	menu->appendItem(Config::CONNECTION_REFRESH_MENU_ID, S("connection-refresh"), imgdir + "/refresh.ico");
+	menu->appendItem(Config::CONNECTION_MANAGE_MENU_ID, S("connection-manage"), imgdir + "/manage-connection.ico");
+	menu->appendItem(Config::CONNECTION_CREATE_MENU_ID, S("connection-create"), imgdir + "/create-connection.ico");
+	menu->appendItem(Config::CONNECTION_DELETE_MENU_ID, S("connection-delete"), imgdir + "/delete.ico");
+	
+	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
 
-	wxMenuItem * menuItem = new wxMenuItem(0, Config::CONNECTION_REFRESH_MENU_ID, S("connection-refresh"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap1(imgdir + "/database/menu/refresh.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap1));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::CONNECTION_MANAGE_MENU_ID, S("connection-manage"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap2(imgdir + "/database/menu/manage-connection.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap2));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::CONNECTION_CREATE_MENU_ID, S("connection-create"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap3(imgdir + "/database/menu/create-connection.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap3));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::CONNECTION_DELETE_MENU_ID, S("connection-delete"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap4(imgdir + "/database/menu/delete.ico", wxBITMAP_TYPE_ICO); 
-	menuItem->SetBitmap(wxBitmapBundle(bitmap4));
-	menu->Append(menuItem);
+	menu->appendItem(Config::DATABASE_CREATE_MENU_ID, S("database-create"), imgdir + "/create-database.ico");
 
 	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
 
-	menuItem = new wxMenuItem(0, Config::DATABASE_CREATE_MENU_ID, S("database-create"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap5(imgdir + "/database/menu/create-database.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap5));
-	menu->Append(menuItem);
-
-	menu->AppendSeparator()->SetBackgroundColour(bkgColor);
-
-	menuItem = new wxMenuItem(0, Config::CONNECTION_IMPORT_FROM_SQL_MENU_ID, S("connection-import-from-sql"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap6(imgdir + "/database/menu/import-from-sql.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap6));
-	menu->Append(menuItem);
-
-	menuItem = new wxMenuItem(0, Config::CONNECTION_EXPORT_AS_SQL_MENU_ID, S("connection-export-as-sql"));
-	menuItem->SetBackgroundColour(bkgColor);
-	menuItem->SetTextColour(textColor);
-	wxBitmap bitmap7(imgdir + "/database/menu/export-as-sql.ico", wxBITMAP_TYPE_ICO);
-	menuItem->SetBitmap(wxBitmapBundle(bitmap7));
-	menu->Append(menuItem);
+	menu->appendItem(Config::CONNECTION_IMPORT_FROM_SQL_MENU_ID, S("connection-import-from-sql"), imgdir + "/import-from-sql.ico");
+	menu->appendItem(Config::CONNECTION_EXPORT_AS_SQL_MENU_ID, S("connection-export-as-sql"), imgdir + "/export-as-sql.ico");
+	
 }
 
 void ConnectMenuDelegate::popMenu(int x, int y)

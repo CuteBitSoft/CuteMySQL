@@ -19,7 +19,6 @@
 
 #pragma once
 #include <wx/treelist.h>
-#include <wx/stc/stc.h>
 #include "ui/common/dialog/QFormDialog.h"
 #include "core/entity/Enum.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
@@ -28,6 +27,7 @@
 #include "ui/dialog/duplicate/object/delegate/DuplicateObjectDialogDelegate.h"
 #include "ui/common/progress/QProgressBar.h"
 #include "ui/common/process/QProcess.h"
+#include "ui/common/editor/QSqlEditor.h"
 
 class DuplicateObjectDialog :  public QFormDialog<DuplicateObjectDialogDelegate>
 {
@@ -81,7 +81,7 @@ private:
 	wxBitmapComboBox*	targetDatabaseComboBox;
 	wxTextCtrl*			targetObjectEdit;
 
-	wxStyledTextCtrl*	ddlPreviewEdit;
+	QSqlEditor*	ddlPreviewEdit;
 
 	// lock settings
 	wxCheckBox* lockTablesCheckBox;
