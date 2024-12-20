@@ -18,9 +18,11 @@
  *********************************************************************/
 #pragma once
 #include <wx/stc/stc.h>
+#include <vector>
 
 class QSqlEditor : public wxStyledTextCtrl
 {
+    DECLARE_EVENT_TABLE()
 public:
 	QSqlEditor();
     QSqlEditor(wxWindow *parent, wxWindowID id = wxID_ANY,
@@ -35,6 +37,24 @@ public:
 	void setup(int nSize, const char* face);
     bool SetBackgroundColour(const wxColour & color);
     void setDefaultColorFont(int nSize, const char* face);
+    // update the line number width
+    void updateLineNumberWidth();
+    wxString getPrePositionTextOfCurLine();
+    wxString getCurWord();
+    wxString getCurMaxWord();
+    size_t getCurPosInLine();
+
+    wxString getSelText();
+    wxString getText();
+    wxString getCurLineText();
+
+    void selectCurMaxWord();
+    void replaceSelText(const wxString& text);
+
+    void autoShow(const std::vector<std::string> & tags);
+	void autoComplete();
+	void autoReplaceWord();
+	void autoReplaceSelectTag();
 private:
     wxColour textColor;
     wxColour bkgColor;
@@ -43,8 +63,10 @@ private:
     
     void setupSqlSyntax(int nSize, const char* face);
    
-    void updateLineNumberWidth();
+    
     void SetStyleBitsEx(int bits);
     void UsePopUpEx(int popUpMode);
+
+    void OnKeydown(wxKeyEvent& evt);
 };
 

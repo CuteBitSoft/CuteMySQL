@@ -17,21 +17,52 @@
  * @date   2024-12-17
  *********************************************************************/
 #pragma once
+#include <wx/bmpcbox.h>
 #include "ui/common/panel/QPanel.h"
 #include "ui/common/editor/QSqlEditor.h"
+#include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
+#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
+#include "ui/database/rightview/page/editor/delegate/QueryPageEditorDelegate.h"
 
-class QueryPageEditor :  public QPanel<QueryPageSupplier>
+class QueryPageEditor :  public QPanel<DatabaseSupplier>
 {
+	DECLARE_EVENT_TABLE()
 public:
-	QueryPageEditor(const wxString & titleLabel = "");
+	QueryPageEditor(QueryPageSupplier * queryPageSupplier);
+	~QueryPageEditor();
 private:
-	wxString titleLabel;
 
-	wxStaticText* title;
+	//toolbar controls
+	wxBitmapComboBox*	connectComboBox;
+	wxBitmapComboBox*	databaseComboBox;
+
 	QSqlEditor* editor;
+
+	QueryPageSupplier* mysupplier;
+	QueryPageEditorDelegate* delegate;
 
 	virtual void init();
 	virtual void createControls();
+	void createToolbarInputs();
+	void createEditor();
+	virtual void loadControls();
+
+	// wxStyledTextCtrl Events
+	void OnStcZoom(wxStyledTextEvent& event);
+	void OnStcModified(wxStyledTextEvent& event);
+	void OnStcMarginClicked(wxStyledTextEvent& event);
+	void OnStcUpdateUI(wxStyledTextEvent& event);
+	void OnStcCharAdded(wxStyledTextEvent& event);
+	void OnStcFocusIn(wxStyledTextEvent& event);
+	void OnStcDoubleClick(wxStyledTextEvent& event);
+	void OnStcKey(wxStyledTextEvent& event);
+	void OnAutoCSelection(wxStyledTextEvent& event);
+
+	// combobox changed events
+	void OnSelChangeConnectCombobox(wxCommandEvent& event);
+	void OnSelChangeDatabaseCombobox(wxCommandEvent& event);
+
+	void doLoadRuntimeDbAndTblName();
 };
 

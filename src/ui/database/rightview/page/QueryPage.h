@@ -19,25 +19,31 @@
 #pragma once
 #include <wx/splitter.h>
 #include "ui/database/rightview/common/QTabPage.h"
+#include "ui/common/supplier/EmptySupplier.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/editor/QueryPageEditor.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
+#include <wx/bmpcbox.h>
 
-class QueryPage : public QTabPage<QueryPageSupplier>
+class QueryPage : public QTabPage<EmptySupplier>
 {
 public:
+	QueryPage(PageOperateType operateType, const std::string& content = std::string(), const std::string& tplPath = std::string());
+	~QueryPage();
 	void setup(PageOperateType operateType, const std::string & content = std::string(), const std::string & tplPath = std::string());
 private:
 	std::string viewName;
 	std::string tplPath;
 	std::string content;
 
+	QueryPageSupplier* mysupplier;
 	bool isSpliterReload = true;
 
 	QueryPageEditor* queryEditor;
 	ResultTabView* resultTabView;
 	wxSplitterWindow * splitter;
 
+	virtual void init();
 	virtual void createControls();
 	void createSplitter();
 	void createQueryEditor();

@@ -32,6 +32,7 @@ public:
 	void createUserDb(const UserDb& userDb);
 	bool copyUserDb(uint64_t fromConnectId, const std::string & fromSchema, uint64_t toConnectId, const std::string & toSchema);
 
+	std::vector<std::string> getSysFunctionStrings(uint64_t connectId, const std::string& schema, bool upcase);
 private:
 
 };

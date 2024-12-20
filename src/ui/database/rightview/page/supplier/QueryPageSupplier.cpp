@@ -136,32 +136,34 @@ QueryPageSupplier::~QueryPageSupplier()
 {
 }
 
-UserTableStrings & QueryPageSupplier::getCacheUserTableStrings(uint64_t userDbId)
+UserTableStrings & QueryPageSupplier::getCacheUserTableStrings(uint64_t connectId, const std::string & schema)
 {
-	assert(userDbId);
-	return cacheUserTableMap[userDbId];
+	assert(connectId);
+	std::pair<uint64_t, std::string> pair{connectId, schema};
+	return cacheUserTableMap[pair];
 }
 
 
-void QueryPageSupplier::setCacheUserTableStrings(uint64_t userDbId, UserTableStrings & tblStrs)
+void QueryPageSupplier::setCacheUserTableStrings(uint64_t connectId, const std::string & schema, UserTableStrings & tblStrs)
 {
-	assert(userDbId);
-	cacheUserTableMap[userDbId] = tblStrs;
+	assert(connectId && schema.empty() == false);
+	std::pair<uint64_t, std::string> pair{ connectId, schema };
+	cacheUserTableMap[pair] = tblStrs;
 }
 
 
-Columns & QueryPageSupplier::getCacheTableColumns(uint64_t userDbId, const std::string & tblName)
+Columns & QueryPageSupplier::getCacheTableColumns(uint64_t connectId,   const std::string & schema,  const std::string & tblName)
 {
-	assert(userDbId && !tblName.empty());
-	std::pair<uint64_t, std::string> pair({ userDbId, tblName });
+	assert(connectId && !schema.empty() && !tblName.empty());
+	std::pair<uint64_t, std::string> pair({ connectId, schema + "." + tblName});
 	return cacheTableColumnsMap[pair];
 }
 
 
-void QueryPageSupplier::setCacheTableColumns(uint64_t userDbId, const std::string & tblName, const Columns & columns)
+void QueryPageSupplier::setCacheTableColumns(uint64_t connectId,   const std::string & schema,  const std::string & tblName, const Columns & columns)
 {
-	assert(userDbId && !tblName.empty());
-	std::pair<uint64_t, std::string> pair({ userDbId, tblName });
+	assert(connectId && !schema.empty() && !tblName.empty());
+	std::pair<uint64_t, std::string> pair({ connectId, schema + "." + tblName });
 	cacheTableColumnsMap[pair] = columns;
 }
 

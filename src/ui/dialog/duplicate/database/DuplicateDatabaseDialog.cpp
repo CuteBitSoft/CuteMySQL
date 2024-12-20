@@ -215,7 +215,7 @@ void DuplicateDatabaseDialog::loadControls()
 	sourceConnectEdit->SetValue(connnectName);
 	sourceDatabaseEdit->SetValue(userDb.name);
 
-	delegate->loadForConnectComboBox(targetConnectComboBox);
+	delegate->loadForConnectComboBox(targetConnectComboBox, userConnect.id);
 	wxString targetDbName = userDb.name;
 	targetDbName.Append(" (copy)");
 	targetDatabaseEdit->SetValue(targetDbName);

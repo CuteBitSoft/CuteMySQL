@@ -74,6 +74,10 @@ const char autoStopChars[] = "[\x1E(\x1E>\x1E=\x1E+\x1E*\x1E/\x1E)\x1E]";
 // 忽略CTRL+[key]...的功能
 const char ignoreCtrlKey[] = "SFBNLKHGPOREWQ";
 
+BEGIN_EVENT_TABLE(QSqlEditor, wxStyledTextCtrl)
+	EVT_KEY_DOWN(OnKeydown)
+END_EVENT_TABLE()
+
 QSqlEditor::QSqlEditor() : 
 	wxStyledTextCtrl(), 
 	bkgColor(30, 31, 34, 30),
@@ -265,6 +269,15 @@ void QSqlEditor::UsePopUpEx(int popUpMode)
     SendMsg(2371, popUpMode, 0);
 }
 
+void QSqlEditor::OnKeydown(wxKeyEvent& event)
+{
+	char ch = (char)event.GetKeyCode();
+	if (ch == WXK_DOWN || ch == WXK_UP || ch == WXK_LEFT || ch == WXK_RIGHT) {
+		
+	}
+	wxStyledTextCtrl::OnKeyDown(event);
+}
+
 void QSqlEditor::updateLineNumberWidth()
 {
 	//start 显示行号
@@ -278,9 +291,171 @@ void QSqlEditor::updateLineNumberWidth()
 	}
 	iLineMarginWidthNow = static_cast<long>(GetMarginWidth(0));
 	long charWidth = static_cast<long>(TextWidth(wxSTC_STYLE_LINENUMBER, "9"));
-	iLineMarginWidthFit = (charWidth + 1) * iLineNumCount;
+	iLineMarginWidthFit = (charWidth) * iLineNumCount;
 	if (iLineMarginWidthNow != iLineMarginWidthFit) {
 		SetMarginWidth(0, iLineMarginWidthFit);
 	}
 	//end of 显示行号
 }
+
+/**
+ * Get the text of prev position in the current line contains the caret.
+ * 
+ */
+wxString QSqlEditor::getPrePositionTextOfCurLine()
+{
+	std::wstring text;
+	int gCurPos = GetCurrentPos(); // global position of caret
+	int lineNumber = LineFromPosition(gCurPos);
+	int gLineBeginPos = PositionFromLine(lineNumber); // global position of line beginning 
+	if (gCurPos == gLineBeginPos) {
+		return text;
+	}
+	
+	return GetTextRange(gLineBeginPos, gCurPos);
+}
+
+/**
+ * Get current word of caret.
+ * 
+ * @return 
+ */
+wxString QSqlEditor::getCurWord()
+{
+	wxString text;
+	int curPos = GetCurrentPos();
+	int start = WordStartPosition(curPos, true);
+	int end = WordEndPosition(curPos, true);
+	if (end == start) {
+		return text;
+	}
+	return GetTextRange(start, end);
+}
+
+/**
+ * Get current word contains prev character and next character in the current line.
+ * 
+ * @return 
+ */
+wxString QSqlEditor::getCurMaxWord()
+{
+	std::wstring text;
+	int curPos = GetCurrentPos();
+	int start = WordStartPosition(curPos, true);
+	int end = WordEndPosition(curPos, true);
+	if (end == start) {
+		return text;
+	}
+	start = start ? start : start - 1; // contains prev blank spacer
+	end = end + 1; // contain next blank spacer
+	return GetTextRange(start, end);
+}
+
+size_t QSqlEditor::getCurPosInLine()
+{
+	int gCurPos = GetCurrentPos(); // global position of caret
+	int lineNumber = LineFromPosition(gCurPos);
+	int gLineBeginPos = PositionFromLine(lineNumber); // global position of line beginning 
+	if (gCurPos == gLineBeginPos) {
+		return 0;
+	}
+
+	return gCurPos - gLineBeginPos;
+}
+
+wxString QSqlEditor::getSelText()
+{
+	return GetSelectedText();
+}
+
+wxString QSqlEditor::getText()
+{
+	return GetText();
+}
+
+wxString QSqlEditor::getCurLineText()
+{
+	return GetCurLine();
+}
+
+void QSqlEditor::selectCurMaxWord()
+{
+	int curPos = GetCurrentPos();
+	int start = WordStartPosition(curPos, true);
+	int end = WordEndPosition(curPos, true);
+	if (end == start) {
+		return ;
+	}
+	start = start ? start : start - 1; // contains prev blank spacer
+	end = end + 1; // contain next blank spacer
+	
+	// #define SCI_SETSEL 2160
+	SendMsg(2160, start, end);
+}
+
+void QSqlEditor::replaceSelText(const wxString& text)
+{
+	if (text.empty()) {
+		return;
+	}
+
+	ReplaceSelectionRaw(text.c_str());
+}
+
+void QSqlEditor::autoShow(const std::vector<std::string>& tags)
+{
+	if (tags.empty()) {
+		return;
+	}
+	size_t n = tags.size();
+	size_t sum = 0;
+	std::for_each(tags.begin(), tags.end(), [&sum](const std::string& str) {
+		sum += str.size();
+	});
+
+	char* itemList = new char[tags.size() + sum];
+	memset(itemList, 0, tags.size() + sum);
+	char * ptr = itemList;
+
+	for (size_t i = 0; i < n; i++) {
+		std::string tag = tags.at(i);
+		if (i < n - 1) {
+			tag += separator;
+		}
+		memcpy(ptr, tag.c_str(), tag.size());
+		ptr += tag.size();
+	}
+	AutoCompSetSeparator(separator);
+	AutoCompSetIgnoreCase(true);
+	AutoCompSetCaseInsensitiveBehaviour(1);
+	AutoCompStops(autoStopChars);
+	AutoCompShow(0, itemList);
+
+	delete[] itemList;
+}
+
+void QSqlEditor::autoComplete()
+{
+	AutoCompComplete();
+}
+
+void QSqlEditor::autoReplaceWord()
+{
+	int curPos = GetCurrentPos();
+	int start = WordStartPosition(curPos, true);
+	int end = WordEndPosition(curPos, true);
+
+	SetSelection(start, end);
+
+	wxString text = AutoCompGetCurrentText();
+	replaceSelText(text);
+	AutoCompCancel();
+}
+
+void QSqlEditor::autoReplaceSelectTag()
+{
+	wxString text = AutoCompGetCurrentText();
+	replaceSelText(text);
+	AutoCompCancel();
+}
+

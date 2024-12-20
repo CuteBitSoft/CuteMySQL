@@ -197,6 +197,7 @@ typedef struct _ColumnInfo {
 	std::string type;
 	std::string defVal;
 	std::string remarks;
+	std::string checks;
 	
 	std::chrono::system_clock::time_point seq; //system assign a sequence, for alter table
 } ColumnInfo;

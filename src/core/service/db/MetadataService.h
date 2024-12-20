@@ -65,6 +65,11 @@ public:
 
 	bool hasUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
 	bool hasUserObject(uint64_t connectId, const std::string& schema, const std::string& name, const std::string &objectType);
+
+	// -- Get object strings 
+	// +- user table strings
+	UserTableStrings getUserTableStrings(uint64_t connectId, const std::string & schema);
+	Columns getUserColumnStrings(uint64_t connectId, const std::string & schema, const std::string & tblName);
 private:
 	UserViewRepository* userViewRepository = UserViewRepository::getInstance();
 	UserRoutineRepository* userRoutineRepository = UserRoutineRepository::getInstance();

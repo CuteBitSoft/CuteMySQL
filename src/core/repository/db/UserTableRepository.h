@@ -26,6 +26,7 @@ public:
 	bool remove(uint64_t connectId, const std::string& schema, const std::string& name);
 	bool has(uint64_t connectId, const std::string& schema, const std::string& name);
 	UserTable get(uint64_t connectId, const std::string& schema, const std::string& name);
+
 private:
 	UserTable toUserTable(sql::ResultSet* rs);
 };

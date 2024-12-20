@@ -33,8 +33,7 @@ void RightWorkViewDelegate::setup(QNotebook* tabView, std::vector<QueryPage*>& q
  */
 void RightWorkViewDelegate::createFirstQueryPage()
 {
-	QueryPage* firstQueryPage = new QueryPage();
-	firstQueryPage->setup(QUERY_DATA);
+	QueryPage* firstQueryPage = new QueryPage(QUERY_DATA);
 	firstQueryPage->Create(tabView, wxID_ANY, wxDefaultPosition, {200, 200}, wxCLIP_CHILDREN | wxNO_BORDER);
 	queryPagePtrs->push_back(firstQueryPage);
 	auto title = S("query-editor");

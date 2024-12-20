@@ -297,7 +297,7 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 	supplier->runtimeUserRoutine = nullptr;
 	supplier->runtimeUserTrigger = nullptr;
 	supplier->runtimeUserEvent = nullptr;
-
+	
 	if (selTableData == nullptr) {
 		auto selViewData = leftTreeDelegate->getSelectedViewItemData(treeView);
 		if (selViewData != nullptr) {
@@ -319,13 +319,19 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 	} // view 
 	
 	
-	if (supplier->runtimeUserConnect && selConnectData == supplier->runtimeUserConnect) {
+	if (supplier->runtimeUserConnect && selConnectData == supplier->runtimeUserConnect) {		
+		supplier->setRuntimeUserConnectId(supplier->runtimeUserConnect->id);
+		supplier->setRuntimeSchema(selDbData ? selDbData->name : "");			
+
 		if (selDbData == supplier->runtimeUserDb) {
 			supplier->runtimeUserTable = selTableData;
+			supplier->setRuntimeTblName(selTableData ? selTableData->name : "");
+			leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 			return;
 		} else {
 			supplier->runtimeUserDb = selDbData;
 			supplier->runtimeUserTable = selTableData;
+			supplier->setRuntimeTblName(selTableData ? selTableData->name : "");
 			bool ret = leftTopbarDelegate->selectDbsForComboBox(selectedDbComboBox);
 			if (!ret) {
 				leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
@@ -334,15 +340,19 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 		}
 	}
 	supplier->runtimeUserConnect = selConnectData;
-
+	supplier->setRuntimeUserConnectId(supplier->runtimeUserConnect->id);
+	supplier->setRuntimeSchema(selDbData ? selDbData->name : "");
+	
 	if (selDbData != supplier->runtimeUserDb) {
 		supplier->runtimeUserDb = selDbData;
+	}
+	if (selConnectData) {
 		leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 	}
+	
 
-	if (selTableData != supplier->runtimeUserTable) {
-		supplier->runtimeUserTable = selTableData;
-	}
+	supplier->runtimeUserTable = selTableData;
+	supplier->setRuntimeTblName(selTableData ? selTableData->name : "");
 }
 
 void LeftTreeView::OnTreeItemRightClicked(wxTreeEvent& event)

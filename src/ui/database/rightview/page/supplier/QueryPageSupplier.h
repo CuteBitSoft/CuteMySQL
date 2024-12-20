@@ -27,7 +27,6 @@ public:
 	QueryPageSupplier();
 	~QueryPageSupplier();
 	
-
 	static const std::vector<std::string> sqlTags;
 	static const std::list<std::tuple<int, std::string, std::string>> pragmas;
 
@@ -38,12 +37,12 @@ public:
 	void splitToSqlVector(std::string sql);
 
 	// tables
-	UserTableStrings & getCacheUserTableStrings(uint64_t userDbId);
-	void setCacheUserTableStrings(uint64_t userDbId, UserTableStrings & tblStrs);
+	UserTableStrings & getCacheUserTableStrings(uint64_t connectId, const std::string & schema);
+	void setCacheUserTableStrings(uint64_t connectId, const std::string & schema, UserTableStrings & tblStrs);
 
 	// table columns
-	Columns & getCacheTableColumns(uint64_t userDbId, const std::string & tblName);
-	void setCacheTableColumns(uint64_t userDbId, const std::string & tblName, const Columns & columns);
+	Columns & getCacheTableColumns(uint64_t connectId, const std::string & schema,  const std::string & tblName);
+	void setCacheTableColumns(uint64_t connectId,   const std::string & schema,  const std::string & tblName, const Columns & columns);
 
 	std::string & getCacheUseSql() { return cacheUseSql; }
 	void setCacheUseSql(const std::string & val) { cacheUseSql = val; }
@@ -53,10 +52,10 @@ public:
 	wxWindow* getActiveResultTabPageHwnd() const { return activeResultTabPageHwnd; }
 	void setActiveResultTabPageHwnd(wxWindow* val) { activeResultTabPageHwnd = val; }
 private:
-	// template params: first - userDbId, second - user table strings
-	std::map<uint64_t, UserTableStrings> cacheUserTableMap;
+	// template params: first - connectid, second - schema , third - table strings 
+	std::map<std::pair<uint64_t, std::string>, UserTableStrings> cacheUserTableMap;
 	
-	// template params:  first - userDbId, second - table name, third - columns strings
+	// template params:  first - connectId, second - schema.tblName, third - columns strings
 	std::map<std::pair<uint64_t, std::string>, Columns> cacheTableColumnsMap;
 
 	// 

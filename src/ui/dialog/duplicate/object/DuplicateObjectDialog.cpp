@@ -254,7 +254,7 @@ void DuplicateObjectDialog::loadControls()
 	sourceDatabaseEdit->SetValue(userDb.name);
 	sourceObjectEdit->SetValue(sourceObjectName);
 
-	delegate->loadForConnectComboBox(targetConnectComboBox);
+	delegate->loadForConnectComboBox(targetConnectComboBox, databaseSupplier->getRuntimeUserConnectId());
 	delegate->loadForSchemaComboBox(targetDatabaseComboBox,
 		userConnect.id,
 		userDb.name);
@@ -279,6 +279,8 @@ void DuplicateObjectDialog::OnSelChangeConnectCombobox(wxCommandEvent& event)
 	if (!connectData) {
 		return;
 	}
+
+	delegate->loadForSchemaComboBox(targetDatabaseComboBox, connectData->getDataPtr()->id);
 }
 
 void DuplicateObjectDialog::OnChangeTargetObjectEditText(wxCommandEvent& event)

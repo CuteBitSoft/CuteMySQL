@@ -21,18 +21,38 @@
 #include "common/Config.h"
 #include "core/common/Lang.h"
 
+QueryPage::QueryPage(PageOperateType operateType, const std::string& content, const std::string& tplPath)
+	: QTabPage<EmptySupplier>()
+{
+	init();
+	setup(operateType, content, tplPath);
+}
+
+QueryPage::~QueryPage()
+{
+	delete mysupplier;
+	mysupplier = nullptr;
+}
+
 void QueryPage::setup(PageOperateType operateType, const std::string& content, const std::string& tplPath)
 {
-	supplier->setRuntimeUserDbId(databaseSupplier->getRuntimeUserDbId());
-	supplier->setOperateType(operateType);
+	mysupplier->setOperateType(operateType);
+	// copy data from databaseSupplier(singleton for LeftTreeView)
+	mysupplier->setRuntimeUserConnectId(databaseSupplier->runtimeUserConnect->id);	
+	mysupplier->setRuntimeSchema(databaseSupplier->getRuntimeSchema());	
+		
 	if (operateType == TABLE_DATA) {
 		// persistent store the three runtime data		
 		supplier->setRuntimeTblName(databaseSupplier->getRuntimeTblName());
-		supplier->setRuntimeSchema(databaseSupplier->getRuntimeSchema());
 	}
 	
 	this->tplPath = tplPath;
 	this->content = content;
+}
+
+void QueryPage::init()
+{
+	mysupplier = new QueryPageSupplier();
 }
 
 void QueryPage::createControls()
@@ -53,7 +73,7 @@ void QueryPage::createSplitter()
 
 void QueryPage::createQueryEditor()
 {
-	queryEditor = new QueryPageEditor();
+	queryEditor = new QueryPageEditor(mysupplier);
 	queryEditor->Create(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxCLIP_CHILDREN);
 }
 

@@ -172,3 +172,28 @@ bool MetadataService::hasUserObject(uint64_t connectId, const std::string& schem
 {
     return getRepository()->hasObject(connectId, schema, name, objectType);
 }
+
+UserTableStrings MetadataService::getUserTableStrings(uint64_t connectId, const std::string& schema)
+{
+    assert(connectId > 0);
+	UserTableStrings result;
+     if (schema.empty()) {
+        return result;
+    }
+	UserTableList userTableList = getRepository()->getAll(connectId, schema);
+	for (auto userTable : userTableList) {
+		result.push_back(userTable.name);
+	}
+	return result;
+}
+
+Columns MetadataService::getUserColumnStrings(uint64_t connectId, const std::string& schema, const std::string& tblName)
+{
+    assert(connectId > 0 && !schema.empty() && !tblName.empty());
+	ColumnInfoList columnInfoList = tableColumnRepository->getAll(connectId, schema, tblName);
+	Columns result;
+	for (auto & item : columnInfoList) {
+		result.push_back(item.name);
+	}
+	return result;
+}

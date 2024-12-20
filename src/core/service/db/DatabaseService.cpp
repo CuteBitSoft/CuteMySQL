@@ -87,3 +87,18 @@ bool DatabaseService::copyUserDb(uint64_t fromConnectId, const std::string & fro
 {
 	return false;
 }
+
+/**
+ * Get system function strings.
+ * 
+ * @param connectId
+ * @param schema
+ * @param upcase
+ * @return std::vector<std::string> - system function strings 
+ */
+std::vector<std::string> DatabaseService::getSysFunctionStrings(uint64_t connectId, const std::string& schema, bool upcase)
+{
+	std::vector<std::string> result;
+
+	return result;
+}

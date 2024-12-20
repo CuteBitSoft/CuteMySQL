@@ -85,6 +85,7 @@ void QueryPageEditor::createEditor()
 	editor->Create(this, Config::DATABASE_QUERY_EDITOR_ID, wxDefaultPosition, wxDefaultSize, wxNO_BORDER | wxCLIP_CHILDREN);
 	editor->setup(12, FN("Courier New").c_str());
 	editor->SetFocus();
+	editor->SetForegroundColour(textColor);
 	topSizer->Add(editor, 1, wxEXPAND);
 }
 

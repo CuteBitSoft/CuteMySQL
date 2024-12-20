@@ -123,8 +123,8 @@ sql::Connection * BaseUserRepository<T>::getUserConnect(uint64_t userConnectId)
 		
 	}
 
-	Q_INFO(L"BaseUserRepository::getConnect(connectId), connectId:{} connect...", userConnectId);
-	Q_INFO(L"BaseUserRepository::getConnect(connectId), connectId:{}, connect.isValid():{}",
+	Q_INFO("BaseUserRepository::getConnect(connectId), connectId:{} connect...", userConnectId);
+	Q_INFO("BaseUserRepository::getConnect(connectId), connectId:{}, connect.isValid():{}",
 		userConnectId, QConnect::userConnectPool[userConnectId]->isValid());
 
 	if (!QConnect::userConnectPool[userConnectId]->isValid()) {

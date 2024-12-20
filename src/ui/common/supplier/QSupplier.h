@@ -36,14 +36,13 @@ public:
 	uint64_t getRuntimeUserConnectId() const { return runtimeUserConnectId; }
 	void setRuntimeUserConnectId(uint64_t val) { runtimeUserConnectId = val; }
 
-	uint64_t getRuntimeUserDbId() const { return runtimeUserDbId; }
-	void setRuntimeUserDbId(uint64_t val) { runtimeUserDbId = val; }
+	
+	std::string & getRuntimeSchema() { return runtimeSchema; }
+	void setRuntimeSchema(const std::string & val) { runtimeSchema = val; }
 
 	std::string & getRuntimeTblName() { return runtimeTblName; }
 	void setRuntimeTblName(const std::string & val) { runtimeTblName = val; }
 
-	std::string & getRuntimeSchema() { return runtimeSchema; }
-	void setRuntimeSchema(const std::string & val) { runtimeSchema = val; }
 	
 	bool getIsDirty() { return isDirty; }
 	void setIsDirty(bool dirty = false) { isDirty = dirty; }
