@@ -64,7 +64,7 @@ void TableMenuDelegate::createTableMenu()
 	menu->appendItem(Config::TABLE_RENAME_MENU_ID, S("table-rename"), imgdir + "/rename-table.ico");
 	menu->appendItem(Config::TABLE_TRUNCATE_MENU_ID, S("table-truncate"), imgdir + "/truncate-table.ico");
 	menu->appendItem(Config::TABLE_DROP_MENU_ID, S("table-drop"), imgdir + "/drop-table.ico");
-	menu->appendItem(Config::TABLE_COPY_MENU_ID, S("table-copy-as"), imgdir + "/copy.ico");
+	menu->appendItem(Config::TABLE_COPY_MENU_ID, S("table-copy-as"), imgdir + "/duplicate.ico"); 
 	menu->appendItem(Config::TABLE_SHARDING_MENU_ID, S("table-sharding-as"), imgdir + "/sharding.ico");
 
 	menu->AppendSeparator()->SetBackgroundColour(bkgColor);

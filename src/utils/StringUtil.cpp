@@ -18,7 +18,7 @@
  * @date   2023-11-04
  *********************************************************************/
 #include "StringUtil.h"
-
+#include <wx/strconv.h>
 
 /**
 * 合并名字.
@@ -429,7 +429,7 @@ void StringUtil::trim(std::string &inout_str)
 	inout_str.erase(inout_str.find_last_not_of(whitespace) + 1U);
 }
 
-std::string StringUtil::escape(std::string &source)
+std::string StringUtil::escape(const std::string &source)
 {
 	if (source.empty()) {
 		return source;
@@ -443,7 +443,7 @@ std::string StringUtil::escape(std::string &source)
 	return result;
 }
 
-std::string StringUtil::escapeXml(std::string & source)
+std::string StringUtil::escapeXml(const std::string & source)
 {
 	if (source.empty()) {
 		return source;
@@ -463,7 +463,7 @@ std::string StringUtil::escapeXml(std::string & source)
 	return source;		
 }
 
-std::string StringUtil::escapeSql(std::string &source)
+std::string StringUtil::escapeSql(const std::string &source)
 {
 	if (source.empty()) {
 		return source;
@@ -750,4 +750,14 @@ std::string& StringUtil::convertQuotes(std::string& str)
 		str = replace(str, "\\\"", "\"\"");
 	}
 	return str;
+}
+
+std::string StringUtil::converFromUtf8(const std::string& str)
+{
+	return wxString(wxConvUTF8.cMB2WC(str.c_str()), *wxConvCurrent).ToStdString();
+}
+
+wxString StringUtil::converFromUtf8(const wxString& str)
+{
+	return wxString(wxConvUTF8.cMB2WC(str.c_str()), *wxConvCurrent);
 }

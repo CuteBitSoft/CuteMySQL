@@ -18,12 +18,13 @@
  *********************************************************************/
 #pragma once
 #include <wx/splitter.h>
+#include <wx/bmpcbox.h>
 #include "ui/database/rightview/common/QTabPage.h"
 #include "ui/common/supplier/EmptySupplier.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/editor/QueryPageEditor.h"
 #include "ui/database/rightview/page/result/ResultTabView.h"
-#include <wx/bmpcbox.h>
+#include "core/service/db/ExecutorService.h"
 
 class QueryPage : public QTabPage<EmptySupplier>
 {
@@ -31,6 +32,8 @@ public:
 	QueryPage(PageOperateType operateType, const std::string& content = std::string(), const std::string& tplPath = std::string());
 	~QueryPage();
 	void setup(PageOperateType operateType, const std::string & content = std::string(), const std::string & tplPath = std::string());
+
+	void execAndShow(bool select = false);
 private:
 	std::string viewName;
 	std::string tplPath;
@@ -43,6 +46,7 @@ private:
 	ResultTabView* resultTabView;
 	wxSplitterWindow * splitter;
 
+	ExecutorService* executorService = ExecutorService::getInstance();
 	virtual void init();
 	virtual void createControls();
 	void createSplitter();

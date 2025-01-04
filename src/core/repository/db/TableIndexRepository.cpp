@@ -77,11 +77,11 @@ IndexInfo TableIndexRepository::toIndexInfo(sql::ResultSet* rs)
 {
 	IndexInfo result;
 	result.catalog = rs->getString("TABLE_CAT").asStdString();
-	result.schema = rs->getString("TABLE_SCHEM").asStdString();
-	result.table = rs->getString("TABLE_NAME").asStdString();
-	result.name = rs->getString("INDEX_NAME").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("TABLE_SCHEM").asStdString());
+	result.table = StringUtil::converFromUtf8(rs->getString("TABLE_NAME").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("INDEX_NAME").asStdString());
 	result.type = rs->getString("TYPE").asStdString();
-	result.columns = rs->getString("COLUMN_NAME").asStdString();
+	result.columns = StringUtil::converFromUtf8(rs->getString("COLUMN_NAME").asStdString());
 	result.un = rs->getString("NON_UNIQUE") == "0";
 	result.pk = result.name == "PRIMARY"; 
 	

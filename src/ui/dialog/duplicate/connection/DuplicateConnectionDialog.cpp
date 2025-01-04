@@ -27,6 +27,13 @@ END_EVENT_TABLE()
 
 DuplicateConnectionDialog::DuplicateConnectionDialog() : QFormDialog()
 {
+	init();
+}
+
+void DuplicateConnectionDialog::init()
+{
+	databaseSupplier = DatabaseSupplier::getInstance();
+	connectService = ConnectService::getInstance();
 }
 
 void DuplicateConnectionDialog::createInputs()
@@ -68,7 +75,7 @@ void DuplicateConnectionDialog::createInputs()
 
 void DuplicateConnectionDialog::loadControls()
 {
-	delegate->loadForConnectComboBox(connectComboBox);
+	delegate->loadForConnectComboBox(connectComboBox, databaseSupplier->runtimeUserConnect->id);
 
 	auto nSelItem = connectComboBox->GetSelection();
 	if (nSelItem == -1) {

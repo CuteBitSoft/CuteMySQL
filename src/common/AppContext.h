@@ -37,9 +37,9 @@ public:
 	void set(std::string k, int v);
 
 	// 消息分发(无返回)
-	void dispatch(uint64_t msgId, uint64_t wParam = NULL, uint32_t lParam = NULL);
+	void dispatch(uint64_t msgId, uint64_t wParam = NULL, uint64_t lParam = NULL);
 	// 消息分发(有返回，等待完成)
-	uint64_t dispatchForResponse(uint64_t msgId, uint64_t wParam = NULL, uint32_t lParam = NULL);
+	uint64_t dispatchForResponse(uint64_t msgId, uint64_t wParam = NULL, uint64_t lParam = NULL);
 
 	// 消息订阅
 	void subscribe(wxWindow * hwnd, uint64_t msgId);

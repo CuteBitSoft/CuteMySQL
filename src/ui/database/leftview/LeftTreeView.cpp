@@ -53,6 +53,9 @@ BEGIN_EVENT_TABLE(LeftTreeView, wxPanel)
 	EVT_MENU(Config::CONNECTION_CREATE_MENU_ID,  OnClickConnectButton)
 	EVT_MENU(Config::CONNECTION_DELETE_MENU_ID,  OnClickDeleteButton)
 	EVT_MENU(Config::DATABASE_CREATE_MENU_ID,  OnClickCreateButton)
+
+	// Database Menu
+	EVT_MENU(Config::DATABASE_OPEN_MENU_ID,  OnClickDatabaseOpenMenu)
 END_EVENT_TABLE()
 
 LeftTreeView::LeftTreeView():QPanel()
@@ -175,14 +178,16 @@ void LeftTreeView::createButtons()
 void LeftTreeView::createComboBox()
 {
 	auto size = GetClientSize();
-	selectedDbComboBox = new wxBitmapComboBox(this, Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, wxEmptyString, {size.GetWidth() - 5 - 120, 8}, {120, 24}, wxArrayString(), wxCB_READONLY | wxNO_BORDER);
+	selectedDbComboBox = new wxBitmapComboBox(this, Config::TREEVIEW_SELECTED_DB_COMBOBOX_ID, 
+		wxEmptyString, {size.GetWidth() - 5 - 120, 8}, {120, 24}, wxArrayString(), wxCB_READONLY | wxNO_BORDER);
 	selectedDbComboBox->SetBackgroundColour(bkgColor);
 	selectedDbComboBox->SetForegroundColour(textColor);
 }
 
 void LeftTreeView::createTreeView()
 {
-	treeView = new wxTreeCtrl(this, Config::DATABASE_TREEVIEW_ID, { 1, 40 }, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_NO_LINES | wxTR_SINGLE | wxNO_BORDER | wxCLIP_CHILDREN);
+	treeView = new wxTreeCtrl(this, Config::DATABASE_TREEVIEW_ID, 
+		{ 1, 40 }, wxDefaultSize, wxTR_HAS_BUTTONS | wxTR_NO_LINES | wxTR_SINGLE | wxNO_BORDER | wxCLIP_CHILDREN);
 	treeView->SetBackgroundColour(bkgColor);
 	treeView->SetForegroundColour(textColor);
 
@@ -326,7 +331,13 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 		if (selDbData == supplier->runtimeUserDb) {
 			supplier->runtimeUserTable = selTableData;
 			supplier->setRuntimeTblName(selTableData ? selTableData->name : "");
-			leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+			bool ret = leftTopbarDelegate->selectDbsForComboBox(selectedDbComboBox);
+			if (!ret) {
+				leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
+			}
+
+			// dispatch the message to right work view
+			AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, (uint64_t)data, (uint64_t)data->getType());
 			return;
 		} else {
 			supplier->runtimeUserDb = selDbData;
@@ -336,6 +347,9 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 			if (!ret) {
 				leftTopbarDelegate->loadDbsForComboBox(selectedDbComboBox);
 			}
+
+			// dispatch the message to right work view
+			AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, (uint64_t)data, (uint64_t)data->getType());
 			return;
 		}
 	}
@@ -353,6 +367,9 @@ void LeftTreeView::OnTreeItemSelChanged(wxTreeEvent& event)
 
 	supplier->runtimeUserTable = selTableData;
 	supplier->setRuntimeTblName(selTableData ? selTableData->name : "");
+
+	// dispatch the message to right work view
+	AppContext::getInstance()->dispatch(Config::MSG_TREEVIEW_CLICK_ID, (uint64_t)data, (uint64_t)data->getType());
 }
 
 void LeftTreeView::OnTreeItemRightClicked(wxTreeEvent& event)
@@ -593,4 +610,9 @@ void LeftTreeView::OnClickConnectionManageMenu(wxCommandEvent& event)
 	ConnectDialog connectDialog(ConnectType::CONNECT_MANAGE, supplier->runtimeUserConnect->id);
 	connectDialog.Create(AppContext::getInstance()->getMainFrmWindow(), -1, S("manage-connection"));
 	connectDialog.ShowModal();
+}
+
+void LeftTreeView::OnClickDatabaseOpenMenu(wxCommandEvent& event)
+{
+	AppContext::getInstance()->dispatch(Config::MSG_OPEN_DATABASE_ID);
 }

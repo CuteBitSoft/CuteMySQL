@@ -204,9 +204,16 @@ void QAnimateBox::error(const std::string& text)
 	QAnimateBox::message(text, NotifyType::MSG_ERROR);
 }
 
-void QAnimateBox::error(const QRuntimeException& ex)
+void QAnimateBox::error(const QSqlExecuteException& ex)
 {
 	std::string text = S("error-text");
 	text.append(ex.getMsg()).append(" [code:").append(ex.getCode()).append("]");
+	QAnimateBox::message(text, NotifyType::MSG_ERROR);
+}
+
+void QAnimateBox::error(const QRuntimeException& ex)
+{
+	std::string text = S("error-execute-sql");
+	text.append(" [code:").append(ex.getCode()).append("] ").append(ex.getMsg());
 	QAnimateBox::message(text, NotifyType::MSG_ERROR);
 }

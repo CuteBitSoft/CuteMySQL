@@ -49,7 +49,6 @@ public:
 protected:
 	// Runtime variables
 	uint64_t runtimeUserConnectId = 0;
-	uint64_t runtimeUserDbId = 0;
 	std::string runtimeSchema;
 	std::string runtimeTblName;
 	bool isDirty = false;

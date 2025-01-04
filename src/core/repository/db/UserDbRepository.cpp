@@ -24,6 +24,7 @@
 #include "utils/Log.h"
 #include "core/common/exception/QRuntimeException.h"
 #include "core/common/driver/sqlite/QSqlColumn.h"
+#include "utils/StringUtil.h"
 
 uint64_t UserDbRepository::create(const UserDb & item)
 {
@@ -109,7 +110,7 @@ UserDb UserDbRepository::toUserDb(uint64_t connectId, sql::ResultSet * rs)
 		return item;
 	}
 	item.connectId = connectId;
-	item.name = rs->getString(1).asStdString();
+	item.name = StringUtil::converFromUtf8(rs->getString(1).asStdString());
 	item.catalog = rs->getString(2).asStdString();
 	return item;
 }

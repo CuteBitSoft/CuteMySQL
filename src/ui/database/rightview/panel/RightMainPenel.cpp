@@ -65,15 +65,16 @@ void RightMainPenel::createImageList()
 	wxString imgdir = ResourceUtil::getProductImagesDir() + "/database/tab/";
 	imageList.Add(wxBitmap(imgdir + "query.ico", wxBITMAP_TYPE_ICO)); // 0 - query page
 	imageList.Add(wxBitmap(imgdir + "history.ico", wxBITMAP_TYPE_ICO)); // 1- history page
-	imageList.Add(wxBitmap(imgdir + "table.ico", wxBITMAP_TYPE_ICO)); // 2- table structure page
-	imageList.Add(wxBitmap(imgdir + "view.ico", wxBITMAP_TYPE_ICO)); // 3- view page
-	imageList.Add(wxBitmap(imgdir + "trigger.ico", wxBITMAP_TYPE_ICO)); // 4- trigger
-	imageList.Add(wxBitmap(imgdir + "table-data.ico", wxBITMAP_TYPE_ICO)); // 5 - table data
-	imageList.Add(wxBitmap(imgdir + "table-data-dirty.ico", wxBITMAP_TYPE_ICO)); // 6- table data dirty
-	imageList.Add(wxBitmap(imgdir + "table-structure-dirty.ico", wxBITMAP_TYPE_ICO)); // 7- table structure dirty
-	imageList.Add(wxBitmap(imgdir + "create-table.ico", wxBITMAP_TYPE_ICO)); // 8 - create table
-	imageList.Add(wxBitmap(imgdir + "create-table-dirty.ico", wxBITMAP_TYPE_ICO)); // 9 - create table dirty
-	imageList.Add(wxBitmap(imgdir + "query-dirty.ico", wxBITMAP_TYPE_ICO)); // 10 - query dirty
+	imageList.Add(wxBitmap(imgdir + "objects.ico", wxBITMAP_TYPE_ICO)); // 2- objects page
+	imageList.Add(wxBitmap(imgdir + "table.ico", wxBITMAP_TYPE_ICO)); // 3- table structure page
+	imageList.Add(wxBitmap(imgdir + "view.ico", wxBITMAP_TYPE_ICO)); // 4- view page
+	imageList.Add(wxBitmap(imgdir + "trigger.ico", wxBITMAP_TYPE_ICO)); // 5- trigger
+	imageList.Add(wxBitmap(imgdir + "table-data.ico", wxBITMAP_TYPE_ICO)); // 6- table data
+	imageList.Add(wxBitmap(imgdir + "table-data-dirty.ico", wxBITMAP_TYPE_ICO)); // 7- table data dirty
+	imageList.Add(wxBitmap(imgdir + "table-structure-dirty.ico", wxBITMAP_TYPE_ICO)); // 8- table structure dirty
+	imageList.Add(wxBitmap(imgdir + "create-table.ico", wxBITMAP_TYPE_ICO)); // 9 - create table
+	imageList.Add(wxBitmap(imgdir + "create-table-dirty.ico", wxBITMAP_TYPE_ICO)); // 10 - create table dirty
+	imageList.Add(wxBitmap(imgdir + "query-dirty.ico", wxBITMAP_TYPE_ICO)); // 11 - query dirty
 }
 
 void RightMainPenel::createTabView()

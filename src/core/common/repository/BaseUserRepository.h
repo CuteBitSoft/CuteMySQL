@@ -111,9 +111,13 @@ sql::Connection * BaseUserRepository<T>::getUserConnect(uint64_t userConnectId)
 
 		options["port"] = userConnEntity.port;
 		options["OPT_RECONNECT"] = true;
+		// charset
+		options["OPT_CHARSET_NAME"] = sql::SQLString("utf8");
+		options["characterSetResults"] = sql::SQLString("utf8");
+		options["characterSetConnection"] = sql::SQLString("utf8");
+		options["characterSetClient"] = sql::SQLString("utf8");
 
 		try {
-			//QConnect::userConnectPool[userConnectId] = QConnect::driver->connect("tcp://127.0.0.1:3306", "root", "qinziyi");
 			QConnect::userConnectPool[userConnectId] = QConnect::driver->connect(options);
 		} catch (sql::SQLException& ex) {
 			BaseRepository<T>::setError(std::to_string(ex.getErrorCode()), ex.what());

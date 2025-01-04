@@ -23,9 +23,54 @@
 #include "ui/database/rightview/common/QTabPage.h"
 #include "core/common/Lang.h"
 
-ResultTabView::ResultTabView() : QPanel(), imageList(16, 16, true, 1)
+ResultTabView::ResultTabView(QueryPageSupplier * supplier) : QPanel(), imageList(16, 16, true, 1)
 {
+	this->mysupplier = supplier;
 	init();
+}
+
+void ResultTabView::clearMessage()
+{
+	// to do...
+}
+
+ResultListPage * ResultTabView::addResultToListPage(const std::string& sql, int tabNo)
+{
+	ResultListPage * resultListPagePtr = nullptr;
+	int n = static_cast<int>(resultListPagePtrs.size());
+	if (tabNo-1 < n) {
+		resultListPagePtr = resultListPagePtrs.at(tabNo -1);
+		resultListPagePtr->setup(mysupplier, sql);
+		resultListPagePtr->loadListView();
+	} else {
+		resultListPagePtr = new ResultListPage(mysupplier, sql);
+		resultListPagePtr->Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNO_BORDER );
+		std::string pageTitle = S("result-list").append(" ").append(std::to_string(tabNo));
+		int nInsert = static_cast<int>(resultListPagePtrs.size());
+		tabView->InsertPage(nInsert, resultListPagePtr, pageTitle.c_str(), 0, 0);
+		resultListPagePtrs.push_back(resultListPagePtr);
+	}
+	return resultListPagePtr;
+}
+
+void ResultTabView::setActivePage(int nQueryPage)
+{
+
+}
+
+bool ResultTabView::execSqlToInfoPage(const std::string& sql)
+{
+	return false;
+}
+
+void ResultTabView::removeResultListPageFrom(int nQueryPage)
+{
+
+}
+
+void ResultTabView::activeResultInfoPage()
+{
+
 }
 
 void ResultTabView::init()
@@ -38,7 +83,7 @@ void ResultTabView::createControls()
 {
 	createTabView();
 	createInfoPage();
-	createResultListPage();
+	createOrShowResultTableDataPage();
 }
 
 void ResultTabView::createImageList()
@@ -80,9 +125,10 @@ void ResultTabView::createInfoPage()
 	tabView->AddPage(page, S("result-info"), true, 1);
 }
 
-void ResultTabView::createResultListPage()
+void ResultTabView::createOrShowResultTableDataPage()
 {
-	auto page = new QTabPage<DatabaseSupplier>();
-	page->Create(this);
+	auto page = new ResultListPage(mysupplier, "");
+	page->Create(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNO_BORDER );
 	tabView->AddPage(page, S("result"), true, 0);
+	resultListPagePtrs.push_back(page);
 }

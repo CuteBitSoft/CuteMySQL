@@ -11,8 +11,8 @@ public:
 	MsgDispatcher();
 	~MsgDispatcher();
 
-	void dispatch(uint64_t msgId, uint64_t wParam = NULL, uint32_t lParam = NULL);
-	uint64_t dispatchForResponse(uint64_t msgId, uint64_t wParam = NULL, uint32_t lParam = NULL);
+	void dispatch(uint64_t msgId, uint64_t wParam = NULL, uint64_t lParam = NULL);
+	uint64_t dispatchForResponse(uint64_t msgId, uint64_t wParam = NULL, uint64_t lParam = NULL);
 
 	void subscribe(wxWindow * hwnd, uint64_t msgId);
 	void unsuscribe(wxWindow * hwnd, uint64_t msgId);

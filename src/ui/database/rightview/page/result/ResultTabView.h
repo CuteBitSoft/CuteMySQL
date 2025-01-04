@@ -20,13 +20,25 @@
 #include "ui/common/panel/QPanel.h"
 #include "ui/common/notebook/QNotebook.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
+#include "ui/database/rightview/page/result/page/ResultListPage.h"
+
 class ResultTabView : public QPanel<QueryPageSupplier>
 {
 public:
-	ResultTabView();
+	ResultTabView(QueryPageSupplier * supplier);
+
+	void clearMessage();
+	ResultListPage * addResultToListPage(const std::string & sql, int tabNo);
+	void setActivePage(int nQueryPage);
+	bool execSqlToInfoPage(const std::string & sql);
+	void removeResultListPageFrom(int nQueryPage);
+	void activeResultInfoPage();
 private:
 	wxImageList imageList;
 	QNotebook* tabView;
+	std::vector<ResultListPage*> resultListPagePtrs;
+
+	QueryPageSupplier* mysupplier;
 
 	virtual void init();
 	
@@ -35,6 +47,6 @@ private:
 	void createImageList();
 	void createTabView();
 	void createInfoPage();
-	void createResultListPage();
+	void createOrShowResultTableDataPage();
 };
 

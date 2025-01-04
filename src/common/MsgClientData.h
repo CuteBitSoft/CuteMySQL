@@ -22,18 +22,24 @@
 class MsgClientData : public wxClientData 
 {
 public:
-	MsgClientData() : wxClientData(), msgId(0),dataPtr(0) {}
+	MsgClientData() : wxClientData(), msgId(0),dataPtr(0),extraPtr(0) {}
 	~MsgClientData() {};
 
-	MsgClientData(uint64_t _msgId) : wxClientData(), msgId(_msgId), dataPtr(0) {}
-	MsgClientData(uint64_t _msgId, uint64_t _dataPtr) : wxClientData(), msgId(_msgId), dataPtr(_dataPtr) {}
+	MsgClientData(uint64_t _msgId) : wxClientData(), msgId(_msgId), dataPtr(0), extraPtr(0) {}
+	MsgClientData(uint64_t _msgId, uint64_t _dataPtr) : wxClientData(), msgId(_msgId), dataPtr(_dataPtr), extraPtr(0) {}
+	MsgClientData(uint64_t _msgId, uint64_t _dataPtr, uint64_t _extraPtr) : wxClientData(), msgId(_msgId), dataPtr(_dataPtr), extraPtr(_extraPtr) {}
 
 	void setMsgId(uint64_t msgId) { this->msgId = msgId; }
 	uint64_t getMsgId() { return msgId; }
 
 	void setDataPtr(uint64_t dataPtr) { this->dataPtr = dataPtr; }
 	uint64_t getDataPtr() { return dataPtr; }
+
+	void setExtraPtr(uint64_t extraPtr) { this->extraPtr = extraPtr; }
+	uint64_t getExtraPtr() { return extraPtr; }
+
 private:
-	uint64_t msgId;
-	uint64_t dataPtr;
+	uint64_t msgId; // store the Config::MessageId from common/Config.h
+	uint64_t dataPtr; // store the wParam from dispatch event
+	uint64_t extraPtr;// store the lParam from dispatch event
 };

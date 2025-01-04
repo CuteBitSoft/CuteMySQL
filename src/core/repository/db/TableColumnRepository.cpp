@@ -18,16 +18,13 @@
  *********************************************************************/
 #include "TableColumnRepository.h"
 #include <list>
+#include <cassert>
 #include "utils/StringUtil.h"
 
 ColumnInfoList TableColumnRepository::getAll(uint64_t connectId, const std::string& schema, const std::string & tableName)
 {
+	assert(connectId > 0 && !schema.empty() && !tableName.empty());
     ColumnInfoList result;
-
-    if (connectId <= 0 || schema.empty()) {
-		return result;
-	}
-	
 	try {
 		auto connect = getUserConnect(connectId);
 		auto catalog = connect->getCatalog();
@@ -62,8 +59,7 @@ bool TableColumnRepository::remove(uint64_t connectId, const std::string& schema
 		stmt->execute(sql);
 		stmt->close();
 		return true;
-	}
-	catch (sql::SQLException& ex) {
+	} catch (sql::SQLException& ex) {
 		auto code = std::to_string(ex.getErrorCode());
 		BaseRepository::setError(code, ex.what());
 		Q_ERROR("Fail to create, code:{}, error:{}", code, ex.what());
@@ -77,16 +73,16 @@ ColumnInfo TableColumnRepository::toColumnInfo(sql::ResultSet* rs)
 {
 	ColumnInfo result;
 	result.catalog = rs->getString("TABLE_CAT").asStdString();
-	result.schema = rs->getString("TABLE_SCHEM").asStdString();
-	result.table = rs->getString("TABLE_NAME").asStdString();
-	result.name = rs->getString("COLUMN_NAME").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("TABLE_SCHEM").asStdString());
+	result.table = StringUtil::converFromUtf8(rs->getString("TABLE_NAME").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("COLUMN_NAME").asStdString());
 	result.fullType = rs->getString("TYPE_NAME").asStdString();
 	result.un = (result.fullType.find("UNSIGNED") != std::string::npos) ? 1 : 0;
 	result.type = !result.un ? result.fullType : StringUtil::replace(result.fullType, " UNSIGNED", "");
 	result.size = rs->getUInt64("COLUMN_SIZE");
 	result.defVal = rs->getString("COLUMN_DEF").asStdString();
 	result.isNullable = rs->getString("IS_NULLABLE") == "YES";
-	result.remarks = rs->getString("REMARKS").asStdString();
+	result.remarks = StringUtil::converFromUtf8(rs->getString("REMARKS").asStdString());
 	result.ai = rs->getString("IS_AUTOINCREMENT") == "YES";
 	
 	return result;

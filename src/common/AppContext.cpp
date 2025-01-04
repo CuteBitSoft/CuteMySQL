@@ -87,7 +87,7 @@ AppContext::~AppContext()
  * @param wParam 参数1
  * @param lParam 参数2
  */
-void AppContext::dispatch(uint64_t msgId, uint64_t wParam, uint32_t lParam)
+void AppContext::dispatch(uint64_t msgId, uint64_t wParam, uint64_t lParam)
 {
 	msgDispatcher.dispatch(msgId, wParam, lParam);
 }
@@ -99,7 +99,7 @@ void AppContext::dispatch(uint64_t msgId, uint64_t wParam, uint32_t lParam)
  * @param wParam 参数1
  * @param lParam 参数2
  */
-uint64_t AppContext::dispatchForResponse(uint64_t msgId, uint64_t wParam /*= NULL*/, uint32_t lParam /*= NULL*/)
+uint64_t AppContext::dispatchForResponse(uint64_t msgId, uint64_t wParam /*= NULL*/, uint64_t lParam /*= NULL*/)
 {
 	return msgDispatcher.dispatchForResponse(msgId, wParam, lParam);
 }

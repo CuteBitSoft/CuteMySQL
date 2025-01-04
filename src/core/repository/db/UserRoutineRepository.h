@@ -23,10 +23,12 @@ class UserRoutineRepository : public BaseUserRepository<UserRoutineRepository>
 {
 public:
 	UserRoutineList getAllByType(uint64_t connectId, const std::string& schema, RoutineType type = RoutineType::ROUTINE_PROCEDURE);
+	UserRoutineList getAllDetailListByType(uint64_t connectId, const std::string& schema, RoutineType type = RoutineType::ROUTINE_PROCEDURE);
 	bool remove(uint64_t connectId, const std::string& schema, const std::string& name, RoutineType type = RoutineType::ROUTINE_PROCEDURE);
 
 	std::vector<std::string> getSysFunctions(uint64_t connectId);
 private:
-	UserFunction toUserRoutine(sql::ResultSet* rs);
+	UserRoutine toUserRoutine(sql::ResultSet* rs);
+	UserRoutine toUserRoutineDetail(sql::ResultSet* rs);
 };
 

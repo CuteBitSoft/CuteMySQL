@@ -43,9 +43,11 @@
 #include <wx/imaglist.h>
 #include <wx/splitter.h>
 #include "ui/common/panel/QPanel.h"
+#include "common/event/MsgDispatcherEvent.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/panel/RightMainPenel.h"
 #include "ui/database/rightview/panel/RightBarPenel.h"
+#include "ui/database/rightview/delegate/RightWorkViewDelegate.h"
 
 class RightWorkView : public QPanel<DatabaseSupplier>
 {
@@ -77,11 +79,12 @@ private:
 	RightMainPenel* rightMainPanel;
 	RightBarPenel* rightBarPanel;
 
+	RightWorkViewDelegate* delegate;
+
 	virtual void init();
 	virtual void createControls();
 	void createLayouts();
 	void createButtons();
-	void createSplit();
 	void createExecButtons();
 	void createQueryButtons();
 	void createSaveButtons();
@@ -90,5 +93,11 @@ private:
 	void createRightMainPenel();
 	void createRightBarPenel();
 
+	// tool bar button
+	void OnClickExecSqlButton(wxCommandEvent& event);
+
+	// handle notify message event
+	void OnHandleOpenDatabase(MsgDispatcherEvent& event);
+	void OnHandleClickLeftTreeView(MsgDispatcherEvent& event);
 };
 

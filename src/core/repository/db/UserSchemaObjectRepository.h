@@ -22,9 +22,11 @@
 class UserSchemaObjectRepository : public BaseUserRepository<UserSchemaObjectRepository>
 {
 public:
-	UserProcedureList getAllByObjectType(uint64_t connectId, const std::string& schema, const std::string & objectType = "%");
+	UserRoutineList getAllByObjectType(uint64_t connectId, const std::string& schema, const std::string & objectType = "%");
+	UserTriggerList getAllDetailTriggers(uint64_t connectId, const std::string& schema);
 	bool remove(uint64_t connectId, const std::string& schema, const std::string& name, const std::string & objectType);
 private:
-	UserProcedure toUserProcedure(sql::ResultSet* rs);
+	UserRoutine toUserRoutine(sql::ResultSet* rs);
+	UserTrigger toUserTriggerDetail(sql::ResultSet* rs);
 };
 

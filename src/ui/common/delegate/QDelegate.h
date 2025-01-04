@@ -48,7 +48,7 @@ public:
 	void loadForCollationComboBox(wxComboBox * collationComboBox, uint64_t connectId, const std::string& charset, const std::string & defval = "");
 protected:	
 	static T * theInstance;
-	int parentId;
+	wxWindow * parentWin;
 	V* view;
 	S* supplier = nullptr;
 
@@ -69,17 +69,16 @@ T * QDelegate<T, S, V>::getInstance(V * view, S * supplier)
 		QDelegate::theInstance = new T();
 	}
 
+	QDelegate::theInstance->parentWin = nullptr;
 	QDelegate::theInstance->view = view;
 		
-	if (supplier && QDelegate::theInstance->supplier) {
-		S::destroyInstance();
+	if (supplier) {
+		if (QDelegate::theInstance->supplier && QDelegate::theInstance->supplier != supplier) {
+			S::destroyInstance();
+		}
 		QDelegate::theInstance->supplier = supplier;
 	}
 	
-	if (view) {
-		QDelegate::theInstance->parentId = view->GetId();
-	}
-
 	if (!QDelegate::theInstance->supplier) {
 		QDelegate::theInstance->supplier = S::getInstance();
 	}

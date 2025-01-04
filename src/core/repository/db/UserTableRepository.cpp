@@ -18,15 +18,13 @@
  *********************************************************************/
 #include "UserTableRepository.h"
 #include <list>
+#include "utils/StringUtil.h"
 
 UserTableList UserTableRepository::getAll(uint64_t connectId, const std::string& schema)
 {
+	assert(connectId > 0 && !schema.empty());
     UserTableList result;
 
-    if (connectId <= 0 || schema.empty()) {
-		return result;
-	}
-	
 	try {
 		std::list<sql::SQLString> types = (schema == "information_schema") ? 
 			std::list<sql::SQLString>({"TEMPORARY TABLE", "VIEW"}) : std::list<sql::SQLString>({"TABLE", "SYSTEM TABLE"});
@@ -49,6 +47,38 @@ UserTableList UserTableRepository::getAll(uint64_t connectId, const std::string&
     return result;
 }
 
+UserTableList UserTableRepository::getAllDetailList(uint64_t connectId, const std::string& schema)
+{
+	assert(connectId > 0 && !schema.empty());
+	UserTableList result;
+
+	try {
+		sql::SQLString sql = "SELECT * FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA`=?";
+		if (StringUtil::tolower(schema) == "information_schema") {
+			sql.append(" AND `TABLE_TYPE`='SYSTEM VIEW'");
+		} else {
+			sql.append(" AND `TABLE_TYPE`='BASE TABLE'");
+		}
+		auto connect = getUserConnect(connectId);
+		std::unique_ptr<sql::PreparedStatement> stmt(connect->prepareStatement(sql));
+		stmt->setString(1, schema);
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery());
+		while (resultSet->next()) {
+			UserTable item = toUserTableDetail(resultSet.get());
+			result.push_back(item);
+		}
+		stmt->close();
+		resultSet->close();
+
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to getAllDetailList, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
+
+}
 bool UserTableRepository::remove(uint64_t connectId, const std::string& schema, const std::string& name)
 {
 	assert(connectId > 0 && !schema.empty() && !name.empty());
@@ -140,11 +170,35 @@ UserTable UserTableRepository::toUserTable(sql::ResultSet* rs)
 {
 	UserTable result;
 	result.catalog = rs->getString("TABLE_CAT").asStdString();
-	result.schema = rs->getString("TABLE_SCHEM").asStdString();
-	result.name = rs->getString("TABLE_NAME").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("TABLE_SCHEM").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("TABLE_NAME").asStdString());
 	result.tblName = result.name;
-	result.type = rs->getString("TABLE_TYPE").asStdString();
-	result.comment = rs->getString("REMARKS").asStdString();
+	result.type = StringUtil::converFromUtf8(rs->getString("TABLE_TYPE").asStdString());
+	result.comment = StringUtil::converFromUtf8(rs->getString("REMARKS").asStdString());
+	
+	return result;
+}
+
+UserTable UserTableRepository::toUserTableDetail(sql::ResultSet* rs)
+{
+	UserTable result;
+	result.catalog = rs->getString("TABLE_CATALOG").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("TABLE_SCHEMA").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("TABLE_NAME").asStdString());
+	result.tblName = result.name;
+	result.type = StringUtil::converFromUtf8(rs->getString("TABLE_TYPE").asStdString());
+	result.engine = rs->isNull("ENGINE") ? "" : rs->getString("ENGINE").asStdString();
+	result.version = rs->isNull("VERSION") ? 0 : rs->getInt64("VERSION");
+	result.autoIncVal = rs->isNull("AUTO_INCREMENT") ? 0 : rs->getUInt64("AUTO_INCREMENT");
+	result.dataLength = rs->isNull("DATA_LENGTH") ? 0 : rs->getUInt64("DATA_LENGTH");
+	result.rowFormat = rs->isNull("ROW_FORMAT") ? "" : rs->getString("ROW_FORMAT").asStdString();
+	result.collaction = rs->isNull("TABLE_COLLATION") ? "" : rs->getString("TABLE_COLLATION").asStdString();
+	result.options = rs->isNull("CREATE_OPTIONS") ? "" : rs->getString("CREATE_OPTIONS").asStdString();
+	result.rows = rs->isNull("TABLE_ROWS") ? 0 : rs->getUInt64("TABLE_ROWS");
+	result.createTime = rs->isNull("CREATE_TIME") ? "" : rs->getString("CREATE_TIME").asStdString();
+	result.updateTime = rs->isNull("UPDATE_TIME") ? "" : rs->getString("UPDATE_TIME").asStdString();
+	result.checkTime = rs->isNull("CHECK_TIME") ? "" : rs->getString("CHECK_TIME").asStdString();
+	result.comment = StringUtil::converFromUtf8(rs->getString("TABLE_COMMENT").asStdString());
 	
 	return result;
 }

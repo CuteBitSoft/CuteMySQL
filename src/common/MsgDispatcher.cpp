@@ -16,7 +16,7 @@ MsgDispatcher::~MsgDispatcher()
 
 }
 
-void MsgDispatcher::dispatch(uint64_t msgId, uint64_t wParam /*= NULL*/, uint32_t lParam /*= NULL*/)
+void MsgDispatcher::dispatch(uint64_t msgId, uint64_t wParam /*= NULL*/, uint64_t lParam /*= NULL*/)
 {
 	if (msgMap.empty() || msgMap.find(msgId) == msgMap.end()) {
 		return ;
@@ -25,7 +25,7 @@ void MsgDispatcher::dispatch(uint64_t msgId, uint64_t wParam /*= NULL*/, uint32_
 	WindowList & winList = msgMap.at(msgId);
 	std::for_each(winList.begin(), winList.end(), [&msgId, &wParam, &lParam](wxWindow * win) {
 		//::PostMessage(hwnd, msgId, wParam, lParam);
-		boost::scoped_ptr<MsgClientData> clientData(new MsgClientData(msgId, wParam));
+		boost::scoped_ptr<MsgClientData> clientData(new MsgClientData(msgId, wParam, lParam));
 		MsgDispatcherEvent event(wxEVT_NOTITY_MESSAGE_HANDLE, msgId);
 		event.SetClientData(clientData.get());
 
@@ -35,7 +35,7 @@ void MsgDispatcher::dispatch(uint64_t msgId, uint64_t wParam /*= NULL*/, uint32_
 	
 }
 
-uint64_t MsgDispatcher::dispatchForResponse(uint64_t msgId, uint64_t wParam /*= NULL*/, uint32_t lParam /*= NULL*/)
+uint64_t MsgDispatcher::dispatchForResponse(uint64_t msgId, uint64_t wParam /*= NULL*/, uint64_t lParam /*= NULL*/)
 {
 	if (msgMap.empty() || msgMap.find(msgId) == msgMap.end()) {
 		return 0;

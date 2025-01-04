@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <regex>
 #include <stack>
+#include <wx/string.h>
 
 /// <summary>
 /// 字符串转换工具类，
@@ -166,9 +167,9 @@ public:
 	// Remove leading and trailing whitespace
 	static void trim(std::string &inout_str);
 
-	static std::string escape(std::string &source);
-	static std::string escapeXml(std::string & source);	
-	static std::string escapeSql(std::string &source);
+	static std::string escape(const std::string &source);
+	static std::string escapeXml(const std::string & source);	
+	static std::string escapeSql(const std::string &source);
 
 	static std::string toupper(std::string s);
 	static std::string tolower(std::string s);
@@ -232,6 +233,10 @@ public:
 	 * Convert the quotes(\'->'', ")
 	 */
 	static std::string& convertQuotes(std::string& str);
+
+	//convert utf8 to UI charset of local used
+	static std::string converFromUtf8(const std::string &str);
+	static wxString converFromUtf8(const wxString &str);
 };
 
 

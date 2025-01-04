@@ -25,6 +25,7 @@
 
 MainFrame::MainFrame(): wxFrame(NULL, wxID_ANY, "CuteMySQL", wxDefaultPosition, wxSize(1024, 760), wxDEFAULT_FRAME_STYLE)
 {
+	AppContext::getInstance()->setMainFrmWindow(this);
 
 	wxString iconpath = ResourceUtil::getResourceDir() + "/CuteMySQL.ico";
 	SetIcon(wxIcon(iconpath, wxBITMAP_TYPE_ICO)); 

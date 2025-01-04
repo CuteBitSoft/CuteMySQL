@@ -77,16 +77,16 @@ public:
 	static std::vector<std::string> tableTags;
 	
 	// parse sql 
-	static bool isSelectSql(std::string & sql);
-	static bool isPragmaStmt(std::string & sql, bool excludeEqual);
-	static bool hasLimitClause(std::string & sql);
-	static std::string getColumnName(std::string & str);
-	static std::vector<std::string> getTablesFromSelectSql(const std::string & sql, std::vector<std::string> allTables);
-	static std::vector<std::string> parseTablesFromTableClause(std::string & tblStmt);
+	static bool isSelectSql(const std::string & sql);
+	static bool isPragmaStmt(const std::string & sql, bool excludeEqual);
+	static bool hasLimitClause(const std::string & sql);
+	static std::string getColumnName(const std::string & str);
+	static std::vector<std::string> getTablesFromSelectSql(const std::string & sql, const std::vector<std::string> & allTables);
+	static std::vector<std::string> parseTablesFromTableClause(const std::string & tblStmt);
 	static std::string parseTableAliasFromSelectSql(const std::string & sql, const std::string & table, const std::vector<std::string> & tables);
-	static std::string parseTableAliasFromSelectSqlUpWords(const std::vector<std::string>& upSqlWords, std::string & upTable, const UserTableStrings & tables);
+	static std::string parseTableAliasFromSelectSqlUpWords(const std::vector<std::string>& upSqlWords, const std::string & upTable, const UserTableStrings & tables);
 
-	static std::string parsePrimaryKey(std::string & createTblSql);
+	static std::string parsePrimaryKey(const std::string & createTblSql);
 	static std::string getWhereClause(const std::string & sql);
 	static std::vector<std::string> getOrderClauses(const std::string & upsql);
 	static std::vector<std::string> getSelectColumnsClause(const std::string & upsql);
@@ -94,11 +94,11 @@ public:
 	static std::string getFourthClause(const std::string & sql);
 
 	// make sql
-	static std::string makeWhereClause(Columns & columns, RowItem &rowItem , SubItemValues &rowChangeVals);
-	static std::string makeWhereClauseByPrimaryKey(std::string & primaryKey, Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals);
-	static std::string makeWhereClauseByRowId(Columns & columns, RowItem &rowItem);
-	static std::string makeInsertColumsClause(Columns & columns);
-	static std::string makeInsertValuesClause(RowItem & rowItem);
+	static std::string makeWhereClause(const Columns & columns, const RowItem &rowItem , SubItemValues &rowChangeVals);
+	static std::string makeWhereClauseByPrimaryKey(const std::string & primaryKey, const Columns & columns, const RowItem &rowItem, SubItemValues &rowChangeVals);
+	static std::string makeWhereClauseByRowId(const Columns & columns, const RowItem &rowItem);
+	static std::string makeInsertColumsClause(const Columns & columns); 
+	static std::string makeInsertValuesClause(const RowItem & rowItem);
 
 	// make table name
 	static std::string makeTmpTableName(const std::string & tblName, int number = 1, const std::string & prefix = std::string("ctsqlite_tmp_"));
@@ -109,7 +109,7 @@ public:
 	// parse constraints by create table DDL exclude foreign key
 	static IndexInfoList parseConstraints(const std::string & createTblSql);
 	static IndexInfo parseConstraintsForPrimaryKey(const std::string & createTblSql);
-	static std::vector<std::string> splitTableDDLColumnClausesToLines(std::string str, bool bTrim = true);
+	static std::vector<std::string> splitTableDDLColumnClausesToLines(const std::string & str, bool bTrim = true);
 
 	// parse foreign keys by create table DDL
 	static ForeignKeyList parseForeignKeysByTableDDL(const std::string & createTblSql);

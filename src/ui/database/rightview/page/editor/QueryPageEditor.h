@@ -22,7 +22,6 @@
 #include "ui/common/editor/QSqlEditor.h"
 #include "ui/database/supplier/DatabaseSupplier.h"
 #include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
-#include "ui/database/rightview/page/supplier/QueryPageSupplier.h"
 #include "ui/database/rightview/page/editor/delegate/QueryPageEditorDelegate.h"
 
 class QueryPageEditor :  public QPanel<DatabaseSupplier>
@@ -31,6 +30,10 @@ class QueryPageEditor :  public QPanel<DatabaseSupplier>
 public:
 	QueryPageEditor(QueryPageSupplier * queryPageSupplier);
 	~QueryPageEditor();
+
+	wxString getSelText();
+	wxString getText();
+	void focus();
 private:
 
 	//toolbar controls

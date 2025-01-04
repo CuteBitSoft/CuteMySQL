@@ -46,9 +46,29 @@ QueryPageEditor::~QueryPageEditor()
 
 }
 
+wxString QueryPageEditor::getSelText()
+{
+	return editor->getSelText();
+}
+
+wxString QueryPageEditor::getText()
+{
+	return editor->GetText();
+}
+
+void QueryPageEditor::focus()
+{
+	editor->SetFocus();
+}
+
 void QueryPageEditor::init()
 {
 	bkgColor = wxColour(30, 31, 34, 30);
+	//my supplier init data
+	this->mysupplier->setRuntimeUserConnectId(supplier->getRuntimeUserConnectId());
+	this->mysupplier->setRuntimeSchema(supplier->getRuntimeSchema());
+	this->mysupplier->setRuntimeTblName(supplier->getRuntimeTblName());
+
 	delegate = new QueryPageEditorDelegate(this, mysupplier);
 }
 

@@ -18,16 +18,13 @@
  *********************************************************************/
 #include "UserRoutineRepository.h"
 #include <list>
+#include <cassert>
 #include <spdlog/fmt/fmt.h>
 
 UserRoutineList UserRoutineRepository::getAllByType(uint64_t connectId, const std::string& schema, RoutineType type)
 {
-    UserRoutineList result;
-
-    if (connectId <= 0 || schema.empty()) {
-		return result;
-	}
-	
+	assert(connectId && !schema.empty());
+    UserRoutineList result;	
 	try {
 		auto connect = getUserConnect(connectId);
 		auto catalog = connect->getCatalog();
@@ -50,6 +47,38 @@ UserRoutineList UserRoutineRepository::getAllByType(uint64_t connectId, const st
 	}
 
     return result;
+}
+
+UserRoutineList UserRoutineRepository::getAllDetailListByType(uint64_t connectId, const std::string& schema, RoutineType type)
+{
+	assert(connectId > 0 && !schema.empty());
+	UserRoutineList result;
+
+	try {
+		sql::SQLString sql = "SELECT * FROM `information_schema`.`ROUTINES` WHERE `ROUTINE_SCHEMA`=?";
+		if (type == RoutineType::ROUTINE_PROCEDURE) {
+			sql.append(" AND `ROUTINE_TYPE`='PROCEDURE'");
+		} else if (type == RoutineType::ROUTINE_FUNCTION) {
+			sql.append(" AND `ROUTINE_TYPE`='FUNCTION'");
+		}
+		auto connect = getUserConnect(connectId);
+		std::unique_ptr<sql::PreparedStatement> stmt(connect->prepareStatement(sql));
+		stmt->setString(1, schema);
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery());
+		while (resultSet->next()) {
+			UserRoutine item = toUserRoutineDetail(resultSet.get());
+			result.push_back(item);
+		}
+		stmt->close();
+		resultSet->close();
+
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to getAllDetailListByType, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
 }
 
 bool UserRoutineRepository::remove(uint64_t connectId, const std::string& schema, const std::string& name, RoutineType type)
@@ -114,11 +143,27 @@ UserRoutine UserRoutineRepository::toUserRoutine(sql::ResultSet* rs)
 {
 	UserRoutine result;
 	result.catalog = rs->getString("PROCEDURE_CAT").asStdString();
-	result.schema = rs->getString("PROCEDURE_SCHEM").asStdString();
-	result.name = rs->getString("PROCEDURE_NAME").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("PROCEDURE_SCHEM").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("PROCEDURE_NAME").asStdString());
 	result.objectType = "routine";
-	result.remarks = rs->getString("REMARKS").asStdString();
+	result.remarks = StringUtil::converFromUtf8(rs->getString("REMARKS").asStdString());
 	result.type = rs->getInt("PROCEDURE_TYPE");
 	
+	return result;
+}
+
+UserRoutine UserRoutineRepository::toUserRoutineDetail(sql::ResultSet* rs)
+{
+	UserRoutine result;
+
+	result.catalog = rs->getString("ROUTINE_CATALOG").asStdString();
+	result.schema = StringUtil::converFromUtf8(rs->getString("ROUTINE_SCHEMA").asStdString());
+	result.name = StringUtil::converFromUtf8(rs->getString("ROUTINE_NAME").asStdString());
+	result.objectType = rs->getString("ROUTINE_TYPE").asStdString();
+	result.type = result.objectType == "PROCEDURE" ? 0 : 1;
+	result.remarks = StringUtil::converFromUtf8(rs->getString("ROUTINE_COMMENT").asStdString());
+	result.ddl = StringUtil::converFromUtf8(rs->getString("ROUTINE_DEFINITION").asStdString());
+	result.createTime = rs->getString("CREATED").asStdString();
+	result.updateTime = rs->getString("LAST_ALTERED").asStdString();
 	return result;
 }

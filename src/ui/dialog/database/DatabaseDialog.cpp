@@ -221,7 +221,7 @@ void DatabaseDialog::OnClickOkButton(wxCommandEvent& event)
 
 void DatabaseDialog::loadControls()
 {
-	delegate->loadForConnectComboBox(connectComboBox);
+	delegate->loadForConnectComboBox(connectComboBox, databaseSupplier->runtimeUserDb->connectId);
 
 	auto nSelItem = connectComboBox->GetSelection();
 	if (nSelItem == -1) {

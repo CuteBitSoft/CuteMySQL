@@ -1,8 +1,10 @@
 #pragma once
-#include "wx/wx.h"
-#include "wx/panel.h"
+#include <wx/wx.h>
+#include <wx/panel.h>
 #include <wx/colour.h>
+#include <wx/tglbtn.h>
 #include "ui/common/supplier/EmptySupplier.h"
+#include "utils/ResourceUtil.h"
 
 template <typename S = EmptySupplier>
 class QPanel :  public wxPanel
@@ -37,19 +39,25 @@ protected:
 	S* supplier;
 	wxColour bkgColor;
 	wxColour textColor;
-
 	wxBoxSizer* topSizer;
 
 	virtual void init();
 	// create controls for UI
 	virtual void createControls();	
 
+	wxStaticBitmap* createToolSplit();
 	wxTextCtrl* createInputControl(wxWindowID editId, const wxString& labelText, wxWindowID labelId = wxID_STATIC, const wxSize& editSize = wxSize(300, -1), long editStyle = 0);
-	wxTextCtrl* createInputFileControl(wxWindowID editId, wxWindowID buttonId, const wxString& labelText, wxWindowID labelId = wxID_STATIC, const wxSize& editSize = wxSize(260, -1), long editStyle = 0);
+	wxTextCtrl* createInputFileControl(wxWindowID editId, wxWindowID buttonId, const wxString& labelText, wxWindowID labelId = wxID_STATIC, 
+		const wxSize& editSize = wxSize(260, -1), long editStyle = 0);
+
+	// create toggle bitmap button and create bitmap button
+	wxBitmapToggleButton* createBitmapToggleButton(wxWindowID buttonId, const wxString & buttonText, const wxString & tooltip, 
+		const wxString& imgdir, const wxString& imgPrefixFileName, const wxSize& editSize = wxSize(50, -1), bool buttonState = false);
+	wxBitmapButton* createBitmapButton(wxWindowID buttonId, const wxString& imgdir, const wxString& imgPrefixFileName, 
+		const wxString& tooltip, const wxSize& editSize = wxSize(20, 20));
 	// when the runtime data has change in the subclass of controls ,will be binded the event function
 	void OnRuntimeDataHasChanged(wxCommandEvent& event);
 };
-
 
 template <typename S>
 QPanel<S>::QPanel() : bkgColor(43, 45, 48, 43), textColor(223, 225, 229, 213)
@@ -152,6 +160,16 @@ bool QPanel<S>::getRuntimeDataDirty()
 }
 
 template <typename S>
+wxStaticBitmap* QPanel<S>::createToolSplit()
+{
+	wxString imgdir = ResourceUtil::getProductImagesDir() + "/common/";
+	wxBitmap bitmap(imgdir + "split.png", wxBITMAP_TYPE_PNG);
+	wxStaticBitmap* split = new wxStaticBitmap(this, wxID_ANY, wxBitmapBundle(bitmap), wxDefaultPosition, { 20, 20 }, wxCLIP_CHILDREN | wxNO_BORDER);
+	return split;
+}
+
+
+template <typename S>
 wxTextCtrl* QPanel<S>::createInputControl(wxWindowID editId,  const wxString& labelText, wxWindowID labelId, const wxSize& editSize /*= wxSize(300, -1)*/, long editStyle /*= 0*/)
 {
 	topSizer->Add(3, 6, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 5);
@@ -205,4 +223,42 @@ template <typename S>
 void QPanel<S>::OnRuntimeDataHasChanged(wxCommandEvent& event)
 {
 	setRuntimeDataDirty(true);
+}
+
+
+template <typename S /*= EmptySupplier*/>
+wxBitmapButton* QPanel<S>::createBitmapButton(wxWindowID buttonId, const wxString& imgdir, const wxString& imgFileNamePrefix, 
+	const wxString & tooltip,  const wxSize& editSize /*= wxSize(20, 20)*/)
+{
+	wxBitmap normalBitmap(imgdir + imgFileNamePrefix + "-button-normal.png", wxBITMAP_TYPE_PNG);
+	wxBitmap pressedBitmap(imgdir + imgFileNamePrefix + "-button-pressed.png", wxBITMAP_TYPE_PNG);
+	wxBitmapButton * button = new wxBitmapButton(this, buttonId, wxBitmapBundle(normalBitmap),
+		wxDefaultPosition, editSize, wxCLIP_CHILDREN | wxNO_BORDER);
+	button->SetBackgroundColour(bkgColor);
+	button->SetBitmapPressed(pressedBitmap);
+	button->SetBitmapFocus(pressedBitmap);
+	button->SetToolTip(tooltip);
+
+	return button;
+}
+
+template <typename S /*= EmptySupplier*/>
+wxBitmapToggleButton* QPanel<S>::createBitmapToggleButton(wxWindowID buttonId, const wxString& buttonText, const wxString& tooltip, 
+	const wxString& imgdir, const wxString& imgFileNamePrefix, const wxSize& editSize /*= wxSize(50, -1)*/, bool buttonState /*= false*/)
+{
+	wxBitmap normalBitmap(imgdir + imgFileNamePrefix + "-button-normal.png", wxBITMAP_TYPE_PNG);
+	wxBitmap pressedBitmap(imgdir + imgFileNamePrefix + "-button-pressed.png", wxBITMAP_TYPE_PNG);
+	wxBitmapToggleButton * button = new wxBitmapToggleButton(this, buttonId, wxBitmapBundle(normalBitmap),
+		wxDefaultPosition, editSize, wxCLIP_CHILDREN | wxNO_BORDER);
+	button->SetBackgroundColour(bkgColor);
+	button->SetForegroundColour(textColor);
+	button->SetBitmapPressed(pressedBitmap);
+	button->SetBitmapFocus(pressedBitmap);
+	button->SetValue(buttonState);
+	button->SetToolTip(tooltip);
+	if (!buttonText.empty()) {
+		button->SetLabel(buttonText);
+	}
+
+	return button;
 }

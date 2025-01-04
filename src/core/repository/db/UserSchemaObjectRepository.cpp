@@ -18,10 +18,11 @@
  *********************************************************************/
 #include "UserSchemaObjectRepository.h"
 #include <list>
+#include "utils/StringUtil.h"
 
-UserProcedureList UserSchemaObjectRepository::getAllByObjectType(uint64_t connectId, const std::string& schema, const std::string & objectType)
+UserRoutineList UserSchemaObjectRepository::getAllByObjectType(uint64_t connectId, const std::string& schema, const std::string & objectType)
 {
-    UserProcedureList result;
+    UserRoutineList result;
 
     if (connectId <= 0 || schema.empty()) {
 		return result;
@@ -32,7 +33,7 @@ UserProcedureList UserSchemaObjectRepository::getAllByObjectType(uint64_t connec
 		auto catalog = connect->getCatalog();
 		std::unique_ptr<sql::ResultSet> resultSet(connect->getMetaData()->getSchemaObjects(catalog, schema, objectType));
 		while (resultSet->next()) {			
-			UserProcedure item = toUserProcedure(resultSet.get());
+			UserRoutine item = toUserRoutine(resultSet.get());
 			result.push_back(item);
 		}
 		resultSet->close();
@@ -45,6 +46,33 @@ UserProcedureList UserSchemaObjectRepository::getAllByObjectType(uint64_t connec
 	}
 
     return result;
+}
+
+UserTriggerList UserSchemaObjectRepository::getAllDetailTriggers(uint64_t connectId, const std::string& schema)
+{
+	assert(connectId > 0 && !schema.empty());
+	UserTriggerList result;
+
+	try {
+		sql::SQLString sql = "SELECT * FROM `information_schema`.`TRIGGERS` WHERE `TRIGGER_SCHEMA`=?";
+		auto connect = getUserConnect(connectId);
+		std::unique_ptr<sql::PreparedStatement> stmt(connect->prepareStatement(sql));
+		stmt->setString(1, schema);
+		std::unique_ptr<sql::ResultSet> resultSet(stmt->executeQuery());
+		while (resultSet->next()) {
+			UserRoutine item = toUserTriggerDetail(resultSet.get());
+			result.push_back(item);
+		}
+		stmt->close();
+		resultSet->close();
+
+		return result;
+	} catch (sql::SQLException& ex) {
+		auto code = std::to_string(ex.getErrorCode());
+		BaseRepository::setError(code, ex.what());
+		Q_ERROR("Fail to getAllDetailListByType, code:{}, error:{}", code, ex.what());
+		throw QRuntimeException(code, ex.what());
+	}
 }
 
 bool UserSchemaObjectRepository::remove(uint64_t connectId, const std::string& schema, const std::string& name, const std::string& objectType)
@@ -71,14 +99,28 @@ bool UserSchemaObjectRepository::remove(uint64_t connectId, const std::string& s
 	return false;
 }
 
-UserProcedure UserSchemaObjectRepository::toUserProcedure(sql::ResultSet* rs)
+UserRoutine UserSchemaObjectRepository::toUserRoutine(sql::ResultSet* rs)
 {
-	UserProcedure result;
+	UserRoutine result;
 	result.catalog = rs->getString("CATALOG").asStdString();
 	result.schema = rs->getString("SCHEMA").asStdString();
-	result.name = rs->getString("NAME").asStdString();
-	result.ddl = rs->getInt("DDL");
+	result.name = StringUtil::converFromUtf8(rs->getString("NAME").asStdString());
+	result.ddl = StringUtil::converFromUtf8(rs->getString("DDL").asStdString());
 	result.objectType = rs->getString("OBJECT_TYPE");
 	
+	return result;
+}
+
+UserTrigger UserSchemaObjectRepository::toUserTriggerDetail(sql::ResultSet* rs)
+{
+	UserTrigger result;
+	result.catalog = rs->getString("TRIGGER_CATALOG").asStdString();
+	result.schema = rs->getString("TRIGGER_SCHEMA").asStdString();
+	result.name = StringUtil::converFromUtf8(rs->getString("TRIGGER_NAME").asStdString());
+	result.ddl = StringUtil::converFromUtf8(rs->getString("ACTION_STATEMENT").asStdString());
+	result.createTime = rs->getString("CREATED").asStdString();
+	result.actionSchema = rs->getString("EVENT_OBJECT_SCHEMA").asStdString();
+	result.actionTable = rs->getString("EVENT_OBJECT_TABLE").asStdString();
+	result.actionTiming = rs->getString("ACTION_TIMING").asStdString();
 	return result;
 }

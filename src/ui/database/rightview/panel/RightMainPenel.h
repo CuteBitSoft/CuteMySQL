@@ -31,6 +31,8 @@ class RightMainPenel : public QPanel<DatabaseSupplier>
 public:
 	RightMainPenel();
 	~RightMainPenel();
+
+	RightWorkViewDelegate* getDelegate() { return delegate; }
 private:
 	wxImageList imageList;
 	QNotebook* tabView;

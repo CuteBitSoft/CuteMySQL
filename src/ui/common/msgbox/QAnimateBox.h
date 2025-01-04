@@ -22,6 +22,7 @@
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include "core/common/exception/QRuntimeException.h"
+#include "core/common/exception/QSqlExecuteException.h"
 
 class QAnimateBox :  public wxDialog
 {
@@ -44,6 +45,7 @@ public:
 	static void notice(const std::string & text);
 	static void warning(const std::string & text);
 	static void error(const std::string & text);
+	static void error(const QSqlExecuteException & ex);
 	static void error(const QRuntimeException & ex);
 
 	void startMove();

@@ -83,7 +83,7 @@
     <LibraryPath>$(SolutionDir)..\third-party\wxWidgets\lib\vc_lib;$(SolutionDir)..\third-party\lib\sqlite3\x86;$(SolutionDir)..\third-party\lib\scintilla;$(SolutionDir)..\third-party\mysql-connector-c++8.0.33\win32\debug\lib\vs14\debug;$(SolutionDir)..\third-party\boost_1_86_0\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\src;$(SolutionDir)..\third-party\include;$(SolutionDir)..\third-party\wxWidgets\include;$(SolutionDir)..\third-party\wxWidgets\include\msvc;$(SolutionDir)..\third-party\mysql-connector-c++8.0.33\win32\debug\include;$(SolutionDir)..\third-party\boost_1_86_0;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\src;$(SolutionDir)..\third-party\include;$(SolutionDir)..\third-party\wxWidgets\include;$(SolutionDir)..\third-party\wxWidgets\include\msvc;$(SolutionDir)..\third-party\mysql-connector-c++8.0.33\win32\release\include;$(SolutionDir)..\third-party\boost_1_86_0;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\third-party\wxWidgets\lib\vc_lib;$(SolutionDir)..\third-party\lib\sqlite3\x86;$(SolutionDir)..\third-party\lib\scintilla;$(SolutionDir)..\third-party\mysql-connector-c++8.0.33\win32\release\lib\vs14;$(SolutionDir)..\third-party\boost_1_86_0\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -154,8 +154,17 @@ xcopy ..\third-party\lib\mysql\mysql.exe "$(OutDir)" /Y
 
 xcopy ..\third-party\lib\mysql\mysqldump.exe "$(OutDir)" /Y
 
-xcopy ..\third-party\mysql-connector-c++8.0.33\win32\lib\mysqlcppconn8-2-vs14.dll "$(OutDir)" /Y
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\mysqlcppconn-9-vs14.dll "$(OutDir)" /Y
 
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\mysqlcppconn-9-vs14.pdb "$(OutDir)" /Y
+
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\mysqlcppconn8-2-vs14.dll "$(OutDir)" /Y
+
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\mysqlcppconn8-2-vs14.pdb "$(OutDir)" /Y
+
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\libcrypto-1_1.dll "$(OutDir)" /Y
+
+xcopy ..\third-party\mysql-connector-c++8.0.33\win32\release\lib\libssl-1_1.dll "$(OutDir)" /Y
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -233,11 +242,24 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\common\listview\QListView.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageEventDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageFunctionDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageProcedureDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageTableDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageTriggerDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageViewDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\ObjectsPage.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\result\page\delegate\ResultListPageDelegate.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\result\page\ResultListPage.cpp" />
+    <ClCompile Include="src\core\repository\db\UserSqlExecutorRepository.cpp" />
+    <ClCompile Include="src\core\service\db\ExecutorService.cpp" />
     <ClCompile Include="src\ui\database\rightview\page\editor\delegate\QueryPageEditorDelegate.cpp" />
     <ClCompile Include="src\ui\common\splitter\QSplitterWindow.cpp" />
     <ClCompile Include="src\ui\database\rightview\page\result\ResultTabView.cpp" />
     <ClCompile Include="src\ui\common\editor\QSqlEditor.cpp" />
     <ClCompile Include="src\ui\database\rightview\page\editor\QueryPageEditor.cpp" />
+    <ClCompile Include="src\ui\database\rightview\page\supplier\ObjectsPageSupplier.cpp" />
     <ClCompile Include="src\ui\database\rightview\panel\RightBarPenel.cpp" />
     <ClCompile Include="src\ui\database\rightview\panel\RightMainPenel.cpp" />
     <ClCompile Include="src\ui\common\notebook\QAuiDefaultTabArt.cpp" />
@@ -307,14 +329,17 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\ui\home\HomePanel.cpp" />
     <ClCompile Include="src\ui\home\list\ConnectListItem.cpp" />
     <ClCompile Include="src\ui\setting\SettingPanel.cpp" />
+    <ClCompile Include="src\utils\ClipboardUtil.cpp" />
     <ClCompile Include="src\utils\EntityUtil.cpp" />
     <ClCompile Include="src\utils\FileUtil.cpp" />
     <ClCompile Include="src\utils\Log.cpp" />
+    <ClCompile Include="src\utils\PerformUtil.cpp" />
     <ClCompile Include="src\utils\ResourceUtil.cpp" />
     <ClCompile Include="src\CuteMySQL.cpp" />
     <ClCompile Include="src\ui\MainView.cpp" />
     <ClCompile Include="src\ui\LeftPanel.cpp" />
     <ClCompile Include="src\ui\MainFrame.cpp" />
+    <ClCompile Include="src\utils\SavePointUtil.cpp" />
     <ClCompile Include="src\utils\SqlUtil.cpp" />
     <ClCompile Include="src\utils\StringUtil.cpp" />
     <ClCompile Include="src\ui\dialog\connect\panel\page\SshParamsPage.cpp" />
@@ -323,11 +348,25 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClCompile Include="src\core\service\db\MetadataService.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ui\common\listview\QListView.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\BaseObjectsDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageEventDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageFunctionDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageProcedureDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageTableDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageTriggerDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\delegate\objects\ObjectsPageViewDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\ObjectsPage.h" />
+    <ClInclude Include="src\ui\database\rightview\page\result\page\delegate\ResultListPageDelegate.h" />
+    <ClInclude Include="src\ui\database\rightview\page\result\page\ResultListPage.h" />
+    <ClInclude Include="src\core\repository\db\UserSqlExecutorRepository.h" />
+    <ClInclude Include="src\core\service\db\ExecutorService.h" />
     <ClInclude Include="src\ui\database\rightview\page\editor\delegate\QueryPageEditorDelegate.h" />
     <ClInclude Include="src\ui\common\splitter\QSplitterWindow.h" />
     <ClInclude Include="src\ui\database\rightview\page\result\ResultTabView.h" />
     <ClInclude Include="src\ui\common\editor\QSqlEditor.h" />
     <ClInclude Include="src\ui\database\rightview\page\editor\QueryPageEditor.h" />
+    <ClInclude Include="src\ui\database\rightview\page\supplier\ObjectsPageSupplier.h" />
     <ClInclude Include="src\ui\database\rightview\panel\RightBarPenel.h" />
     <ClInclude Include="src\ui\database\rightview\panel\RightMainPenel.h" />
     <ClInclude Include="src\ui\common\notebook\QAuiDefaultTabArt.h" />
@@ -417,16 +456,19 @@ xcopy ..\third-party\mysql-connector-c++8.0.33\winx64\release\lib64\libssl-1_1-x
     <ClInclude Include="src\ui\home\HomePanel.h" />
     <ClInclude Include="src\ui\home\list\ConnectListItem.h" />
     <ClInclude Include="src\ui\setting\SettingPanel.h" />
+    <ClInclude Include="src\utils\ClipboardUtil.h" />
     <ClInclude Include="src\utils\DateUtil.h" />
     <ClInclude Include="src\utils\EntityUtil.h" />
     <ClInclude Include="src\utils\FileUtil.h" />
     <ClInclude Include="src\utils\Log.h" />
+    <ClInclude Include="src\utils\PerformUtil.h" />
     <ClInclude Include="src\utils\ProfileUtil.h" />
     <ClInclude Include="src\utils\ResourceUtil.h" />
     <ClInclude Include="src\CuteMySQL.h" />
     <ClInclude Include="src\ui\MainView.h" />
     <ClInclude Include="src\ui\LeftPanel.h" />
     <ClInclude Include="src\ui\MainFrame.h" />
+    <ClInclude Include="src\utils\SavePointUtil.h" />
     <ClInclude Include="src\utils\SqlUtil.h" />
     <ClInclude Include="src\utils\StringUtil.h" />
     <ClInclude Include="src\utils\ThreadUtil.h" />

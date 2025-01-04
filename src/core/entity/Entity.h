@@ -105,12 +105,16 @@ typedef struct _UserTable {
 	uint64_t version;
 	std::string rowFormat;
 	std::string collaction;
+	uint64_t autoIncVal = 0;
+	uint64_t dataLength = 0;
+	uint64_t rows = 0;
 	std::string options;
 	std::string comment;
 	std::string createTime;
 	std::string updateTime;
 	std::string checkTime;
 	std::string ddl;
+	bool isAllowAlter = false;
 } UserTable, UserView, UserObject;
 
 typedef std::vector<UserTable> UserTableList;
@@ -130,6 +134,11 @@ typedef struct _UserRoutine {
 	std::string name;
 	int type;
 	std::string ddl;
+	std::string actionSchema; // action to schema, EVENT_OBJECT_SCHEMA
+	std::string actionTable; // action to table, EVENT_OBJECT_TABLE
+	std::string actionTiming;
+	std::string createTime;
+	std::string updateTime;
 	std::string remarks;
 	/*
 	std::string specificName;
@@ -155,12 +164,14 @@ typedef std::list<UserRoutine> UserRoutineList, UserProcedureList, UserFunctionL
 
 // Event
 typedef struct {
+	std::string catalog;
 	std::string schema;
 	std::string name;
 	std::string definer;
+	std::string ddl;
 	std::string timeZone;
 	std::string type;
-	std::string excuteAt;
+	std::string executeAt;
 	std::string intervalValue;
 	std::string intervalField;
 	std::string starts;
@@ -170,6 +181,9 @@ typedef struct {
 	std::string characterSetClient;
 	std::string collationConnection;
 	std::string dbCollation;
+	std::string createTime;
+	std::string updateTime;
+	std::string lastExecute;
 
 } UserEvent;
 typedef std::list<UserEvent> UserEventList;
@@ -320,7 +334,8 @@ typedef struct _ResultInfo {
 
 	// Extend for sql log
 	uint64_t id = 0;
-	uint64_t userDbId = 0;
+	uint64_t connectId = 0;
+	std::string schema;
 	int top = 0;
 	std::string createdAt;
 	int64_t data = 0;
@@ -416,6 +431,15 @@ typedef enum _StructAndDataSetting {
 	DATA_ONLY = 2,
 	STRUCTURE_AND_DATA = 3
 } StructAndDataSetting;
+
+typedef enum {
+	TABLE_OBJECTS = 0,
+	VIEW_OBJECTS = 1,
+	PROCEDURE_OBJECTS = 2,
+	FUNCTION_OBJECTS = 3,
+	TRIGGER_OBJECTS = 4,
+	EVENT_OBJECTS = 5
+} ObjectsPageType;
 
 typedef enum {
 	TABLE_COLUMNS_PAGE = 0,
@@ -589,3 +613,10 @@ typedef struct _ParamElemData {
 } ParamElemData;
 
 typedef std::list<ParamElemData> ParamElemDataList;
+
+// Performace time 
+typedef struct {
+	std::chrono::steady_clock::time_point begin;
+	std::chrono::steady_clock::time_point end;
+	uint64_t elapsedMicroSeconds;
+} PerfTime;

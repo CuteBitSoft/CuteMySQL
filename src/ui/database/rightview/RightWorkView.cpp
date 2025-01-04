@@ -43,26 +43,37 @@
  *********************************************************************/
 #include "RightWorkView.h"
 #include "common/Config.h"
+#include "common/AppContext.h"
+#include "common/MsgClientData.h"
 #include "utils/ResourceUtil.h"
 #include "core/common/Lang.h"
 
 BEGIN_EVENT_TABLE(RightWorkView, wxPanel)
+	EVT_BUTTON(Config::DATABASE_EXEC_SQL_BUTTON_ID, OnClickExecSqlButton)
+
+	// HANDLE MESSAGE 
+	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_OPEN_DATABASE_ID, OnHandleOpenDatabase)
+	EVT_NOTITY_MESSAGE_HANDLE(Config::MSG_TREEVIEW_CLICK_ID, OnHandleClickLeftTreeView)
 END_EVENT_TABLE()
 
 RightWorkView::RightWorkView():QPanel()
 {
+	AppContext::getInstance()->subscribe(this, Config::MSG_OPEN_DATABASE_ID);
+	AppContext::getInstance()->subscribe(this, Config::MSG_TREEVIEW_CLICK_ID);
+
 	init();
 }
 
 RightWorkView::~RightWorkView()
 {
-	
+	AppContext::getInstance()->unsubscribe(this, Config::MSG_OPEN_DATABASE_ID);
+	AppContext::getInstance()->unsubscribe(this, Config::MSG_TREEVIEW_CLICK_ID);
 }
 
 void RightWorkView::init()
 {
 	bkgColor = wxColour(30, 31, 34, 30);
-
+	delegate = nullptr;
 }
 
 void RightWorkView::createControls()
@@ -103,13 +114,6 @@ void RightWorkView::createButtons()
 	createSaveButtons();
 }
 
-void RightWorkView::createSplit()
-{
-	wxBitmap bitmap(imgdir + "split.png", wxBITMAP_TYPE_PNG);
-	wxStaticBitmap * split = new wxStaticBitmap(this, wxID_ANY, wxBitmapBundle(bitmap), wxDefaultPosition, { 20, 20 }, wxCLIP_CHILDREN | wxNO_BORDER);
-	buttonsHoriLayout->Add(split, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
-}
-
 void RightWorkView::createExecButtons()
 {
 	buttonsHoriLayout->AddSpacer(10);
@@ -148,7 +152,9 @@ void RightWorkView::createExecButtons()
 
 void RightWorkView::createQueryButtons()
 {
-	createSplit();
+	auto splitButton = createToolSplit();
+	buttonsHoriLayout->Add(splitButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+
 	wxBitmap normalBitmap(imgdir + "query-button-normal.png", wxBITMAP_TYPE_PNG);
 	wxBitmap pressedBitmap(imgdir + "query-button-pressed.png", wxBITMAP_TYPE_PNG);
 	queryButton = new wxBitmapButton(this, Config::DATABASE_QUERY_BUTTON_ID, wxBitmapBundle(normalBitmap), wxDefaultPosition, {22, 22}, wxCLIP_CHILDREN | wxNO_BORDER);
@@ -179,7 +185,9 @@ void RightWorkView::createQueryButtons()
 
 void RightWorkView::createSaveButtons()
 {
-	createSplit();
+	auto splitButton = createToolSplit();
+	buttonsHoriLayout->Add(splitButton, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+
 	wxBitmap normalBitmap(imgdir + "save-button-normal.png", wxBITMAP_TYPE_PNG);
 	wxBitmap pressedBitmap(imgdir + "save-button-pressed.png", wxBITMAP_TYPE_PNG);
 	saveButton = new wxBitmapButton(this, Config::DATABASE_SAVE_BUTTON_ID, wxBitmapBundle(normalBitmap), wxDefaultPosition, {22, 22}, wxCLIP_CHILDREN | wxNO_BORDER);
@@ -213,11 +221,30 @@ void RightWorkView::createRightMainPenel()
 	rightMainPanel = new RightMainPenel();
 	rightMainPanel->Create(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNO_BORDER);
 	
+	// setup the delegate
+	delegate = rightMainPanel->getDelegate();
 }
 
 void RightWorkView::createRightBarPenel()
 {
 	rightBarPanel = new RightBarPenel();
 	rightBarPanel->Create(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN | wxNO_BORDER);
+}
+
+void RightWorkView::OnClickExecSqlButton(wxCommandEvent& event)
+{
+	delegate->execSelectedSql();
+}
+
+void RightWorkView::OnHandleOpenDatabase(MsgDispatcherEvent& event)
+{
+	delegate->openObjectsPage(TreeObjectType::SCHEMA);
+}
+
+void RightWorkView::OnHandleClickLeftTreeView(MsgDispatcherEvent& event)
+{
+	auto clientData = (MsgClientData*)event.GetClientData();
+	TreeObjectType treeObjectType = (TreeObjectType)clientData->getExtraPtr();
+	delegate->changeObjectsPage(treeObjectType);
 }
 

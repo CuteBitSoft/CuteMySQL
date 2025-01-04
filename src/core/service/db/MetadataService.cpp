@@ -84,6 +84,36 @@ UserEventList MetadataService::getUserEvents(uint64_t connectId, const std::stri
     return userEventRepository->getAll(connectId, schema);
 }
 
+UserTableList MetadataService::getDetailUserTables(uint64_t connectId, const std::string& schema)
+{
+    return getRepository()->getAllDetailList(connectId, schema);
+}
+
+UserViewList MetadataService::getDetailUserViews(uint64_t connectId, const std::string& schema)
+{
+     return userViewRepository->getAllDetailList(connectId, schema);
+}
+
+UserProcedureList MetadataService::getDetailUserProcedures(uint64_t connectId, const std::string& schema)
+{
+    return userRoutineRepository->getAllDetailListByType(connectId, schema, RoutineType::ROUTINE_PROCEDURE);
+}
+
+UserFunctionList MetadataService::getDetailUserFunctions(uint64_t connectId, const std::string& schema)
+{
+    return userRoutineRepository->getAllDetailListByType(connectId, schema, RoutineType::ROUTINE_FUNCTION);
+}
+
+UserTriggerList MetadataService::getDetailUserTriggers(uint64_t connectId, const std::string& schema)
+{
+    return userSchemaObjectRepository->getAllDetailTriggers(connectId, schema);
+}
+
+UserEventList MetadataService::getDetailUserEvents(uint64_t connectId, const std::string& schema)
+{
+    return userEventRepository->getAllDetailList(connectId, schema);
+}
+
 ColumnInfoList MetadataService::getColumnsOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName)
 {
     return tableColumnRepository->getAll(connectId, schema, tableName);
@@ -102,6 +132,11 @@ CharsetInfoList MetadataService::getCharsets(uint64_t connectId)
 CollationInfoList MetadataService::getCollations(uint64_t connectId, const std::string& charset)
 {
     return collationRepository->getAll(connectId, charset);
+}
+
+UserTable MetadataService::getUserTable(uint64_t connectId, const std::string& schema, const std::string& name)
+{
+    return getRepository()->get(connectId, schema, name);
 }
 
 UserView MetadataService::getUserView(uint64_t connectId, const std::string& schema, const std::string& name)

@@ -23,8 +23,10 @@ class UserEventRepository : public BaseUserRepository<UserEventRepository>
 {
 public:
 	UserEventList getAll(uint64_t connectId, const std::string& schema);
+	UserEventList getAllDetailList(uint64_t connectId, const std::string& schema);
 	bool remove(uint64_t connectId, const std::string& schema, const std::string& name);
 private:
 	UserEvent toUserEvent(sql::ResultSet* rs);
+	UserEvent toUserEventDetail(sql::ResultSet* rs);
 };
 

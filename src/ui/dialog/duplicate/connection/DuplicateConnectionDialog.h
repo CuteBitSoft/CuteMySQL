@@ -32,9 +32,10 @@ private:
 	wxBitmapComboBox* connectComboBox;
 	wxTextCtrl* duplcateNameEdit;
 
-	DatabaseSupplier* databaseSupplier = DatabaseSupplier::getInstance();
-	ConnectService* connectService = ConnectService::getInstance();
+	DatabaseSupplier* databaseSupplier;
+	ConnectService* connectService;
 
+	virtual void init();
 	virtual void createInputs();
 	virtual void loadControls();
 

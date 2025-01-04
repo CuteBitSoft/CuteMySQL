@@ -217,7 +217,7 @@ void DuplicateTableDialog::loadControls()
 	sourceDatabaseEdit->SetValue(userDb.name);
 	sourceTableEdit->SetValue(userTable.name);
 
-	delegate->loadForConnectComboBox(targetConnectComboBox);
+	delegate->loadForConnectComboBox(targetConnectComboBox, userConnect.id);
 	delegate->loadForSchemaComboBox(targetDatabaseComboBox,
 		userConnect.id,
 		userDb.name);

@@ -89,5 +89,8 @@ private:
 	//Click Connection menu
 	void OnClickConnectionRefreshMenu(wxCommandEvent & event);
 	void OnClickConnectionManageMenu(wxCommandEvent & event);
+
+	// Click Database menu
+	void OnClickDatabaseOpenMenu(wxCommandEvent & event);
 };
 

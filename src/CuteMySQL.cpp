@@ -33,8 +33,7 @@ bool CuteMySQL::OnInit()
     wxImage::AddHandler(new wxPNGHandler);
 
     context = AppContext::getInstance();
-    mainFrame = new MainFrame();
-    context->setMainFrmWindow((wxWindow*)mainFrame);
+    mainFrame = new MainFrame(); 
     mainFrame->Show(true);
 
     initCoreServices();

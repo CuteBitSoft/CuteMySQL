@@ -45,9 +45,9 @@ public:
 	static void parseSectionSettings(std::string & iniProfilePath, std::string &section, Setting &settings)
 	{
 		// 参考手册：https://learn.microsoft.com/zh-cn/windows/win32/api/winbase/nf-winbase-getprivateprofilesectionw
-		char buff[30720] = {0}; // 返回的数据中，以'\0'结束一个section; 所有的section字符串结束后，最后再加一个\0;
+		char buff[40960] = {0}; // 返回的数据中，以'\0'结束一个section; 所有的section字符串结束后，最后再加一个\0;
 		memset(buff, 0, sizeof(buff));
-		DWORD buff_len = GetPrivateProfileSectionA(section.c_str(), buff,  30720, iniProfilePath.c_str());
+		DWORD buff_len = GetPrivateProfileSectionA(section.c_str(), buff,  40960, iniProfilePath.c_str());
 		if (buff_len == 0) {
 			return ;
 		}

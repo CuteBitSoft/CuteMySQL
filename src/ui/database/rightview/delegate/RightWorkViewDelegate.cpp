@@ -19,10 +19,13 @@
 #include "RightWorkViewDelegate.h"
 #include "utils/StringUtil.h"
 #include "core/common/Lang.h"
+#include "core/entity/Entity.h"
 
 void RightWorkViewDelegate::setup(QNotebook* tabView, std::vector<QueryPage*>& queryPagePtrs, std::vector<TableStructurePage*>& tablePagePtrs)
 {
 	this->tabView = tabView;
+	this->historyPage = nullptr;
+	this->objectsPage = nullptr;
 	this->queryPagePtrs = &queryPagePtrs;
 	this->tablePagePtrs = &tablePagePtrs;
 }
@@ -42,9 +45,142 @@ void RightWorkViewDelegate::createFirstQueryPage()
 
 HistoryPage* RightWorkViewDelegate::createHistoryPage()
 {
-	HistoryPage* historyPage = new HistoryPage();
+	historyPage = new HistoryPage();
 	historyPage->Create(tabView, wxID_ANY, wxDefaultPosition, {200, 200}, wxCLIP_CHILDREN | wxNO_BORDER);
 	auto title = S("history");
 	tabView->AddPage(historyPage, StringUtil::blkToTail(title), false, 1); 
 	return historyPage;
+}
+
+void RightWorkViewDelegate::execSelectedSql()
+{
+	int nPage = tabView->GetSelection();
+	if (nPage < 0) {
+		return;
+	}
+
+	wxWindow * activeWindow = tabView->GetPage(nPage);
+	for (auto pagePtr : *queryPagePtrs) {
+		if (pagePtr && activeWindow == pagePtr) {
+			pagePtr->execAndShow(true);
+		}
+	}
+}
+
+void RightWorkViewDelegate::openObjectsPage(TreeObjectType treeObjectType)
+{
+	// find the objects page in the tabView
+	bool found = false;
+	int nSelPage = tabView->GetSelection();
+	size_t pageCount = tabView->GetPageCount();
+	for (size_t i = 0; i < pageCount; ++i) {
+		wxWindow* pagePtr = tabView->GetPage(i);
+		if (pagePtr->IsKindOf(CLASSINFO(ObjectsPage))) {
+			found = true;
+			objectsPage = (ObjectsPage*)pagePtr;
+			if (nSelPage != static_cast<int>(i)) {
+				tabView->SetSelection(i);
+			}
+		}
+	}
+
+	if (found) {
+		doChangeObjectsPage(treeObjectType);
+		return ;
+	}
+
+	// If Objects page not found, create a new.
+	doCreateObjectsPage(treeObjectType);
+}
+
+void RightWorkViewDelegate::changeObjectsPage(TreeObjectType treeObjectType)
+{
+	// find the objects page in the tabView
+	bool found = false;
+	int nSelPage = tabView->GetSelection();
+	size_t pageCount = tabView->GetPageCount();
+	for (size_t i = 0; i < pageCount; ++i) {
+		wxWindow* pagePtr = tabView->GetPage(i);
+		if (pagePtr->IsKindOf(CLASSINFO(ObjectsPage))) {
+			objectsPage = (ObjectsPage*)pagePtr;
+			if (nSelPage == static_cast<int>(i)) {
+				found = true;
+			}
+		}
+	}
+
+	if (!found) {
+		return ;
+	}
+
+	doChangeObjectsPage(treeObjectType);
+}
+
+
+void RightWorkViewDelegate::doCreateObjectsPage(TreeObjectType treeObjectType)
+{
+	ObjectsPageType pageType;
+	switch (treeObjectType)
+	{
+	case TreeObjectType::SCHEMA:
+	case TreeObjectType::TABLES_FOLDER:
+		pageType = TABLE_OBJECTS;
+		break;
+	case TreeObjectType::VIEWS_FOLDER:
+		pageType = VIEW_OBJECTS;
+		break;
+	case TreeObjectType::STORE_PROCEDURES_FOLDER:
+		pageType = PROCEDURE_OBJECTS;
+		break;
+	case TreeObjectType::FUNCTIONS_FOLDER:
+		pageType = FUNCTION_OBJECTS;
+		break;
+	case TreeObjectType::TRIGGERS_FOLDER:
+		pageType = TRIGGER_OBJECTS;
+		break;
+	case TreeObjectType::EVENTS_FOLDER:
+		pageType = EVENT_OBJECTS;
+		break;
+	default:
+		return;
+	}
+	
+	objectsPage = new ObjectsPage(pageType);
+	objectsPage->Create(tabView, wxID_ANY, wxDefaultPosition, {200, 200}, wxCLIP_CHILDREN | wxNO_BORDER);
+	auto title = S("objects");
+	tabView->InsertPage(0, objectsPage, StringUtil::blkToTail(title), true, 2); // image id: 2 - objects
+}
+
+
+void RightWorkViewDelegate::doChangeObjectsPage(TreeObjectType treeObjectType)
+{
+	assert(objectsPage);
+
+	ObjectsPageType pageType;
+	switch (treeObjectType)
+	{
+	case TreeObjectType::SCHEMA:
+	case TreeObjectType::TABLES_FOLDER:
+		pageType = TABLE_OBJECTS;
+		break;
+	case TreeObjectType::VIEWS_FOLDER:
+		pageType = VIEW_OBJECTS;
+		break;
+	case TreeObjectType::STORE_PROCEDURES_FOLDER:
+		pageType = PROCEDURE_OBJECTS;
+		break;
+	case TreeObjectType::FUNCTIONS_FOLDER:
+		pageType = FUNCTION_OBJECTS;
+		break;
+	case TreeObjectType::TRIGGERS_FOLDER:
+		pageType = TRIGGER_OBJECTS;
+		break;
+	case TreeObjectType::EVENTS_FOLDER:
+		pageType = EVENT_OBJECTS;
+		break;
+	default:
+		return;
+	}
+
+	objectsPage->refreshListView(pageType);
 }

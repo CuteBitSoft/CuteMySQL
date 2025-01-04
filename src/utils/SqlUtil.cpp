@@ -25,7 +25,7 @@ std::regex SqlUtil::selectPat("^select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", 
 std::regex SqlUtil::selectPat2("^with\\s(.*)?\\s?select\\s+(.*)\\s+from\\s+(.*)\\s*(where .*)?", std::regex::icase);
 std::regex SqlUtil::selectPat3("select\\s+(.*)\\s+from\\s+(.*)\\s*(order .*)+", std::regex::icase);
 std::regex SqlUtil::selectPat4("(select\\s+(.*))\\s+from(.*)", std::regex::icase);
-std::regex SqlUtil::explainPat("^explain(query|\\s|plan)+(.*)+", std::regex::icase);
+std::regex SqlUtil::explainPat("^explain(query|\\s|plan)+(.*)+", std::regex::icase); 
 
 std::regex SqlUtil::whereClausePat1("((where)\\s+.*)\\s+(order|group|limit|having|window)+(.*)?", std::regex::icase);
 std::regex SqlUtil::whereClausePat2("(where .*\\)?)+", std::regex::icase);
@@ -47,7 +47,7 @@ std::regex SqlUtil::tblNumSuffixPat("([0-9]+)$");
 std::vector<std::string> SqlUtil::tableTags{ "as", "left", "right", "inner", "cross", "full", "outer", "natural", "join" };
 
 
-bool SqlUtil::isSelectSql(std::string & sql)
+bool SqlUtil::isSelectSql(const std::string & sql)
 {
 	if (sql.empty()) {
 		return false;
@@ -61,7 +61,7 @@ bool SqlUtil::isSelectSql(std::string & sql)
 	return false;
 }
 
-bool SqlUtil::isPragmaStmt(std::string & sql, bool excludeEqual)
+bool SqlUtil::isPragmaStmt(const std::string & sql, bool excludeEqual)
 {
 	if (sql.empty()) {
 		return false;
@@ -73,7 +73,7 @@ bool SqlUtil::isPragmaStmt(std::string & sql, bool excludeEqual)
 	return upsql.find("PRAGMA") == 0;
 }
 
-bool SqlUtil::hasLimitClause(std::string & sql)
+bool SqlUtil::hasLimitClause(const std::string & sql)
 {
 	if (sql.empty()) {
 		return false;
@@ -91,7 +91,7 @@ bool SqlUtil::hasLimitClause(std::string & sql)
  * @param str
  * @return 
  */
-std::string SqlUtil::getColumnName(std::string & str)
+std::string SqlUtil::getColumnName(const std::string & str)
 {
 	if (str.empty()) {
 		return "";
@@ -111,7 +111,7 @@ std::string SqlUtil::getColumnName(std::string & str)
  * @param tables - All tables of databases 
  * @return the vector of table(s)
  */
-std::vector<std::string> SqlUtil::getTablesFromSelectSql(const std::string & selectSql, std::vector<std::string> allTables)
+std::vector<std::string> SqlUtil::getTablesFromSelectSql(const std::string & selectSql, const std::vector<std::string> & allTables)
 {
 	std::vector<std::string> tbls;
 	if (selectSql.empty()) {
@@ -151,7 +151,7 @@ std::vector<std::string> SqlUtil::getTablesFromSelectSql(const std::string & sel
  * @param tblStmt
  * @return The vector of table name(s) such as {tbl1,tbl2}
  */
-std::vector<std::string> SqlUtil::parseTablesFromTableClause(std::string & tblClause)
+std::vector<std::string> SqlUtil::parseTablesFromTableClause(const std::string & tblClause)
 {
 	std::vector<std::string> tbls;
 	if (tblClause.empty()) {
@@ -185,7 +185,7 @@ std::vector<std::string> SqlUtil::parseTablesFromTableClause(std::string & tblCl
  * @param createTblSql
  * @return std::string such as id
  */
-std::string SqlUtil::parsePrimaryKey(std::string & createTblSql)
+std::string SqlUtil::parsePrimaryKey(const std::string & createTblSql)
 {
 	std::smatch results;
 	if (!std::regex_search(createTblSql, results, SqlUtil::primaryKeyPat)) {
@@ -428,7 +428,7 @@ std::string SqlUtil::getFourthClause(const std::string & sql)
  * @param rowChangeVals The change subitem index in only this selected row
  * @return 
  */
-std::string SqlUtil::makeWhereClause(Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals)
+std::string SqlUtil::makeWhereClause(const Columns & columns, const RowItem &rowItem, SubItemValues &rowChangeVals)
 {
 	if (columns.empty() || rowItem.empty() 
 		|| columns.size() != rowItem.size()) {
@@ -474,7 +474,7 @@ std::string SqlUtil::makeWhereClause(Columns & columns, RowItem &rowItem, SubIte
  * @param subItemOrigVal
  * @return 
  */
-std::string SqlUtil::makeWhereClauseByPrimaryKey(std::string & primaryKey, Columns & columns, RowItem &rowItem, SubItemValues &rowChangeVals)
+std::string SqlUtil::makeWhereClauseByPrimaryKey(const std::string & primaryKey, const Columns & columns, const RowItem &rowItem, SubItemValues &rowChangeVals)
 {
 	if (columns.empty() || rowItem.empty() 
 		|| columns.size() != rowItem.size()) {
@@ -510,7 +510,7 @@ std::string SqlUtil::makeWhereClauseByPrimaryKey(std::string & primaryKey, Colum
 	return whereClause;
 }
 
-std::string SqlUtil::makeWhereClauseByRowId(Columns & columns, RowItem &rowItem)
+std::string SqlUtil::makeWhereClauseByRowId(const Columns & columns, const RowItem &rowItem)
 {
 	if (columns.empty() || rowItem.empty() 
 		|| columns.size() != rowItem.size()) {
@@ -531,7 +531,7 @@ std::string SqlUtil::makeWhereClauseByRowId(Columns & columns, RowItem &rowItem)
  * @param columns The columns vector
  * @return 
  */
-std::string SqlUtil::makeInsertColumsClause(Columns & columns)
+std::string SqlUtil::makeInsertColumsClause(const Columns & columns)
 {
 	if (columns.empty()) {
 		return "";
@@ -556,7 +556,7 @@ std::string SqlUtil::makeInsertColumsClause(Columns & columns)
  * @param rowItem The row vector
  * @return 
  */
-std::string SqlUtil::makeInsertValuesClause(RowItem & rowItem)
+std::string SqlUtil::makeInsertValuesClause(const RowItem & rowItem)
 {
 	if (rowItem.empty()) {
 		return "";
@@ -700,26 +700,27 @@ IndexInfo SqlUtil::parseConstraintsForPrimaryKey(const std::string & createTblSq
  * @param bTrim
  * @return string vector 
  */
-std::vector<std::string> SqlUtil::splitTableDDLColumnClausesToLines(std::string str, bool bTrim /*= true*/)
+std::vector<std::string> SqlUtil::splitTableDDLColumnClausesToLines(const std::string & str, bool bTrim /*= true*/)
 {
 	std::string pattern = ","; // column or index clause line split character
 	
 	std::string::size_type pos;
 	std::vector<std::string> result;
-	str.append(pattern); // 扩展字符串以方便操作
+	std::string strv = str;
+	strv.append(pattern); // 扩展字符串以方便操作
 
 	// not found the pattern character between ignore_begin and ignore_end
 	wchar_t ignore_begin = '('; 
 	wchar_t ignore_end = ')'; 
 	
-	size_t size = static_cast<int>(str.size());
+	size_t size = static_cast<int>(strv.size());
 	size_t from = 0;
 	for (size_t i = 0; i < size; i++) {
-		size_t ignore_begin_pos = str.find_first_of(ignore_begin, i);
-		size_t ignore_end_pos = str.find_first_of(ignore_end, i);
-		pos = str.find(pattern, i);
+		size_t ignore_begin_pos = strv.find_first_of(ignore_begin, i);
+		size_t ignore_end_pos = strv.find_first_of(ignore_end, i);
+		pos = strv.find(pattern, i);
 		if (pos < size && (pos < ignore_begin_pos || pos > ignore_end_pos)) {
-			std::string s = str.substr(from, pos - from);
+			std::string s = strv.substr(from, pos - from);
 			if (s.empty()) {
 				i = pos + pattern.size() - 1;
 				continue;
@@ -1559,7 +1560,7 @@ std::string SqlUtil::parseTableAliasFromSelectSql(const std::string & sql, const
  * @param tables - All of table names for sql
  * @return table alias such as : "customer as c" return "c", "customer c" return "c"
  */
-std::string SqlUtil::parseTableAliasFromSelectSqlUpWords(const std::vector<std::string>& upWords, std::string & upTable, const UserTableStrings & tables)
+std::string SqlUtil::parseTableAliasFromSelectSqlUpWords(const std::vector<std::string>& upWords, const std::string & upTable, const UserTableStrings & tables)
 {
 	if (upWords.empty() || upTable.empty() || tables.empty()) {
 		return upTable;

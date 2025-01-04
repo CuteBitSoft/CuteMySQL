@@ -35,11 +35,18 @@ public:
 	~MetadataService();
 	// get object list 
 	UserTableList getUserTables(uint64_t connectId, const std::string& schema);
-	UserViewList getUserViews(uint64_t connectId, const std::string& schema);
+	UserViewList getUserViews(uint64_t connectId, const std::string& schema);	
 	UserProcedureList getUserProcedures(uint64_t connectId, const std::string& schema);
 	UserFunctionList getUserFunctions(uint64_t connectId, const std::string& schema);
 	UserTriggerList getUserTriggers(uint64_t connectId, const std::string& schema);
 	UserEventList getUserEvents(uint64_t connectId, const std::string& schema);
+
+	UserTableList getDetailUserTables(uint64_t connectId, const std::string& schema);
+	UserViewList getDetailUserViews(uint64_t connectId, const std::string& schema);
+	UserProcedureList getDetailUserProcedures(uint64_t connectId, const std::string& schema);
+	UserFunctionList getDetailUserFunctions(uint64_t connectId, const std::string& schema);
+	UserTriggerList getDetailUserTriggers(uint64_t connectId, const std::string& schema);
+	UserEventList getDetailUserEvents(uint64_t connectId, const std::string& schema);
 
 	ColumnInfoList getColumnsOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
 	IndexInfoList getIndexesOfUserTable(uint64_t connectId, const std::string& schema, const std::string& tableName);
@@ -48,6 +55,7 @@ public:
 	CollationInfoList getCollations(uint64_t connectId, const std::string& charset);
 
 	// get one object
+	UserTable getUserTable(uint64_t connectId, const std::string& schema, const std::string& name);
 	UserView getUserView(uint64_t connectId, const std::string& schema, const std::string& name);
 
 	// get object DDL
